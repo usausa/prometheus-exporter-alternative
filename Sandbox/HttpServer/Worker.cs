@@ -101,14 +101,20 @@ internal class Worker : BackgroundService
 
     private static Response CreateResponse()
     {
-        // TODO
         var utcNow = DateTimeOffset.UtcNow;
         var tick = utcNow.ToUnixTimeMilliseconds();
 
         var response = new Response(utcNow);
 
-        response.Write("# TYPE dummy_service_uptime gauge\n");
-        response.Write("dummy_service_uptime{otel_scope_name=\"AlternativeExporter\",host=\"Dummy\"} ");
+        response.Write("# TYPE");
+        response.Write(" ");
+        response.Write("dummy_service_uptime");
+        response.Write(" ");
+        response.Write("gauge");
+        response.Write("\n");
+        //response.Write("dummy_service_uptime{otel_scope_name=\"AlternativeExporter\",host=\"Dummy\"}");
+        response.Write("dummy_service_uptime{otel_scope_name");
+        response.Write(" ");
         response.Write((long)(DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds);
         response.Write(" ");
         response.Write(tick);

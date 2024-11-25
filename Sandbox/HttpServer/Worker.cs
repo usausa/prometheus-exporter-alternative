@@ -78,6 +78,8 @@ internal class Worker : BackgroundService
 
             context.Response.ContentLength64 = response.Size;
             await context.Response.OutputStream.WriteAsync(response.Buffer, stoppingToken).ConfigureAwait(false);
+
+            logger.LogInformation("Request processed.");
         }
         catch (Exception e)
         {
@@ -113,11 +115,11 @@ internal class Worker : BackgroundService
         response.Write("gauge");
         response.Write("\n");
         //response.Write("dummy_service_uptime{otel_scope_name=\"AlternativeExporter\",host=\"Dummy\"}");
-        response.Write("dummy_service_uptime{otel_scope_name");
+        response.Write("dummy_service_uptime");
         response.Write(" ");
         response.Write((long)(DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds);
-        response.Write(" ");
-        response.Write(tick);
+        //response.Write(" ");
+        //response.Write(tick);
         response.Write("\n");
 
         response.Write("# EOF\n");

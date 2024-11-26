@@ -34,7 +34,7 @@ internal sealed class Plugin1 : IDisposable
     private readonly IGauge gauge2A;
     private readonly IGauge gauge2B;
 
-    public Plugin1(MetricsManager manager)
+    public Plugin1(IMetricsManager manager)
     {
         var metrics = manager.CreateMetrics("plugin1_tagged");
         gauge2A = metrics.CreateGauge(new("host", "server"), new("test", "2a"));
@@ -63,7 +63,7 @@ internal sealed class Plugin2 : IDisposable
 
     private int counter;
 
-    public Plugin2(MetricsManager manager)
+    public Plugin2(IMetricsManager manager)
     {
         metrics = manager.CreateMetrics("plugin2_tagged");
 
@@ -101,7 +101,18 @@ internal sealed class Plugin2 : IDisposable
 
 // --------------------------------------------------------------------------------
 
-internal sealed class MetricsManager : IDisposable
+internal interface IMetricsManager
+{
+    IMetrics CreateMetrics(string name);
+
+    void AddBeforeCollectCallback(Action callback);
+
+    void AddBeforeCollectCallback(Func<CancellationToken, Task> callback);
+
+    Task CollectAsync(IBufferWriter<byte> writer, CancellationToken cancel);
+}
+
+internal sealed class MetricsManager : IMetricsManager, IDisposable
 {
     private readonly List<IMetrics> gauges = [];
 

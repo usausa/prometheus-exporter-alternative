@@ -1,0 +1,130 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7C008EA7-BBCA-4BE0-B653-1B37E78AAD52}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		Analyzers.ruleset = Analyzers.ruleset
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		LICENSE = LICENSE
+		PrometheusExporter.sln.DotSettings = PrometheusExporter.sln.DotSettings
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Abstraction", "Abstraction", "{A4092FE0-C30E-4718-8743-36F4DA842E2F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Instrumentation", "Instrumentation", "{98CAF4E3-BB6C-49BE-A2CD-BBAEAD7FAA26}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Generic", "Generic", "{50B68C02-8BAD-4AB2-8811-4AAC35C024A0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows", "Windows", "{599465C6-0652-459C-B110-B2271C7B37F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Service", "Service", "{2306C8A9-F50F-4A1B-8B33-8FC542E5A453}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter", "PrometheusExporter\PrometheusExporter.csproj", "{83E18579-CDF4-4773-9EAD-26DE3525AC51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Abstractions", "PrometheusExporter.Abstractions\PrometheusExporter.Abstractions.csproj", "{598993BA-8111-48EB-A145-6CC1D1601028}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.Ble", "PrometheusExporter.Instrumentation.Ble\PrometheusExporter.Instrumentation.Ble.csproj", "{B2C41703-3481-45D9-A3A8-78E66A15CA15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.DiskInfo", "PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj", "{179DFDAA-4FB8-46A9-86BD-9FFB8CD00C13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.HardwareMonitor", "PrometheusExporter.Instrumentation.HardwareMonitor\PrometheusExporter.Instrumentation.HardwareMonitor.csproj", "{E89D8B3D-8E60-43AA-8067-5DB57BBE7034}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.HyperV", "PrometheusExporter.Instrumentation.HyperV\PrometheusExporter.Instrumentation.HyperV.csproj", "{CF90A423-9AC8-4116-AC7E-8DD34669FE04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.PerformanceCounter", "PrometheusExporter.Instrumentation.PerformanceCounter\PrometheusExporter.Instrumentation.PerformanceCounter.csproj", "{E3F90C82-4745-48AC-A7A8-78541D8895EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.Ping", "PrometheusExporter.Instrumentation.Ping\PrometheusExporter.Instrumentation.Ping.csproj", "{C676B3DB-038C-42CC-9B0D-666EABBF443B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.SensorOmron", "PrometheusExporter.Instrumentation.SensorOmron\PrometheusExporter.Instrumentation.SensorOmron.csproj", "{4AD4275B-9017-4F48-806A-C08154EE6AC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.SwitchBot", "PrometheusExporter.Instrumentation.SwitchBot\PrometheusExporter.Instrumentation.SwitchBot.csproj", "{10AFD0BD-8149-4A8B-BEF5-9704752A4AF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.WFWattch2", "PrometheusExporter.Instrumentation.WFWattch2\PrometheusExporter.Instrumentation.WFWattch2.csproj", "{512FCC14-13DB-45F6-B237-13963B7E0AAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.Wifi", "PrometheusExporter.Instrumentation.Wifi\PrometheusExporter.Instrumentation.Wifi.csproj", "{99B0CDBD-11D9-4A4A-B844-E5C13D4747F8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83E18579-CDF4-4773-9EAD-26DE3525AC51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E18579-CDF4-4773-9EAD-26DE3525AC51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83E18579-CDF4-4773-9EAD-26DE3525AC51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E18579-CDF4-4773-9EAD-26DE3525AC51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{598993BA-8111-48EB-A145-6CC1D1601028}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{598993BA-8111-48EB-A145-6CC1D1601028}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{598993BA-8111-48EB-A145-6CC1D1601028}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{598993BA-8111-48EB-A145-6CC1D1601028}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2C41703-3481-45D9-A3A8-78E66A15CA15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2C41703-3481-45D9-A3A8-78E66A15CA15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2C41703-3481-45D9-A3A8-78E66A15CA15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2C41703-3481-45D9-A3A8-78E66A15CA15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{179DFDAA-4FB8-46A9-86BD-9FFB8CD00C13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{179DFDAA-4FB8-46A9-86BD-9FFB8CD00C13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{179DFDAA-4FB8-46A9-86BD-9FFB8CD00C13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{179DFDAA-4FB8-46A9-86BD-9FFB8CD00C13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E89D8B3D-8E60-43AA-8067-5DB57BBE7034}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E89D8B3D-8E60-43AA-8067-5DB57BBE7034}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E89D8B3D-8E60-43AA-8067-5DB57BBE7034}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E89D8B3D-8E60-43AA-8067-5DB57BBE7034}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF90A423-9AC8-4116-AC7E-8DD34669FE04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF90A423-9AC8-4116-AC7E-8DD34669FE04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF90A423-9AC8-4116-AC7E-8DD34669FE04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF90A423-9AC8-4116-AC7E-8DD34669FE04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3F90C82-4745-48AC-A7A8-78541D8895EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3F90C82-4745-48AC-A7A8-78541D8895EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3F90C82-4745-48AC-A7A8-78541D8895EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3F90C82-4745-48AC-A7A8-78541D8895EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C676B3DB-038C-42CC-9B0D-666EABBF443B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C676B3DB-038C-42CC-9B0D-666EABBF443B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C676B3DB-038C-42CC-9B0D-666EABBF443B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C676B3DB-038C-42CC-9B0D-666EABBF443B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AD4275B-9017-4F48-806A-C08154EE6AC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AD4275B-9017-4F48-806A-C08154EE6AC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AD4275B-9017-4F48-806A-C08154EE6AC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AD4275B-9017-4F48-806A-C08154EE6AC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10AFD0BD-8149-4A8B-BEF5-9704752A4AF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10AFD0BD-8149-4A8B-BEF5-9704752A4AF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10AFD0BD-8149-4A8B-BEF5-9704752A4AF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10AFD0BD-8149-4A8B-BEF5-9704752A4AF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{512FCC14-13DB-45F6-B237-13963B7E0AAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{512FCC14-13DB-45F6-B237-13963B7E0AAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{512FCC14-13DB-45F6-B237-13963B7E0AAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{512FCC14-13DB-45F6-B237-13963B7E0AAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99B0CDBD-11D9-4A4A-B844-E5C13D4747F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99B0CDBD-11D9-4A4A-B844-E5C13D4747F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99B0CDBD-11D9-4A4A-B844-E5C13D4747F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99B0CDBD-11D9-4A4A-B844-E5C13D4747F8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{50B68C02-8BAD-4AB2-8811-4AAC35C024A0} = {98CAF4E3-BB6C-49BE-A2CD-BBAEAD7FAA26}
+		{599465C6-0652-459C-B110-B2271C7B37F3} = {98CAF4E3-BB6C-49BE-A2CD-BBAEAD7FAA26}
+		{83E18579-CDF4-4773-9EAD-26DE3525AC51} = {2306C8A9-F50F-4A1B-8B33-8FC542E5A453}
+		{598993BA-8111-48EB-A145-6CC1D1601028} = {A4092FE0-C30E-4718-8743-36F4DA842E2F}
+		{B2C41703-3481-45D9-A3A8-78E66A15CA15} = {599465C6-0652-459C-B110-B2271C7B37F3}
+		{179DFDAA-4FB8-46A9-86BD-9FFB8CD00C13} = {599465C6-0652-459C-B110-B2271C7B37F3}
+		{E89D8B3D-8E60-43AA-8067-5DB57BBE7034} = {599465C6-0652-459C-B110-B2271C7B37F3}
+		{CF90A423-9AC8-4116-AC7E-8DD34669FE04} = {599465C6-0652-459C-B110-B2271C7B37F3}
+		{E3F90C82-4745-48AC-A7A8-78541D8895EA} = {599465C6-0652-459C-B110-B2271C7B37F3}
+		{C676B3DB-038C-42CC-9B0D-666EABBF443B} = {50B68C02-8BAD-4AB2-8811-4AAC35C024A0}
+		{4AD4275B-9017-4F48-806A-C08154EE6AC4} = {50B68C02-8BAD-4AB2-8811-4AAC35C024A0}
+		{10AFD0BD-8149-4A8B-BEF5-9704752A4AF8} = {599465C6-0652-459C-B110-B2271C7B37F3}
+		{512FCC14-13DB-45F6-B237-13963B7E0AAB} = {50B68C02-8BAD-4AB2-8811-4AAC35C024A0}
+		{99B0CDBD-11D9-4A4A-B844-E5C13D4747F8} = {599465C6-0652-459C-B110-B2271C7B37F3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BEE7B975-6C11-464B-A25C-976957DF0307}
+	EndGlobalSection
+EndGlobal

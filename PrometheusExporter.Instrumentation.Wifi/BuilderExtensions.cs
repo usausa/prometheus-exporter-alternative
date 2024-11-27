@@ -1,6 +1,13 @@
 namespace PrometheusExporter.Instrumentation.Wifi;
 
-public sealed class BuilderExtensions
+using Microsoft.Extensions.DependencyInjection;
+
+using PrometheusExporter.Abstractions;
+
+public static class BuilderExtensions
 {
-    // TODO
+    internal static IInstrumentationBuilder AddWifiInstrumentation(this IInstrumentationBuilder builder, WifiOptions options)
+    {
+        return builder.AddInstrumentation("Wifi", p => new WifiInstrumentation(p.GetRequiredService<IMetricManager>(), options));
+    }
 }

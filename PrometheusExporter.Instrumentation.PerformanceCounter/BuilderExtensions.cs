@@ -1,6 +1,13 @@
 namespace PrometheusExporter.Instrumentation.PerformanceCounter;
 
-public sealed class BuilderExtensions
+using Microsoft.Extensions.DependencyInjection;
+
+using PrometheusExporter.Abstractions;
+
+public static class BuilderExtensions
 {
-    // TODO
+    internal static IInstrumentationBuilder AddPerformanceCounterInstrumentation(this IInstrumentationBuilder builder, PerformanceCounterOptions options)
+    {
+        return builder.AddInstrumentation("PerformanceCounter", p => new PerformanceCounterInstrumentation(p.GetRequiredService<IMetricManager>(), options));
+    }
 }

@@ -2,6 +2,8 @@ using System.Runtime.InteropServices;
 
 using PrometheusExporter;
 using PrometheusExporter.Exporter;
+using PrometheusExporter.Instrumentation;
+using PrometheusExporter.Metrics;
 using PrometheusExporter.Settings;
 
 using Serilog;
@@ -22,7 +24,12 @@ builder.Services
 builder.Logging.ClearProviders();
 builder.Services.AddSerilog(options => options.ReadFrom.Configuration(builder.Configuration));
 
-// TODO
+// Metrics
+builder.Services.AddPrometheusMetrics((metrics, services) =>
+{
+    // TODO
+    metrics.AddExporterInstrumentation(new ExporterOptions());
+});
 
 // Worker
 builder.Services.AddSingleton(new ExporterWorkerOptions

@@ -1,10 +1,12 @@
 namespace PrometheusExporter.Instrumentation.Ping;
 
+using PrometheusExporter.Abstractions;
+
 internal sealed class PingInstrumentation : IDisposable
 {
     private readonly Timer timer;
 
-    public PingInstrumentation()
+    public PingInstrumentation(IMetricManager manager, PingOptions options)
     {
         timer = new Timer(Update, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(8000));
     }

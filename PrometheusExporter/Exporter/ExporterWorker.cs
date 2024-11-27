@@ -3,6 +3,7 @@ namespace PrometheusExporter.Exporter;
 using System.Net;
 
 using PrometheusExporter.Abstractions;
+using PrometheusExporter.Metrics;
 
 internal sealed class ExporterWorker : BackgroundService
 {
@@ -14,12 +15,15 @@ internal sealed class ExporterWorker : BackgroundService
 
     public ExporterWorker(
         ILogger<ExporterWorker> logger,
+        IInstrumentationProvider provider,
         ExporterWorkerOptions options,
         IMetricManager manager)
     {
         this.logger = logger;
         this.options = options;
         this.manager = manager;
+
+        provider.Setup();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

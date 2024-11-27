@@ -3,11 +3,13 @@ namespace PrometheusExporter.Instrumentation;
 using System.Diagnostics;
 
 using PrometheusExporter.Abstractions;
+using PrometheusExporter.Metrics;
 
 internal sealed class ExporterInstrumentation
 {
     public ExporterInstrumentation(
         IMetricManager manager,
+        IInstrumentationProvider provider,
         ExporterOptions options)
     {
         // Uptime
@@ -20,9 +22,9 @@ internal sealed class ExporterInstrumentation
 
         // Instrumentation
         var instrumentationMetric = manager.CreateMetric("exporter_instrumentation");
-        foreach (var instrumentation in options.InstrumentationList)
+        foreach (var registration in provider.Registrations)
         {
-            var gauge = instrumentationMetric.CreateGauge(new("host", options.Host), new("name", instrumentation));
+            var gauge = instrumentationMetric.CreateGauge(new("host", options.Host), new("name", registration.Name));
             gauge.Value = 1;
         }
     }

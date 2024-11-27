@@ -1,6 +1,13 @@
 namespace PrometheusExporter.Instrumentation.HardwareMonitor;
 
-public sealed class BuilderExtensions
+using Microsoft.Extensions.DependencyInjection;
+
+using PrometheusExporter.Abstractions;
+
+public static class BuilderExtensions
 {
-    // TODO
+    internal static IInstrumentationBuilder AddHardwareMonitorInstrumentation(this IInstrumentationBuilder builder, HardwareMonitorOptions options)
+    {
+        return builder.AddInstrumentation("HardwareMonitor", p => new HardwareMonitorInstrumentation(p.GetRequiredService<IMetricManager>(), options));
+    }
 }

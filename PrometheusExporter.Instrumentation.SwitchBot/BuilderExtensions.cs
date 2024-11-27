@@ -1,6 +1,13 @@
 namespace PrometheusExporter.Instrumentation.SwitchBot;
 
-public sealed class BuilderExtensions
+using Microsoft.Extensions.DependencyInjection;
+
+using PrometheusExporter.Abstractions;
+
+public static class BuilderExtensions
 {
-    // TODO
+    internal static IInstrumentationBuilder AddSwitchBotInstrumentation(this IInstrumentationBuilder builder, SwitchBotOptions options)
+    {
+        return builder.AddInstrumentation("SwitchBot", p => new SwitchBotInstrumentation(p.GetRequiredService<IMetricManager>(), options));
+    }
 }

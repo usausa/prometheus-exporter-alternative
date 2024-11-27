@@ -3,6 +3,30 @@ using System.Runtime.InteropServices;
 using PrometheusExporter;
 using PrometheusExporter.Exporter;
 using PrometheusExporter.Instrumentation;
+#if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.Ble;
+#endif
+#if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.DiskInfo;
+#endif
+#if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.HardwareMonitor;
+#endif
+#if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.HyperV;
+#endif
+#if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.PerformanceCounter;
+#endif
+using PrometheusExporter.Instrumentation.Ping;
+using PrometheusExporter.Instrumentation.SensorOmron;
+#if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.SwitchBot;
+#endif
+using PrometheusExporter.Instrumentation.WFWattch2;
+#if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.Wifi;
+#endif
 using PrometheusExporter.Metrics;
 using PrometheusExporter.Settings;
 
@@ -25,10 +49,76 @@ builder.Logging.ClearProviders();
 builder.Services.AddSerilog(options => options.ReadFrom.Configuration(builder.Configuration));
 
 // Metrics
-builder.Services.AddPrometheusMetrics((metrics, services) =>
+builder.Services.AddPrometheusMetrics((metrics, _) =>
 {
-    // TODO
-    metrics.AddExporterInstrumentation(new ExporterOptions());
+    var host = setting.Host ?? Environment.MachineName;
+
+    if (setting.EnableApplication)
+    {
+        metrics.AddApplicationInstrumentation(new ApplicationOptions { Host = host });
+    }
+
+#if WINDOWS_EXPORTER
+    if (setting.EnableBle)
+    {
+        setting.Ble.Host = String.IsNullOrWhiteSpace(setting.Ble.Host) ? host : setting.Ble.Host;
+        metrics.AddBleInstrumentation(setting.Ble);
+    }
+#endif
+#if WINDOWS_EXPORTER
+    if (setting.EnableDiskInfo)
+    {
+        setting.DiskInfo.Host = String.IsNullOrWhiteSpace(setting.DiskInfo.Host) ? host : setting.DiskInfo.Host;
+        metrics.AddDiskInfoInstrumentation(setting.DiskInfo);
+    }
+#endif
+#if WINDOWS_EXPORTER
+    if (setting.EnableHardwareMonitor)
+    {
+        setting.HardwareMonitor.Host = String.IsNullOrWhiteSpace(setting.HardwareMonitor.Host) ? host : setting.HardwareMonitor.Host;
+        metrics.AddHardwareMonitorInstrumentation(setting.HardwareMonitor);
+    }
+#endif
+#if WINDOWS_EXPORTER
+    if (setting.EnableHyperV)
+    {
+        setting.HyperV.Host = String.IsNullOrWhiteSpace(setting.HyperV.Host) ? host : setting.HyperV.Host;
+        metrics.AddHyperVInstrumentation(setting.HyperV);
+    }
+#endif
+#if WINDOWS_EXPORTER
+    if (setting.EnablePerformanceCounter)
+    {
+        setting.PerformanceCounter.Host = String.IsNullOrWhiteSpace(setting.PerformanceCounter.Host) ? host : setting.PerformanceCounter.Host;
+        metrics.AddPerformanceCounterInstrumentation(setting.PerformanceCounter);
+    }
+#endif
+    if (setting.EnablePing)
+    {
+        setting.Ping.Host = String.IsNullOrWhiteSpace(setting.Ping.Host) ? host : setting.Ping.Host;
+        metrics.AddPingInstrumentation(setting.Ping);
+    }
+    if (setting.EnableSensorOmron)
+    {
+        metrics.AddSensorOmronInstrumentation(setting.SensorOmron);
+    }
+    if (setting.EnableWFWattch2)
+    {
+        metrics.AddWFWattch2Instrumentation(setting.WFWattch2);
+    }
+#if WINDOWS_EXPORTER
+    if (setting.EnableSwitchBot)
+    {
+        metrics.AddSwitchBotInstrumentation(setting.SwitchBot);
+    }
+#endif
+#if WINDOWS_EXPORTER
+    if (setting.EnableWifi)
+    {
+        setting.Wifi.Host = String.IsNullOrWhiteSpace(setting.Wifi.Host) ? host : setting.Wifi.Host;
+        metrics.AddWifiInstrumentation(setting.Wifi);
+    }
+#endif
 });
 
 // Worker

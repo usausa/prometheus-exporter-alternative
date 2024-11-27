@@ -5,12 +5,12 @@ using System.Diagnostics;
 using PrometheusExporter.Abstractions;
 using PrometheusExporter.Metrics;
 
-internal sealed class ExporterInstrumentation
+internal sealed class ApplicationInstrumentation
 {
-    public ExporterInstrumentation(
+    public ApplicationInstrumentation(
         IMetricManager manager,
         IInstrumentationProvider provider,
-        ExporterOptions options)
+        ApplicationOptions options)
     {
         // Uptime
         var uptimeMetric = manager.CreateMetric("exporter_uptime");

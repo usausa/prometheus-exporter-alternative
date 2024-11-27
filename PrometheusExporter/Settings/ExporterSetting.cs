@@ -1,27 +1,27 @@
 namespace PrometheusExporter.Settings;
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.Ble;
 #endif
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.DiskInfo;
 #endif
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.HardwareMonitor;
 #endif
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.HyperV;
 #endif
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.PerformanceCounter;
 #endif
 using PrometheusExporter.Instrumentation.SensorOmron;
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.SwitchBot;
 #endif
 using PrometheusExporter.Instrumentation.Ping;
 using PrometheusExporter.Instrumentation.WFWattch2;
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.Wifi;
 #endif
 
@@ -38,7 +38,7 @@ public sealed class ExporterSetting
 
     // Ble
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
     public bool EnableBle { get; set; }
 
     public BleOptions Ble { get; set; } = new();
@@ -46,7 +46,7 @@ public sealed class ExporterSetting
 
     // DiskInfo
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
     public bool EnableDiskInfo { get; set; }
 
     public DiskInfoOptions DiskInfo { get; set; } = new();
@@ -54,7 +54,7 @@ public sealed class ExporterSetting
 
     // HardwareMonitor
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
     public bool EnableHardwareMonitor { get; set; }
 
     public HardwareMonitorOptions HardwareMonitor { get; set; } = new();
@@ -62,7 +62,7 @@ public sealed class ExporterSetting
 
     // HardwareMonitor
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
     public bool EnableHyperV { get; set; }
 
     public HyperVOptions HyperV { get; set; } = new();
@@ -70,7 +70,7 @@ public sealed class ExporterSetting
 
     // PerformanceCounter
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
     public bool EnablePerformanceCounter { get; set; }
 
     public PerformanceCounterOptions PerformanceCounter { get; set; } = new();
@@ -90,7 +90,7 @@ public sealed class ExporterSetting
 
     // SwitchBot
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
     public bool EnableSwitchBot { get; set; }
 
     public SwitchBotOptions SwitchBot { get; set; } = new();
@@ -104,7 +104,7 @@ public sealed class ExporterSetting
 
     // Wifi
 
-#if WINDOWS_TELEMETRY
+#if WINDOWS_EXPORTER
     public bool EnableWifi { get; set; }
 
     public WifiOptions Wifi { get; set; } = new();

@@ -6,7 +6,7 @@ using PrometheusExporter.Abstractions;
 
 public static class BuilderExtensions
 {
-    internal static IInstrumentationBuilder AddSwitchBotInstrumentation(this IInstrumentationBuilder builder, SwitchBotOptions options)
+    public static IInstrumentationBuilder AddSwitchBotInstrumentation(this IInstrumentationBuilder builder, SwitchBotOptions options)
     {
         return builder.AddInstrumentation("SwitchBot", p => new SwitchBotInstrumentation(p.GetRequiredService<IMetricManager>(), options));
     }

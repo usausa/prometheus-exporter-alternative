@@ -5,8 +5,8 @@ using PrometheusExporter.Metrics;
 
 public static class BuilderExtensions
 {
-    internal static IInstrumentationBuilder AddExporterInstrumentation(this IInstrumentationBuilder builder, ExporterOptions options)
+    internal static IInstrumentationBuilder AddApplicationInstrumentation(this IInstrumentationBuilder builder, ApplicationOptions options)
     {
-        return builder.AddInstrumentation("Exporter", p => new ExporterInstrumentation(p.GetRequiredService<IMetricManager>(), p.GetRequiredService<IInstrumentationProvider>(), options));
+        return builder.AddInstrumentation("Application", p => new ApplicationInstrumentation(p.GetRequiredService<IMetricManager>(), p.GetRequiredService<IInstrumentationProvider>(), options));
     }
 }

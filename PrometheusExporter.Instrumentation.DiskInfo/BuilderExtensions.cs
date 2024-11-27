@@ -6,7 +6,7 @@ using PrometheusExporter.Abstractions;
 
 public static class BuilderExtensions
 {
-    internal static IInstrumentationBuilder AddDiskInfoInstrumentation(this IInstrumentationBuilder builder, DiskInfoOptions options)
+    public static IInstrumentationBuilder AddDiskInfoInstrumentation(this IInstrumentationBuilder builder, DiskInfoOptions options)
     {
         return builder.AddInstrumentation("DiskInfo", p => new DiskInfoInstrumentation(p.GetRequiredService<IMetricManager>(), options));
     }

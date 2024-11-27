@@ -2,7 +2,7 @@ namespace PrometheusExporter.Metrics;
 
 using PrometheusExporter.Abstractions;
 
-public static class ServiceExtensions
+internal static class ServiceExtensions
 {
     public static IServiceCollection AddPrometheusMetrics(this IServiceCollection services, Action<IInstrumentationBuilder, IServiceCollection> configure)
     {

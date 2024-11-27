@@ -6,7 +6,7 @@ using PrometheusExporter.Abstractions;
 
 public static class BuilderExtensions
 {
-    internal static IInstrumentationBuilder AddHardwareMonitorInstrumentation(this IInstrumentationBuilder builder, HardwareMonitorOptions options)
+    public static IInstrumentationBuilder AddHardwareMonitorInstrumentation(this IInstrumentationBuilder builder, HardwareMonitorOptions options)
     {
         return builder.AddInstrumentation("HardwareMonitor", p => new HardwareMonitorInstrumentation(p.GetRequiredService<IMetricManager>(), options));
     }

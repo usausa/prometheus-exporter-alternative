@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
-    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+    <DefineConstants>$(DefineConstants);WINDOWS_EXPORTER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

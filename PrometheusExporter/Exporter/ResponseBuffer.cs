@@ -5,7 +5,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 
 #pragma warning disable IDE0032
-public sealed class ResponseBuffer<T> : IBufferWriter<T>, IDisposable
+internal sealed class ResponseBuffer<T> : IBufferWriter<T>, IDisposable
 {
     private T[] buffer;
 

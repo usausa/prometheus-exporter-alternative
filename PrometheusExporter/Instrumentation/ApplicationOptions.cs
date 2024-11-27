@@ -1,6 +1,6 @@
 namespace PrometheusExporter.Instrumentation;
 
-internal sealed class ExporterOptions
+public sealed class ApplicationOptions
 {
     public string Host { get; set; } = default!;
 }

@@ -6,7 +6,7 @@ using PrometheusExporter.Abstractions;
 
 public static class BuilderExtensions
 {
-    internal static IInstrumentationBuilder AddSensorOmronInstrumentation(this IInstrumentationBuilder builder, SensorOmronOptions options)
+    public static IInstrumentationBuilder AddSensorOmronInstrumentation(this IInstrumentationBuilder builder, SensorOmronOptions options)
     {
         return builder.AddInstrumentation("SensorOmron", p => new SensorOmronInstrumentation(p.GetRequiredService<IMetricManager>(), options));
     }

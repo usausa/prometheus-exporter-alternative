@@ -1,6 +1,6 @@
 namespace PrometheusExporter.Instrumentation.SensorOmron;
 
-public sealed class DeviceEntry
+public sealed class SensorEntry
 {
     public string Port { get; set; } = default!;
 
@@ -12,6 +12,6 @@ public sealed class SensorOmronOptions
 {
     public int Interval { get; set; } = 5000;
 
-    public DeviceEntry[] Device { get; set; } = default!;
+    public SensorEntry[] Sensor { get; set; } = default!;
 }
 #pragma warning restore CA1819

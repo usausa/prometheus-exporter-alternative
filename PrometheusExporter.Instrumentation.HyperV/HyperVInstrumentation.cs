@@ -7,5 +7,10 @@ internal sealed class HyperVInstrumentation
     // TODO
     public HyperVInstrumentation(IMetricManager manager, HyperVOptions options)
     {
+        manager.AddBeforeCollectCallback(Update);
+    }
+
+    private void Update()
+    {
     }
 }

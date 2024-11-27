@@ -7,5 +7,10 @@ internal sealed class HardwareMonitorInstrumentation
     // TODO
     public HardwareMonitorInstrumentation(IMetricManager manager, HardwareMonitorOptions options)
     {
+        manager.AddBeforeCollectCallback(Update);
+    }
+
+    private void Update()
+    {
     }
 }

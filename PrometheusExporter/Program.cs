@@ -58,32 +58,13 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
         metrics.AddApplicationInstrumentation(new ApplicationOptions { Host = host });
     }
 
-#if WINDOWS_EXPORTER
-    if (setting.EnableBle)
-    {
-        setting.Ble.Host = String.IsNullOrWhiteSpace(setting.Ble.Host) ? host : setting.Ble.Host;
-        metrics.AddBleInstrumentation(setting.Ble);
-    }
-#endif
-#if WINDOWS_EXPORTER
-    if (setting.EnableDiskInfo)
-    {
-        setting.DiskInfo.Host = String.IsNullOrWhiteSpace(setting.DiskInfo.Host) ? host : setting.DiskInfo.Host;
-        metrics.AddDiskInfoInstrumentation(setting.DiskInfo);
-    }
-#endif
+    // System
+
 #if WINDOWS_EXPORTER
     if (setting.EnableHardwareMonitor)
     {
         setting.HardwareMonitor.Host = String.IsNullOrWhiteSpace(setting.HardwareMonitor.Host) ? host : setting.HardwareMonitor.Host;
         metrics.AddHardwareMonitorInstrumentation(setting.HardwareMonitor);
-    }
-#endif
-#if WINDOWS_EXPORTER
-    if (setting.EnableHyperV)
-    {
-        setting.HyperV.Host = String.IsNullOrWhiteSpace(setting.HyperV.Host) ? host : setting.HyperV.Host;
-        metrics.AddHyperVInstrumentation(setting.HyperV);
     }
 #endif
 #if WINDOWS_EXPORTER
@@ -93,15 +74,26 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
         metrics.AddPerformanceCounterInstrumentation(setting.PerformanceCounter);
     }
 #endif
-    if (setting.EnablePing)
+#if WINDOWS_EXPORTER
+    if (setting.EnableDiskInfo)
     {
-        setting.Ping.Host = String.IsNullOrWhiteSpace(setting.Ping.Host) ? host : setting.Ping.Host;
-        metrics.AddPingInstrumentation(setting.Ping);
+        setting.DiskInfo.Host = String.IsNullOrWhiteSpace(setting.DiskInfo.Host) ? host : setting.DiskInfo.Host;
+        metrics.AddDiskInfoInstrumentation(setting.DiskInfo);
     }
-    if (setting.EnableSensorOmron)
+#endif
+
+    // VirtualMachine
+
+#if WINDOWS_EXPORTER
+    if (setting.EnableHyperV)
     {
-        metrics.AddSensorOmronInstrumentation(setting.SensorOmron);
+        setting.HyperV.Host = String.IsNullOrWhiteSpace(setting.HyperV.Host) ? host : setting.HyperV.Host;
+        metrics.AddHyperVInstrumentation(setting.HyperV);
     }
+#endif
+
+    // Sensor
+
     if (setting.EnableWFWattch2)
     {
         metrics.AddWFWattch2Instrumentation(setting.WFWattch2);
@@ -112,6 +104,20 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
         metrics.AddSwitchBotInstrumentation(setting.SwitchBot);
     }
 #endif
+    if (setting.EnableSensorOmron)
+    {
+        metrics.AddSensorOmronInstrumentation(setting.SensorOmron);
+    }
+
+    // Network
+
+#if WINDOWS_EXPORTER
+    if (setting.EnableBle)
+    {
+        setting.Ble.Host = String.IsNullOrWhiteSpace(setting.Ble.Host) ? host : setting.Ble.Host;
+        metrics.AddBleInstrumentation(setting.Ble);
+    }
+#endif
 #if WINDOWS_EXPORTER
     if (setting.EnableWifi)
     {
@@ -119,6 +125,11 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
         metrics.AddWifiInstrumentation(setting.Wifi);
     }
 #endif
+    if (setting.EnablePing)
+    {
+        setting.Ping.Host = String.IsNullOrWhiteSpace(setting.Ping.Host) ? host : setting.Ping.Host;
+        metrics.AddPingInstrumentation(setting.Ping);
+    }
 });
 
 // Worker

@@ -26,12 +26,7 @@ internal sealed class SensorOmronInstrumentation : IDisposable
         sensors = options.Sensor
             .Select(x =>
             {
-                var tags = new KeyValuePair<string, object?>[]
-                {
-                    new("model", "rbt"),
-                    new("address", x.Port),
-                    new("name", x.Name)
-                };
+                var tags = MakeTags(x);
                 return new Sensor(
                     temperatureMetric.CreateGauge(tags),
                     humidityMetric.CreateGauge(tags),
@@ -59,11 +54,22 @@ internal sealed class SensorOmronInstrumentation : IDisposable
         }
     }
 
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
         await Task.WhenAll(sensors.Select(static x => x.UpdateAsync()));
     }
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    private static KeyValuePair<string, object?>[] MakeTags(SensorEntry entry) =>
+        [new("model", "rbt"), new("address", entry.Port), new("name", entry.Name)];
 
     //--------------------------------------------------------------------------------
     // Sensor

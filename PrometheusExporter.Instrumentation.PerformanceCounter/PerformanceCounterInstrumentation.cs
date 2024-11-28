@@ -19,7 +19,7 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
 
         foreach (var entry in options.Counter)
         {
-            var metric = manager.CreateMetric($"{options.Prefix}.{entry.Name}");
+            var metric = manager.CreateMetric($"{options.Prefix}_{entry.Name}");
 
             foreach (var counter in CreateCounters(entry.Category, entry.Counter, entry.Instance))
             {
@@ -50,6 +50,10 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
             counter.Dispose();
         }
     }
+
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
 
     private void Update()
     {

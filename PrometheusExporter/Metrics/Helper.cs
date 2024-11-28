@@ -13,7 +13,7 @@ internal static class Helper
     private const byte Comma = (byte)',';
     private const byte Equal = (byte)'=';
     private const byte Quote = (byte)'"';
-    private const byte Solidus = (byte)'\\';
+    private const byte BackSlash = (byte)'\\';
 
     public static Tag[] PrepareTags(KeyValuePair<string, object?>[] tags)
     {
@@ -111,15 +111,15 @@ internal static class Helper
             switch (ordinal)
             {
                 case Quote:
-                    span[written++] = Solidus;
+                    span[written++] = BackSlash;
                     span[written++] = Quote;
                     break;
-                case Solidus:
-                    span[written++] = Solidus;
-                    span[written++] = Solidus;
+                case BackSlash:
+                    span[written++] = BackSlash;
+                    span[written++] = BackSlash;
                     break;
                 case LineFeed:
-                    span[written++] = Solidus;
+                    span[written++] = BackSlash;
                     span[written++] = unchecked((byte)'n');
                     break;
                 default:

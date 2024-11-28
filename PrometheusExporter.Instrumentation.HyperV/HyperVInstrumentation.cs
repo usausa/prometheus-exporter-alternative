@@ -10,6 +10,10 @@ internal sealed class HyperVInstrumentation
         manager.AddBeforeCollectCallback(Update);
     }
 
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
     private void Update()
     {
     }

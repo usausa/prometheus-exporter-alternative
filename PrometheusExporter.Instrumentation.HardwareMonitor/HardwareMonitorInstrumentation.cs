@@ -10,6 +10,10 @@ internal sealed class HardwareMonitorInstrumentation
         manager.AddBeforeCollectCallback(Update);
     }
 
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
     private void Update()
     {
     }

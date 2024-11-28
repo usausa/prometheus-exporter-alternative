@@ -16,19 +16,10 @@ internal sealed class PingInstrumentation : IDisposable
         var timeMetric = manager.CreateMetric("ping_result_time");
 
         targets = options.Target
-            .Select(x =>
-            {
-                var tags = new KeyValuePair<string, object?>[]
-                {
-                    new("host", options.Host),
-                    new("address", x.Address),
-                    new("name", x.Name ?? x.Address)
-                };
-                return new Target(
-                    timeMetric.CreateGauge(tags),
-                    options.Timeout,
-                    Dns.GetHostAddresses(x.Address)[0]);
-            })
+            .Select(x => new Target(
+                timeMetric.CreateGauge(MakeTags(options.Host, x)),
+                options.Timeout,
+                Dns.GetHostAddresses(x.Address)[0]))
             .ToArray();
 
         timer = new Timer(Update, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(options.Interval));
@@ -43,11 +34,22 @@ internal sealed class PingInstrumentation : IDisposable
         }
     }
 
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
         await Task.WhenAll(targets.Select(async static x => await x.UpdateAsync()));
     }
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    private static KeyValuePair<string, object?>[] MakeTags(string host, TargetEntry entry) =>
+        [new("host", host), new("address", entry.Address), new("name", entry.Name ?? entry.Address)];
 
     //--------------------------------------------------------------------------------
     // Target

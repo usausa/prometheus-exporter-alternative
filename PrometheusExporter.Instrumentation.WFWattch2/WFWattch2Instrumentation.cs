@@ -22,12 +22,7 @@ internal sealed class WFWattch2Instrumentation : IDisposable
         devices = options.Device
             .Select(x =>
             {
-                var tags = new KeyValuePair<string, object?>[]
-                {
-                    new("model", "wfwatch2"),
-                    new("address", x.Address),
-                    new("name", x.Name)
-                };
+                var tags = MakeTags(x);
                 return new Device(
                     powerMetric.CreateGauge(tags),
                     currentMetric.CreateGauge(tags),
@@ -48,11 +43,22 @@ internal sealed class WFWattch2Instrumentation : IDisposable
         }
     }
 
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
         await Task.WhenAll(devices.Select(static x => x.UpdateAsync()));
     }
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    private static KeyValuePair<string, object?>[] MakeTags(DeviceEntry entry) =>
+        [new("model", "wfwatch2"), new("address", entry.Address), new("name", entry.Name)];
 
     //--------------------------------------------------------------------------------
     // Device

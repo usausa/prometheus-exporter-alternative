@@ -17,11 +17,11 @@ public sealed class CounterEntry
 #pragma warning disable CA1819
 public sealed class PerformanceCounterOptions
 {
+    public string Host { get; set; } = default!;
+
     public int UpdateDuration { get; set; } = 1000;
 
     public string Prefix { get; set; } = "performance";
-
-    public string Host { get; set; } = default!;
 
     public CounterEntry[] Counter { get; set; } = default!;
 }

@@ -8,9 +8,9 @@ using PrometheusExporter.Abstractions;
 
 internal sealed class WifiInstrumentation
 {
-    private readonly TimeSpan updateDuration;
-
     private readonly string host;
+
+    private readonly TimeSpan updateDuration;
 
     private readonly int signalThreshold;
 
@@ -26,8 +26,8 @@ internal sealed class WifiInstrumentation
 
     public WifiInstrumentation(IMetricManager manager, WifiOptions options)
     {
-        updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
         host = options.Host;
+        updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
         signalThreshold = options.SignalThreshold;
         knownOnly = options.KnownOnly;
         knownAccessPoints = options.KnownAccessPoint.Select(NormalizeAddress).ToHashSet();
@@ -55,8 +55,8 @@ internal sealed class WifiInstrumentation
             ap.Detected = false;
         }
 
+        // Update
         var added = false;
-        // ReSharper disable once LoopCanBeConvertedToQuery
         foreach (var network in NativeWifi.EnumerateBssNetworks())
         {
             if (network.SignalStrength <= signalThreshold)
@@ -97,7 +97,7 @@ internal sealed class WifiInstrumentation
             if (!ap.Detected)
             {
                 accessPoints.RemoveAt(i);
-                ap.Rssi.Remove();
+                ap.Unregister();
             }
         }
 
@@ -148,6 +148,11 @@ internal sealed class WifiInstrumentation
             Bssid = bssid;
             Ssid = ssid;
             Rssi = rssi;
+        }
+
+        public void Unregister()
+        {
+            Rssi.Remove();
         }
     }
 }

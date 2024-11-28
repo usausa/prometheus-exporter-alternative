@@ -40,7 +40,7 @@ internal sealed class SwitchBotInstrumentation : IDisposable
                     humidityMetric.CreateGauge(tags),
                     co2Metric.CreateGauge(tags)));
             }
-            else if (entry.Type ==  DeviceType.PlugMini)
+            else if (entry.Type == DeviceType.PlugMini)
             {
                 var tags = MakeTags(address, entry.Name);
                 devices.Add(new PlugMiniDevice(

@@ -63,11 +63,11 @@ internal sealed class BleInstrumentation : IDisposable
         lock (sync)
         {
             var device = default(Device);
-            foreach (var detectedDevice in devices)
+            foreach (var d in devices)
             {
-                if (detectedDevice.Address == args.BluetoothAddress)
+                if (d.Address == args.BluetoothAddress)
                 {
-                    device = detectedDevice;
+                    device = d;
                     break;
                 }
             }
@@ -100,7 +100,7 @@ internal sealed class BleInstrumentation : IDisposable
                 if ((now - device.LastUpdate) > timeThreshold)
                 {
                     devices.RemoveAt(i);
-                    device.Rssi.Remove();
+                    device.Remove();
                 }
             }
         }
@@ -136,6 +136,11 @@ internal sealed class BleInstrumentation : IDisposable
         {
             Address = address;
             Rssi = rssi;
+        }
+
+        public void Remove()
+        {
+            Rssi.Remove();
         }
     }
 }

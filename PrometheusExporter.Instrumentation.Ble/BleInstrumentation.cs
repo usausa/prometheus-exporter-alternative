@@ -10,7 +10,7 @@ internal sealed class BleInstrumentation : IDisposable
 
     private readonly int signalThreshold;
 
-    private readonly int timeThreshold; // TODO TimeSpan?
+    private readonly TimeSpan timeThreshold;
 
     private readonly bool knownOnly;
 
@@ -18,16 +18,17 @@ internal sealed class BleInstrumentation : IDisposable
 
     private readonly IMetric metric;
 
-    //private readonly SortedDictionary<ulong, Device> detectedDevices = [];
+    private readonly object sync = new();
+
+    private readonly List<Device> detectedDevices = [];
 
     private readonly BluetoothLEAdvertisementWatcher watcher;
 
-    // TODO
     public BleInstrumentation(IMetricManager manager, BleOptions options)
     {
         host = options.Host;
         signalThreshold = options.SignalThreshold;
-        timeThreshold = options.TimeThreshold;
+        timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
         knownOnly = options.KnownOnly;
         knownDevices = options.KnownDevice
             .ToDictionary(static x => Convert.ToUInt64(x.Address.Replace(":", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal), 16));
@@ -61,19 +62,62 @@ internal sealed class BleInstrumentation : IDisposable
             return;
         }
 
-        // TODO
+        lock (sync)
+        {
+            var device = default(Device);
+            foreach (var detectedDevice in detectedDevices)
+            {
+                if (detectedDevice.Address == args.BluetoothAddress)
+                {
+                    device = detectedDevice;
+                    break;
+                }
+            }
+
+            if (device is null)
+            {
+                var entry = knownDevices.GetValueOrDefault(args.BluetoothAddress);
+                if (knownOnly && (entry is null))
+                {
+                    return;
+                }
+
+                device = new Device(args.BluetoothAddress, metric.CreateGauge(MakeTags(args.BluetoothAddress, entry)));
+                detectedDevices.Add(device);
+            }
+
+            device.Gauge.Value = args.RawSignalStrengthInDBm;
+            device.LastUpdate = DateTime.Now;
+        }
     }
 
     public void Update()
     {
-        // TODO remove old entry
+        lock (sync)
+        {
+            var now = DateTime.Now;
+            for (var i = detectedDevices.Count - 1; i >= 0; i--)
+            {
+                var device = detectedDevices[i];
+                if ((now - device.LastUpdate) > timeThreshold)
+                {
+                    detectedDevices.RemoveAt(i);
+                    device.Gauge.Remove();
+                }
+            }
+        }
     }
 
     //--------------------------------------------------------------------------------
     // Helper
     //--------------------------------------------------------------------------------
 
-    // TODO
+    private KeyValuePair<string, object?>[] MakeTags(ulong bluetoothAddress, DeviceEntry? device)
+    {
+        var address = $"{bluetoothAddress:X12}";
+        var name = device?.Name ?? $"({address})";
+        return [new("host", host), new("address", address), new("name", name)];
+    }
 
     //--------------------------------------------------------------------------------
     // Device

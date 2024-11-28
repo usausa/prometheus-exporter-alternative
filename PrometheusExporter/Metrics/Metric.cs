@@ -19,13 +19,16 @@ internal sealed class Metric : IMetric
 
     void IMetric.Write(IBufferWriter<byte> writer)
     {
-        Helper.WriteType(writer, name);
-
         lock (sync)
         {
-            foreach (var entry in entries)
+            if (entries.Count > 0)
             {
-                entry.Write(writer, name);
+                Helper.WriteType(writer, name);
+
+                foreach (var entry in entries)
+                {
+                    entry.Write(writer, name);
+                }
             }
         }
     }

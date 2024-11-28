@@ -87,7 +87,7 @@ internal sealed class WifiInstrumentation
                 added = true;
             }
 
-            ap.Gauge.Value = network.SignalStrength;
+            ap.Rssi.Value = network.SignalStrength;
         }
 
         // Post update
@@ -97,7 +97,7 @@ internal sealed class WifiInstrumentation
             if (!ap.Detected)
             {
                 accessPoints.RemoveAt(i);
-                ap.Gauge.Remove();
+                ap.Rssi.Remove();
             }
         }
 
@@ -141,13 +141,13 @@ internal sealed class WifiInstrumentation
 
         public string Ssid { get; }
 
-        public IGauge Gauge { get; }
+        public IGauge Rssi { get; }
 
-        public AccessPoint(string bssid, string ssid, IGauge gauge)
+        public AccessPoint(string bssid, string ssid, IGauge rssi)
         {
             Bssid = bssid;
             Ssid = ssid;
-            Gauge = gauge;
+            Rssi = rssi;
         }
     }
 }

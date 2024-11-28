@@ -37,7 +37,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
                 var smart = (ISmartNvme)disk.Smart;
                 nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, options.Host, disk, drive), smart));
             }
-            if (disk.SmartType == SmartType.Generic)
+            else if (disk.SmartType == SmartType.Generic)
             {
                 var smart = (ISmartGeneric)disk.Smart;
                 genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, options.Host, disk, drive), smart));

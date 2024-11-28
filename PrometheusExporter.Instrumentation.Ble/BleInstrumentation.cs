@@ -20,7 +20,7 @@ internal sealed class BleInstrumentation : IDisposable
 
     private readonly object sync = new();
 
-    private readonly List<Device> detectedDevices = [];
+    private readonly List<Device> devices = [];
 
     private readonly BluetoothLEAdvertisementWatcher watcher;
 
@@ -30,8 +30,11 @@ internal sealed class BleInstrumentation : IDisposable
         signalThreshold = options.SignalThreshold;
         timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
         knownOnly = options.KnownOnly;
-        knownDevices = options.KnownDevice
-            .ToDictionary(static x => Convert.ToUInt64(x.Address.Replace(":", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal), 16));
+        knownDevices = options.KnownDevice.ToDictionary(static x => NormalizeAddress(x.Address));
+
+        metric = manager.CreateMetric("ble_rssi");
+
+        manager.AddBeforeCollectCallback(Update);
 
         watcher = new BluetoothLEAdvertisementWatcher
         {
@@ -39,16 +42,11 @@ internal sealed class BleInstrumentation : IDisposable
         };
         watcher.Received += OnWatcherReceived;
         watcher.Start();
-
-        metric = manager.CreateMetric("ble_rssi");
-
-        manager.AddBeforeCollectCallback(Update);
     }
 
     public void Dispose()
     {
         watcher.Stop();
-        watcher.Received -= OnWatcherReceived;
     }
 
     //--------------------------------------------------------------------------------
@@ -65,7 +63,7 @@ internal sealed class BleInstrumentation : IDisposable
         lock (sync)
         {
             var device = default(Device);
-            foreach (var detectedDevice in detectedDevices)
+            foreach (var detectedDevice in devices)
             {
                 if (detectedDevice.Address == args.BluetoothAddress)
                 {
@@ -83,10 +81,10 @@ internal sealed class BleInstrumentation : IDisposable
                 }
 
                 device = new Device(args.BluetoothAddress, metric.CreateGauge(MakeTags(args.BluetoothAddress, entry)));
-                detectedDevices.Add(device);
+                devices.Add(device);
             }
 
-            device.Gauge.Value = args.RawSignalStrengthInDBm;
+            device.Rssi.Value = args.RawSignalStrengthInDBm;
             device.LastUpdate = DateTime.Now;
         }
     }
@@ -96,13 +94,13 @@ internal sealed class BleInstrumentation : IDisposable
         lock (sync)
         {
             var now = DateTime.Now;
-            for (var i = detectedDevices.Count - 1; i >= 0; i--)
+            for (var i = devices.Count - 1; i >= 0; i--)
             {
-                var device = detectedDevices[i];
+                var device = devices[i];
                 if ((now - device.LastUpdate) > timeThreshold)
                 {
-                    detectedDevices.RemoveAt(i);
-                    device.Gauge.Remove();
+                    devices.RemoveAt(i);
+                    device.Rssi.Remove();
                 }
             }
         }
@@ -111,6 +109,9 @@ internal sealed class BleInstrumentation : IDisposable
     //--------------------------------------------------------------------------------
     // Helper
     //--------------------------------------------------------------------------------
+
+    private static ulong NormalizeAddress(string address) =>
+        Convert.ToUInt64(address.Replace(":", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal), 16);
 
     private KeyValuePair<string, object?>[] MakeTags(ulong bluetoothAddress, DeviceEntry? device)
     {
@@ -129,12 +130,12 @@ internal sealed class BleInstrumentation : IDisposable
 
         public DateTime LastUpdate { get; set; }
 
-        public IGauge Gauge { get; }
+        public IGauge Rssi { get; }
 
-        public Device(ulong address, IGauge gauge)
+        public Device(ulong address, IGauge rssi)
         {
             Address = address;
-            Gauge = gauge;
+            Rssi = rssi;
         }
     }
 }

@@ -85,7 +85,7 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         computer.Hardware.SelectMany(EnumerateHardware).Where(x => x.HardwareType == type);
 
     private IEnumerable<IHardware> EnumerateHardware(params HardwareType[] types) =>
-        computer.Hardware.SelectMany(EnumerateHardware).Where(x => Array.IndexOf(types, x) >= 0);
+        computer.Hardware.SelectMany(EnumerateHardware).Where(x => Array.IndexOf(types, x.HardwareType) >= 0);
 
     private static IEnumerable<IHardware> EnumerateHardware(IHardware hardware)
     {

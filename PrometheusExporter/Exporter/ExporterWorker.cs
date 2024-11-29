@@ -1,6 +1,5 @@
 namespace PrometheusExporter.Exporter;
 
-using System.Diagnostics;
 using System.Net;
 
 using PrometheusExporter.Abstractions;
@@ -8,19 +7,19 @@ using PrometheusExporter.Metrics;
 
 internal sealed class ExporterWorker : BackgroundService
 {
-    private readonly ILogger<ExporterWorker> logger;
+    private readonly ILogger<ExporterWorker> log;
 
     private readonly ExporterWorkerOptions options;
 
     private readonly IMetricManager manager;
 
     public ExporterWorker(
-        ILogger<ExporterWorker> logger,
+        ILogger<ExporterWorker> log,
         IInstrumentationProvider provider,
         ExporterWorkerOptions options,
         IMetricManager manager)
     {
-        this.logger = logger;
+        this.log = log;
         this.options = options;
         this.manager = manager;
 
@@ -45,6 +44,8 @@ internal sealed class ExporterWorker : BackgroundService
 #pragma warning disable CA1031
         try
         {
+            log.InfoExporterStart();
+
             listener.Start();
 
             while (!stoppingToken.IsCancellationRequested)
@@ -52,12 +53,12 @@ internal sealed class ExporterWorker : BackgroundService
                 var context = await listener.GetContextAsync().WaitAsync(stoppingToken).ConfigureAwait(false);
                 _ = Task.Run(() => ProcessRequestAsync(context, stoppingToken), stoppingToken);
             }
-
-            Debug.Write("*");
         }
         finally
         {
             listener.Stop();
+
+            log.InfoExporterStop();
         }
 #pragma warning restore CA1031
     }
@@ -81,7 +82,7 @@ internal sealed class ExporterWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            logger.ErrorExportFailed(ex);
+            log.ErrorExportFailed(ex);
 
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         }

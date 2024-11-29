@@ -130,8 +130,12 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         }
     }
 
-    private KeyValuePair<string, object?>[] MakeTags(IHardware hardware, string type) =>
-        [new("host", host), new("identifier", hardware.Identifier), new("name", hardware.Name), new("type", type)];
+    private KeyValuePair<string, object?>[] MakeTags(IHardware hardware, string type, params KeyValuePair<string, object?>[] options)
+    {
+        var tags = new List<KeyValuePair<string, object?>>([new("host", host), new("identifier", hardware.Identifier), new("name", hardware.Name), new("type", type)]);
+        tags.AddRange(options);
+        return [.. tags];
+    }
 
     private KeyValuePair<string, object?>[] MakeTags(ISensor sensor) =>
         [new("host", host), new("identifier", sensor.Hardware.Identifier), new("hardware", sensor.Hardware.Name), new("name", sensor.Name), new("index", sensor.Index)];
@@ -150,9 +154,11 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
     {
         var metric = manager.CreateMetric("hardware_information");
 
+        NativeMethods.GetPhysicallyInstalledSystemMemory(out var totalMemoryInKilobytes);
+
         SetupInformationGauge("cpu", EnumerateHardware(HardwareType.Cpu));
         SetupInformationGauge("gpu", EnumerateHardware(HardwareType.GpuNvidia, HardwareType.GpuAmd, HardwareType.GpuIntel));
-        SetupInformationGauge("memory", EnumerateHardware(HardwareType.Memory));
+        SetupInformationGauge("memory", EnumerateHardware(HardwareType.Memory), [new("size", totalMemoryInKilobytes)]);
         SetupInformationGauge("motherboard", EnumerateHardware(HardwareType.Motherboard));
         SetupInformationGauge("io", EnumerateHardware(HardwareType.SuperIO));
         SetupInformationGauge("battery", EnumerateHardware(HardwareType.Battery));
@@ -161,11 +167,11 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
 
         return;
 
-        void SetupInformationGauge(string type, IEnumerable<IHardware> source)
+        void SetupInformationGauge(string type, IEnumerable<IHardware> source, params KeyValuePair<string, object?>[] options)
         {
             foreach (var hardware in source)
             {
-                metric.CreateGauge(MakeTags(hardware, type)).Value = 1;
+                metric.CreateGauge(MakeTags(hardware, type, options)).Value = 1;
             }
         }
     }

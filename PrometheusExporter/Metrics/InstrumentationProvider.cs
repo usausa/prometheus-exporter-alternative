@@ -6,12 +6,12 @@ internal sealed class InstrumentationProvider : IInstrumentationProvider
 
     private readonly IServiceProvider provider;
 
-    public IReadOnlyList<Registration> Registrations { get; }
+    public IEnumerable<Registration> Registrations { get; }
 
     public InstrumentationProvider(
         ILogger<InstrumentationProvider> log,
         IServiceProvider provider,
-        List<Registration> registrations)
+        IEnumerable<Registration> registrations)
     {
         this.log = log;
         this.provider = provider;

@@ -206,6 +206,4 @@ internal sealed class HyperVInstrumentation
             Uptime.Remove();
         }
     }
-
-    // TODO Switch
 }

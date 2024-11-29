@@ -190,7 +190,6 @@ internal static class Helper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteValue(IBufferWriter<byte> writer, long timestamp, string name, double value, Tag[] tags)
     {
-        // TODO
         WriteString(writer, name);
         if (tags.Length > 0)
         {

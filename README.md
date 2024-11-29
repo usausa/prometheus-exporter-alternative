@@ -1,6 +1,6 @@
 # prometheus-exporter-alternative
 
-Prometheus Exporter implementation by .NET
+Prometheus Exporter alternative implementation by .NET
 
 ![Windows](https://github.com/usausa/opentelemetry-extension/blob/main/Document/windows.png)
 ![Summary](https://github.com/usausa/opentelemetry-extension/blob/main/Document/summary.png)
@@ -160,6 +160,8 @@ sc start PrometheusExporter
 ```
 
 ## Linux
+
+(TODO)
 
 ## Prometheus
 

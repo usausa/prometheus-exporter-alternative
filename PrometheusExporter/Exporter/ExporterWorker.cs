@@ -1,5 +1,6 @@
 namespace PrometheusExporter.Exporter;
 
+using System.Diagnostics;
 using System.Net;
 
 using PrometheusExporter.Abstractions;
@@ -48,9 +49,11 @@ internal sealed class ExporterWorker : BackgroundService
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var context = await listener.GetContextAsync().ConfigureAwait(false);
+                var context = await listener.GetContextAsync().WaitAsync(stoppingToken).ConfigureAwait(false);
                 _ = Task.Run(() => ProcessRequestAsync(context, stoppingToken), stoppingToken);
             }
+
+            Debug.Write("*");
         }
         finally
         {

@@ -87,6 +87,7 @@ internal sealed class WifiInstrumentation
                 added = true;
             }
 
+            ap.Detected = true;
             ap.Rssi.Value = network.SignalStrength;
         }
 

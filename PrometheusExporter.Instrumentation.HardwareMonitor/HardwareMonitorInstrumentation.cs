@@ -134,10 +134,10 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         [new("host", host), new("identifier", hardware.Identifier), new("name", hardware.Name), new("type", type)];
 
     private KeyValuePair<string, object?>[] MakeTags(ISensor sensor) =>
-        [new("host", host), new("identifier", sensor.Hardware), new("hardware", sensor.Hardware.Name), new("name", sensor.Name), new("index", sensor.Index)];
+        [new("host", host), new("identifier", sensor.Hardware.Identifier), new("hardware", sensor.Hardware.Name), new("name", sensor.Name), new("index", sensor.Index)];
 
     private KeyValuePair<string, object?>[] MakeTags(ISensor sensor, string type) =>
-        [new("host", host), new("identifier", sensor.Hardware), new("hardware", sensor.Hardware.Name), new("name", sensor.Name), new("index", sensor.Index), new("type", type)];
+        [new("host", host), new("identifier", sensor.Hardware.Identifier), new("hardware", sensor.Hardware.Name), new("name", sensor.Name), new("index", sensor.Index), new("type", type)];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static double ToValue(ISensor sensor) => sensor.Value ?? double.NaN;

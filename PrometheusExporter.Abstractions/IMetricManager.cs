@@ -10,5 +10,5 @@ public interface IMetricManager
 
     void AddBeforeCollectCallback(Func<CancellationToken, Task> callback);
 
-    Task CollectAsync(IBufferWriter<byte> writer, CancellationToken cancel);
+    Task CollectAsync(IBufferWriter<byte> writer, long timestamp, CancellationToken cancel);
 }

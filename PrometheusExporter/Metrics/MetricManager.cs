@@ -45,7 +45,7 @@ internal sealed class MetricManager : IMetricManager, IDisposable
         beforeCollectAsyncCallbacks.Add(callback);
     }
 
-    public async Task CollectAsync(IBufferWriter<byte> writer, CancellationToken cancel)
+    public async Task CollectAsync(IBufferWriter<byte> writer, long timestamp, CancellationToken cancel)
     {
         await semaphore.WaitAsync(0, cancel).ConfigureAwait(false);
         try
@@ -59,7 +59,7 @@ internal sealed class MetricManager : IMetricManager, IDisposable
 
             foreach (var gauge in gauges)
             {
-                gauge.Write(writer);
+                gauge.Write(writer, timestamp);
             }
 
             Helper.WriteEof(writer);

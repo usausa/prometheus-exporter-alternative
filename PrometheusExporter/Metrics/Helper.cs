@@ -85,6 +85,21 @@ internal static class Helper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WriteLong(IBufferWriter<byte> writer, long value)
+    {
+        Span<char> buffer = stackalloc char[20];
+        value.TryFormat(buffer, out var written, "G", CultureInfo.InvariantCulture);
+
+        var span = writer.GetSpan(written);
+        for (var i = 0; i < written; i++)
+        {
+            span[i] = unchecked((byte)buffer[i]);
+        }
+
+        writer.Advance(written);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void WriteString(IBufferWriter<byte> writer, string value)
     {
         var span = writer.GetSpan(value.Length * 3);
@@ -173,8 +188,9 @@ internal static class Helper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteValue(IBufferWriter<byte> writer, string name, double value, Tag[] tags)
+    public static void WriteValue(IBufferWriter<byte> writer, long timestamp, string name, double value, Tag[] tags)
     {
+        // TODO
         WriteString(writer, name);
         if (tags.Length > 0)
         {
@@ -197,6 +213,8 @@ internal static class Helper
         }
         WriteByte(writer, Blank);
         WriteDouble(writer, value);
+        WriteByte(writer, Blank);
+        WriteLong(writer, timestamp);
         WriteByte(writer, LineFeed);
     }
 }

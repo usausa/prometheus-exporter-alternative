@@ -17,7 +17,7 @@ internal sealed class Metric : IMetric
         this.name = name;
     }
 
-    void IMetric.Write(IBufferWriter<byte> writer)
+    void IMetric.Write(IBufferWriter<byte> writer, long timestamp)
     {
         lock (sync)
         {
@@ -27,7 +27,7 @@ internal sealed class Metric : IMetric
 
                 foreach (var entry in entries)
                 {
-                    entry.Write(writer, name);
+                    entry.Write(writer, timestamp, name);
                 }
             }
         }

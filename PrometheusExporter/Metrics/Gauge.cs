@@ -27,8 +27,8 @@ internal sealed class Gauge : IGauge
         parent.Unregister(this);
     }
 
-    internal void Write(IBufferWriter<byte> writer, string name)
+    internal void Write(IBufferWriter<byte> writer, long timestamp, string name)
     {
-        Helper.WriteValue(writer, name, Value, tags);
+        Helper.WriteValue(writer, timestamp, name, Value, tags);
     }
 }

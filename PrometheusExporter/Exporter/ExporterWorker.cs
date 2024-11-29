@@ -64,11 +64,13 @@ internal sealed class ExporterWorker : BackgroundService
 #pragma warning disable CA1031
         try
         {
+            var timestamp = DateTimeOffset.UtcNow;
+
             using var buffer = new ResponseBuffer<byte>(65536);
-            await manager.CollectAsync(buffer, default!);
+            await manager.CollectAsync(buffer, timestamp.ToUnixTimeMilliseconds(), default!);
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;
-            context.Response.Headers.Add("Last-Modified", DateTimeOffset.UtcNow.ToString("R"));
+            context.Response.Headers.Add("Last-Modified", timestamp.ToString("R"));
             context.Response.ContentType = "text/plain; charset=utf-8; version=0.0.4";
 
             context.Response.ContentLength64 = buffer.WrittenCount;

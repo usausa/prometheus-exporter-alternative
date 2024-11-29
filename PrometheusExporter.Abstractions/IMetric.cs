@@ -6,5 +6,5 @@ public interface IMetric
 {
     IGauge CreateGauge(params KeyValuePair<string, object?>[] tags);
 
-    void Write(IBufferWriter<byte> writer);
+    void Write(IBufferWriter<byte> writer, long timestamp);
 }

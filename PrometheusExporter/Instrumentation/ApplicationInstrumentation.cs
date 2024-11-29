@@ -16,12 +16,10 @@ internal sealed class ApplicationInstrumentation
         // Information
         var informationMetric = manager.CreateMetric("exporter_information");
         informationMetric.CreateGauge(
-        [
             new("host", options.Host),
             new("version", typeof(Program).Assembly.GetName().Version),
             new("platform", ResolvePlatformString()),
-            new("os", RuntimeInformation.OSDescription)
-        ]).Value = 1;
+            new("os", RuntimeInformation.OSDescription)).Value = 1;
 
         // Uptime
         var uptimeMetric = manager.CreateMetric("exporter_uptime");

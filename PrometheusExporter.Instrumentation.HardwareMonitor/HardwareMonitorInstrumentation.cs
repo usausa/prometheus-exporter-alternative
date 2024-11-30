@@ -446,7 +446,7 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
             var metrics = manager.CreateMetric("hardware_memory_capacity");
             var designed = energySensors.First(static x => x.Name == "Designed Capacity");
             entries.Add(new Entry(designed, ToValue, metrics.CreateGauge(MakeTags(designed, "designed"))));
-            var full = energySensors.First(static x => x.Name == "Full Charged Capacity");
+            var full = energySensors.First(static x => x.Name == "Fully-Charged Capacity");
             entries.Add(new Entry(full, ToValue, metrics.CreateGauge(MakeTags(full, "full"))));
             var remaining = energySensors.First(static x => x.Name == "Remaining Capacity");
             entries.Add(new Entry(remaining, ToValue, metrics.CreateGauge(MakeTags(remaining, "remaining"))));

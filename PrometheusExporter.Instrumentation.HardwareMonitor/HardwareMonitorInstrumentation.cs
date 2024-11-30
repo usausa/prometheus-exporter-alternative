@@ -158,7 +158,7 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
 
         SetupInformationGauge("cpu", EnumerateHardware(HardwareType.Cpu));
         SetupInformationGauge("gpu", EnumerateHardware(HardwareType.GpuNvidia, HardwareType.GpuAmd, HardwareType.GpuIntel));
-        SetupInformationGauge("memory", EnumerateHardware(HardwareType.Memory), [new("size", totalMemoryInKilobytes)]);
+        SetupInformationGauge("memory", EnumerateHardware(HardwareType.Memory), [new("size", $"{totalMemoryInKilobytes / 1024 / 1024}GB")]);
         SetupInformationGauge("motherboard", EnumerateHardware(HardwareType.Motherboard));
         SetupInformationGauge("io", EnumerateHardware(HardwareType.SuperIO));
         SetupInformationGauge("battery", EnumerateHardware(HardwareType.Battery));

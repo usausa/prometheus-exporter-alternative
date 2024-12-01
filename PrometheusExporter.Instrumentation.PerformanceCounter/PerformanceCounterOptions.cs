@@ -21,8 +21,6 @@ public sealed class PerformanceCounterOptions
 
     public int UpdateDuration { get; set; } = 1000;
 
-    public string Prefix { get; set; } = "performance";
-
     public CounterEntry[] Counter { get; set; } = default!;
 }
 #pragma warning restore CA1819

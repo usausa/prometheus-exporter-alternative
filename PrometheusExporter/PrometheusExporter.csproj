@@ -43,6 +43,9 @@
   <ItemGroup>
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ping\PrometheusExporter.Instrumentation.Ping.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows')) == 'false'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.ProcessFileSystem\PrometheusExporter.Instrumentation.ProcessFileSystem.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.SensorOmron\PrometheusExporter.Instrumentation.SensorOmron.csproj" />
   </ItemGroup>

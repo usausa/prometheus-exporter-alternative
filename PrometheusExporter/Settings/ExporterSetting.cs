@@ -15,6 +15,9 @@ using PrometheusExporter.Instrumentation.HyperV;
 #if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.PerformanceCounter;
 #endif
+#if !WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.ProcessFileSystem;
+#endif
 using PrometheusExporter.Instrumentation.SensorOmron;
 #if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.SwitchBot;
@@ -74,6 +77,14 @@ public sealed class ExporterSetting
     public bool EnablePerformanceCounter { get; set; }
 
     public PerformanceCounterOptions PerformanceCounter { get; set; } = new();
+#endif
+
+    // ProcessFileSystem
+
+#if !WINDOWS_EXPORTER
+    public bool EnableProcessFileSystem { get; set; }
+
+    public ProcessFileSystemOptions ProcessFileSystem { get; set; } = new();
 #endif
 
     // Ping

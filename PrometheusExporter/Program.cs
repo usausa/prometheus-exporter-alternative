@@ -19,6 +19,9 @@ using PrometheusExporter.Instrumentation.HyperV;
 using PrometheusExporter.Instrumentation.PerformanceCounter;
 #endif
 using PrometheusExporter.Instrumentation.Ping;
+#if !WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.ProcessFileSystem;
+#endif
 using PrometheusExporter.Instrumentation.SensorOmron;
 #if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.SwitchBot;
@@ -79,6 +82,13 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
     {
         setting.DiskInfo.Host = String.IsNullOrWhiteSpace(setting.DiskInfo.Host) ? host : setting.DiskInfo.Host;
         metrics.AddDiskInfoInstrumentation(setting.DiskInfo);
+    }
+#endif
+#if !WINDOWS_EXPORTER
+    if (setting.EnableProcessFileSystem)
+    {
+        setting.ProcessFileSystem.Host = String.IsNullOrWhiteSpace(setting.ProcessFileSystem.Host) ? host : setting.ProcessFileSystem.Host;
+        metrics.AddProcessFileSystemInstrumentation(setting.ProcessFileSystem);
     }
 #endif
 

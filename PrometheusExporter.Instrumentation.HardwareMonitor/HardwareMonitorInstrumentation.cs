@@ -200,43 +200,43 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         // CPU load
         if (loadSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_cpu_load");
-            entries.AddRange(loadSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_cpu_load");
+            entries.AddRange(loadSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // CPU clock
         if (clockSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_cpu_clock");
-            entries.AddRange(clockSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_cpu_clock");
+            entries.AddRange(clockSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // CPU temperature
         if (temperatureSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_cpu_temperature");
-            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_cpu_temperature");
+            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // CPU voltage
         if (voltageSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_cpu_voltage");
-            entries.AddRange(voltageSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_cpu_voltage");
+            entries.AddRange(voltageSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // CPU current
         if (currentSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_cpu_current");
-            entries.AddRange(currentSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_cpu_current");
+            entries.AddRange(currentSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // CPU power
         if (powerSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_cpu_power");
-            entries.AddRange(powerSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_cpu_power");
+            entries.AddRange(powerSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
     }
 
@@ -263,58 +263,58 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         // GPU load
         if (loadSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_gpu_load");
-            entries.AddRange(loadSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_gpu_load");
+            entries.AddRange(loadSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // GPU clock
         if (clockSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_gpu_clock");
-            entries.AddRange(clockSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_gpu_clock");
+            entries.AddRange(clockSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // GPU fan
         if (fanSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_gpu_fan");
-            entries.AddRange(fanSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_gpu_fan");
+            entries.AddRange(fanSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // GPU temperature
         if (temperatureSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_gpu_temperature");
-            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_gpu_temperature");
+            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // GPU power
         if (powerSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_gpu_power");
-            entries.AddRange(powerSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_gpu_power");
+            entries.AddRange(powerSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // GPU memory
         if (memorySensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_gpu_memory");
+            var metric = manager.CreateMetric("hardware_gpu_memory");
             var free = memorySensors.First(static x => x.Name == "GPU Memory Free");
-            entries.Add(new Entry(free, ToValue, metrics.CreateGauge(MakeTags(free, "free"))));
+            entries.Add(new Entry(free, ToValue, metric.CreateGauge(MakeTags(free, "free"))));
             var used = memorySensors.First(static x => x.Name == "GPU Memory Used");
-            entries.Add(new Entry(used, ToValue, metrics.CreateGauge(MakeTags(used, "used"))));
+            entries.Add(new Entry(used, ToValue, metric.CreateGauge(MakeTags(used, "used"))));
             var total = memorySensors.First(static x => x.Name == "GPU Memory Total");
-            entries.Add(new Entry(total, ToValue, metrics.CreateGauge(MakeTags(total, "total"))));
+            entries.Add(new Entry(total, ToValue, metric.CreateGauge(MakeTags(total, "total"))));
         }
 
         // GPU throughput
         if (throughputSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_gpu_throughput");
+            var metric = manager.CreateMetric("hardware_gpu_throughput");
             var rx = throughputSensors.First(static x => x.Name == "GPU PCIe Rx");
-            entries.Add(new Entry(rx, ToValue, metrics.CreateGauge(MakeTags(rx, "rx"))));
+            entries.Add(new Entry(rx, ToValue, metric.CreateGauge(MakeTags(rx, "rx"))));
             var tx = throughputSensors.First(static x => x.Name == "GPU PCIe Tx");
-            entries.Add(new Entry(tx, ToValue, metrics.CreateGauge(MakeTags(tx, "tx"))));
+            entries.Add(new Entry(tx, ToValue, metric.CreateGauge(MakeTags(tx, "tx"))));
         }
     }
 
@@ -330,31 +330,31 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         // Memory used
         if (dataSensors.Count > 0)
         {
-            var metrics = manager.CreateMetric("hardware_memory_used");
+            var metric = manager.CreateMetric("hardware_memory_used");
             var physical = dataSensors.First(static x => x.Name == "Memory Used");
-            entries.Add(new Entry(physical, ToValue, metrics.CreateGauge(MakeTags(physical, "physical"))));
+            entries.Add(new Entry(physical, ToValue, metric.CreateGauge(MakeTags(physical, "physical"))));
             var @virtual = dataSensors.First(static x => x.Name == "Virtual Memory Used");
-            entries.Add(new Entry(@virtual, ToValue, metrics.CreateGauge(MakeTags(@virtual, "virtual"))));
+            entries.Add(new Entry(@virtual, ToValue, metric.CreateGauge(MakeTags(@virtual, "virtual"))));
         }
 
         // Memory available
         if (dataSensors.Count > 0)
         {
-            var metrics = manager.CreateMetric("hardware_memory_available");
+            var metric = manager.CreateMetric("hardware_memory_available");
             var physical = dataSensors.First(static x => x.Name == "Memory Available");
-            entries.Add(new Entry(physical, ToValue, metrics.CreateGauge(MakeTags(physical, "physical"))));
+            entries.Add(new Entry(physical, ToValue, metric.CreateGauge(MakeTags(physical, "physical"))));
             var @virtual = dataSensors.First(static x => x.Name == "Virtual Memory Available");
-            entries.Add(new Entry(@virtual, ToValue, metrics.CreateGauge(MakeTags(@virtual, "virtual"))));
+            entries.Add(new Entry(@virtual, ToValue, metric.CreateGauge(MakeTags(@virtual, "virtual"))));
         }
 
         // Memory load
         if (loadSensors.Count > 0)
         {
-            var metrics = manager.CreateMetric("hardware_memory_load");
+            var metric = manager.CreateMetric("hardware_memory_load");
             var physical = loadSensors.First(static x => x.Name == "Memory");
-            entries.Add(new Entry(physical, ToValue, metrics.CreateGauge(MakeTags(physical, "physical"))));
+            entries.Add(new Entry(physical, ToValue, metric.CreateGauge(MakeTags(physical, "physical"))));
             var @virtual = loadSensors.First(static x => x.Name == "Virtual Memory");
-            entries.Add(new Entry(@virtual, ToValue, metrics.CreateGauge(MakeTags(@virtual, "virtual"))));
+            entries.Add(new Entry(@virtual, ToValue, metric.CreateGauge(MakeTags(@virtual, "virtual"))));
         }
     }
 
@@ -372,29 +372,29 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         // I/O control
         if (controlSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_io_control");
-            entries.AddRange(controlSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_io_control");
+            entries.AddRange(controlSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // I/O fan
         if (fanSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_io_fan");
-            entries.AddRange(fanSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_io_fan");
+            entries.AddRange(fanSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // I/O temperature
         if (temperatureSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_io_temperature");
-            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_io_temperature");
+            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // I/O voltage
         if (voltageSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_io_voltage");
-            entries.AddRange(voltageSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_io_voltage");
+            entries.AddRange(voltageSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
     }
 
@@ -415,55 +415,55 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         // Battery charge
         if (levelChargeSensor is not null)
         {
-            var metrics = manager.CreateMetric("hardware_battery_charge");
-            entries.Add(new Entry(levelChargeSensor, ToValue, metrics.CreateGauge(MakeTags(levelChargeSensor))));
+            var metric = manager.CreateMetric("hardware_battery_charge");
+            entries.Add(new Entry(levelChargeSensor, ToValue, metric.CreateGauge(MakeTags(levelChargeSensor))));
         }
 
         // Battery degradation
         if (levelDegradationSensor is not null)
         {
-            var metrics = manager.CreateMetric("hardware_battery_degradation");
-            entries.Add(new Entry(levelDegradationSensor, ToValue, metrics.CreateGauge(MakeTags(levelDegradationSensor))));
+            var metric = manager.CreateMetric("hardware_battery_degradation");
+            entries.Add(new Entry(levelDegradationSensor, ToValue, metric.CreateGauge(MakeTags(levelDegradationSensor))));
         }
 
         // Battery voltage
         if (voltageSensor is not null)
         {
-            var metrics = manager.CreateMetric("hardware_battery_voltage");
-            entries.Add(new Entry(voltageSensor, ToValue, metrics.CreateGauge(MakeTags(voltageSensor))));
+            var metric = manager.CreateMetric("hardware_battery_voltage");
+            entries.Add(new Entry(voltageSensor, ToValue, metric.CreateGauge(MakeTags(voltageSensor))));
         }
 
         // Battery current
         if (currentSensor is not null)
         {
-            var metrics = manager.CreateMetric("hardware_battery_current");
-            entries.Add(new Entry(currentSensor, ToValue, metrics.CreateGauge(MakeTags(currentSensor))));
+            var metric = manager.CreateMetric("hardware_battery_current");
+            entries.Add(new Entry(currentSensor, ToValue, metric.CreateGauge(MakeTags(currentSensor))));
         }
 
         // Battery capacity
         if (energySensors.Count > 0)
         {
-            var metrics = manager.CreateMetric("hardware_memory_capacity");
+            var metric = manager.CreateMetric("hardware_memory_capacity");
             var designed = energySensors.First(static x => x.Name == "Designed Capacity");
-            entries.Add(new Entry(designed, ToValue, metrics.CreateGauge(MakeTags(designed, "designed"))));
+            entries.Add(new Entry(designed, ToValue, metric.CreateGauge(MakeTags(designed, "designed"))));
             var full = energySensors.First(static x => x.Name == "Fully-Charged Capacity");
-            entries.Add(new Entry(full, ToValue, metrics.CreateGauge(MakeTags(full, "full"))));
+            entries.Add(new Entry(full, ToValue, metric.CreateGauge(MakeTags(full, "full"))));
             var remaining = energySensors.First(static x => x.Name == "Remaining Capacity");
-            entries.Add(new Entry(remaining, ToValue, metrics.CreateGauge(MakeTags(remaining, "remaining"))));
+            entries.Add(new Entry(remaining, ToValue, metric.CreateGauge(MakeTags(remaining, "remaining"))));
         }
 
         // Battery rate
         if (powerSensor is not null)
         {
-            var metrics = manager.CreateMetric("hardware_battery_rate");
-            entries.Add(new Entry(powerSensor, ToValue, metrics.CreateGauge(MakeTags(powerSensor))));
+            var metric = manager.CreateMetric("hardware_battery_rate");
+            entries.Add(new Entry(powerSensor, ToValue, metric.CreateGauge(MakeTags(powerSensor))));
         }
 
         // Battery remaining
         if (timespanSensor is not null)
         {
-            var metrics = manager.CreateMetric("hardware_battery_remaining");
-            entries.Add(new Entry(timespanSensor, ToValue, metrics.CreateGauge(MakeTags(timespanSensor))));
+            var metric = manager.CreateMetric("hardware_battery_remaining");
+            entries.Add(new Entry(timespanSensor, ToValue, metric.CreateGauge(MakeTags(timespanSensor))));
         }
     }
 
@@ -484,8 +484,8 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         var loadUsedSensors = loadSensors.Where(static x => x.Name == "Used Space").ToArray();
         if (loadUsedSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_storage_used");
-            entries.AddRange(loadUsedSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_storage_used");
+            entries.AddRange(loadUsedSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // Storage bytes
@@ -493,24 +493,24 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         var dataWriteSensors = dataSensors.Where(static x => x.Name == "Data Written").ToArray();
         if ((dataReadSensors.Length > 0) || (dataWriteSensors.Length > 0))
         {
-            var metrics = manager.CreateMetric("hardware_storage_bytes");
-            entries.AddRange(dataReadSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "read")))));
-            entries.AddRange(dataWriteSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "write")))));
+            var metric = manager.CreateMetric("hardware_storage_bytes");
+            entries.AddRange(dataReadSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "read")))));
+            entries.AddRange(dataWriteSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "write")))));
         }
 
         // Storage speed
         if (throughputSensors.Count > 0)
         {
-            var metrics = manager.CreateMetric("hardware_storage_speed");
-            entries.AddRange(throughputSensors.Where(static x => x.Name == "Read Rate").Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "read")))));
-            entries.AddRange(throughputSensors.Where(static x => x.Name == "Write Rate").Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "write")))));
+            var metric = manager.CreateMetric("hardware_storage_speed");
+            entries.AddRange(throughputSensors.Where(static x => x.Name == "Read Rate").Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "read")))));
+            entries.AddRange(throughputSensors.Where(static x => x.Name == "Write Rate").Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "write")))));
         }
 
         // Storage temperature
         if (temperatureSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_storage_temperature");
-            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_storage_temperature");
+            entries.AddRange(temperatureSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // Storage life
@@ -518,25 +518,25 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         var levelLifeSensors = levelSensors.Where(static x => x.Name == "Remaining Life").ToArray();
         if ((levelUsedSensors.Length > 0) || (levelLifeSensors.Length > 0))
         {
-            var metrics = manager.CreateMetric("hardware_storage_life");
-            entries.AddRange(levelUsedSensors.Select(x => new Entry(x, static y => 100 - ToValue(y), metrics.CreateGauge(MakeTags(x)))));
-            entries.AddRange(levelLifeSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_storage_life");
+            entries.AddRange(levelUsedSensors.Select(x => new Entry(x, static y => 100 - ToValue(y), metric.CreateGauge(MakeTags(x)))));
+            entries.AddRange(levelLifeSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // Storage spare
         var levelSpareSensors = levelSensors.Where(static x => x.Name == "Available Spare").ToArray();
         if (levelSpareSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_storage_spare");
-            entries.AddRange(levelSpareSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_storage_spare");
+            entries.AddRange(levelSpareSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
 
         // Storage amplification
         var factorAmplificationSensors = factorSensors.Where(static x => x.Name == "Write Amplification").ToArray();
         if (factorAmplificationSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_storage_amplification");
-            entries.AddRange(factorAmplificationSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_storage_amplification");
+            entries.AddRange(factorAmplificationSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
     }
 
@@ -553,24 +553,24 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         // Network bytes
         if (dataSensors.Count > 0)
         {
-            var metrics = manager.CreateMetric("hardware_network_bytes");
-            entries.AddRange(dataSensors.Where(static x => x.Name == "Data Downloaded").Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "download")))));
-            entries.AddRange(dataSensors.Where(static x => x.Name == "Data Uploaded").Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "upload")))));
+            var metric = manager.CreateMetric("hardware_network_bytes");
+            entries.AddRange(dataSensors.Where(static x => x.Name == "Data Downloaded").Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "download")))));
+            entries.AddRange(dataSensors.Where(static x => x.Name == "Data Uploaded").Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "upload")))));
         }
 
         // Network speed
         if (throughputSensors.Count > 0)
         {
-            var metrics = manager.CreateMetric("hardware_network_speed");
-            entries.AddRange(throughputSensors.Where(static x => x.Name == "Download Speed").Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "download")))));
-            entries.AddRange(throughputSensors.Where(static x => x.Name == "Upload Speed").Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x, "upload")))));
+            var metric = manager.CreateMetric("hardware_network_speed");
+            entries.AddRange(throughputSensors.Where(static x => x.Name == "Download Speed").Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "download")))));
+            entries.AddRange(throughputSensors.Where(static x => x.Name == "Upload Speed").Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x, "upload")))));
         }
 
         // Network load
         if (loadSensors.Length > 0)
         {
-            var metrics = manager.CreateMetric("hardware_network_load");
-            entries.AddRange(loadSensors.Select(x => new Entry(x, ToValue, metrics.CreateGauge(MakeTags(x)))));
+            var metric = manager.CreateMetric("hardware_network_load");
+            entries.AddRange(loadSensors.Select(x => new Entry(x, ToValue, metric.CreateGauge(MakeTags(x)))));
         }
     }
 

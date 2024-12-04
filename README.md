@@ -2,9 +2,9 @@
 
 Prometheus Exporter alternative implementation by .NET
 
-![Windows](https://github.com/usausa/opentelemetry-extension/blob/main/Document/windows.png)
-![Summary](https://github.com/usausa/opentelemetry-extension/blob/main/Document/summary.png)
-![Power](https://github.com/usausa/opentelemetry-extension/blob/main/Document/power.png)
+![Windows](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/windows.png)
+![Summary](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/summary.png)
+![Power](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/power.png)
 
 # Metrics
 
@@ -39,7 +39,7 @@ sensor_power
 
 for [2JCIE-BU](https://www.fa.omron.co.jp/products/family/3724/lineup.html)
 
-![Environment](https://github.com/usausa/opentelemetry-extension/blob/main/Document/environment.png)
+![Environment](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/environment.png)
 
 ```
 sensor_temperature
@@ -98,7 +98,7 @@ hardware_network_load
 
 ## S.M.A.R.T
 
-![Environment](https://github.com/usausa/opentelemetry-extension/blob/main/Document/smart.png)
+![Environment](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/smart.png)
 
 ```
 smart_disk_byte_per_sector

@@ -26,16 +26,16 @@ internal static class Helper
         }
 
         return values;
+    }
 
-        static string GetValueString(object? value)
+    public static string GetValueString(object? value)
+    {
+        if (value is bool b)
         {
-            if (value is bool b)
-            {
-                return b ? "true" : "false";
-            }
-
-            return value?.ToString() ?? string.Empty;
+            return b ? "true" : "false";
         }
+
+        return value?.ToString() ?? string.Empty;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -150,6 +150,10 @@ internal static class Helper
     public static int WriteUnicodeNoEscape(Span<byte> span, ushort ordinal)
     {
         var written = 0;
+        if (ordinal == 0)
+        {
+            // Skip
+        }
         if (ordinal <= 0x7F)
         {
             span[written++] = unchecked((byte)ordinal);

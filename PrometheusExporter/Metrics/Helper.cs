@@ -150,10 +150,6 @@ internal static class Helper
     public static int WriteUnicodeNoEscape(Span<byte> span, ushort ordinal)
     {
         var written = 0;
-        if (ordinal == 0)
-        {
-            // Skip
-        }
         if (ordinal <= 0x7F)
         {
             span[written++] = unchecked((byte)ordinal);

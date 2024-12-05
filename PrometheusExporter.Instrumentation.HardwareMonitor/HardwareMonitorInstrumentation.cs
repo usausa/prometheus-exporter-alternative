@@ -132,16 +132,16 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
 
     private KeyValuePair<string, object?>[] MakeTags(IHardware hardware, string type, params KeyValuePair<string, object?>[] options)
     {
-        var tags = new List<KeyValuePair<string, object?>>([new("host", host), new("identifier", hardware.Identifier), new("name", hardware.Name), new("type", type)]);
+        var tags = new List<KeyValuePair<string, object?>>([new("host", host), new("identifier", hardware.Identifier), new("name", hardware.Name.TrimEnd('\0')), new("type", type)]);
         tags.AddRange(options);
         return [.. tags];
     }
 
     private KeyValuePair<string, object?>[] MakeTags(ISensor sensor) =>
-        [new("host", host), new("identifier", sensor.Hardware.Identifier), new("hardware", sensor.Hardware.Name), new("name", sensor.Name), new("index", sensor.Index)];
+        [new("host", host), new("identifier", sensor.Hardware.Identifier), new("hardware", sensor.Hardware.Name.TrimEnd('\0')), new("name", sensor.Name), new("index", sensor.Index)];
 
     private KeyValuePair<string, object?>[] MakeTags(ISensor sensor, string type) =>
-        [new("host", host), new("identifier", sensor.Hardware.Identifier), new("hardware", sensor.Hardware.Name), new("name", sensor.Name), new("index", sensor.Index), new("type", type)];
+        [new("host", host), new("identifier", sensor.Hardware.Identifier), new("hardware", sensor.Hardware.Name.TrimEnd('\0')), new("name", sensor.Name), new("index", sensor.Index), new("type", type)];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static double ToValue(ISensor sensor) => sensor.Value ?? double.NaN;

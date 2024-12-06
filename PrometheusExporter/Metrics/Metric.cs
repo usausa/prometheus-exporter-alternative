@@ -48,7 +48,11 @@ internal sealed class Metric : IMetric
 
                 for (var i = 0; i < entries.Count; i++)
                 {
-                    Helper.WriteValue(writer, timestamp, name, values[i], entries[i].Tags);
+                    var value = values[i];
+                    if (Double.IsFinite(value))
+                    {
+                        Helper.WriteValue(writer, timestamp, name, value, entries[i].Tags);
+                    }
                 }
             }
 

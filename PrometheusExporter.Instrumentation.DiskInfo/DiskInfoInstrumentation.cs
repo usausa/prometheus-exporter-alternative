@@ -176,7 +176,8 @@ internal sealed class DiskInfoInstrumentation : IDisposable
                 gauges[16].Value = smart.WarningCompositeTemperatureTime;
                 for (var i = 0; i < smart.TemperatureSensors.Length; i++)
                 {
-                    gauges[17 + i].Value = smart.TemperatureSensors[i];
+                    var value = smart.TemperatureSensors[i];
+                    gauges[17 + i].Value = value >= 0 ? value : double.NaN;
                 }
             }
             else

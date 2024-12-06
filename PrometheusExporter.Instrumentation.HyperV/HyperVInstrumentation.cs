@@ -38,11 +38,11 @@ internal sealed class HyperVInstrumentation
             : null;
 
         countGauge = manager.CreateMetric("hyperv_vm_count").CreateGauge([new("host", options.Host)]);
-        informationMetric = manager.CreateMetric("hyperv_vm_information");
-        stateMetric = manager.CreateMetric("hyperv_vm_state");
-        processorLoadMetric = manager.CreateMetric("hyperv_vm_processor_load");
-        memoryUsageMetric = manager.CreateMetric("hyperv_vm_memory_usage");
-        uptimeMetric = manager.CreateMetric("hyperv_vm_uptime");
+        informationMetric = manager.CreateMetric("hyperv_vm_information", "name");
+        stateMetric = manager.CreateMetric("hyperv_vm_state", "name");
+        processorLoadMetric = manager.CreateMetric("hyperv_vm_processor_load", "name");
+        memoryUsageMetric = manager.CreateMetric("hyperv_vm_memory_usage", "name");
+        uptimeMetric = manager.CreateMetric("hyperv_vm_uptime", "name");
 
         manager.AddBeforeCollectCallback(Update);
     }
@@ -66,7 +66,6 @@ internal sealed class HyperVInstrumentation
         }
 
         // Update
-        var added = false;
         using var searcher = new ManagementObjectSearcher(@"root\virtualization\v2", "SELECT * FROM Msvm_SummaryInformation");
         foreach (var mo in searcher.Get())
         {
@@ -109,7 +108,6 @@ internal sealed class HyperVInstrumentation
                     uptimeMetric.CreateGauge(valueTags));
                 virtualMachines.Add(vm);
                 vm.Information.Value = 1;
-                added = true;
             }
 
             var state = (ushort)mo["EnabledState"];
@@ -141,11 +139,6 @@ internal sealed class HyperVInstrumentation
                 virtualMachines.RemoveAt(i);
                 vm.Unregister();
             }
-        }
-
-        if (added)
-        {
-            virtualMachines.Sort(static (x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
         }
 
         lastUpdate = now;

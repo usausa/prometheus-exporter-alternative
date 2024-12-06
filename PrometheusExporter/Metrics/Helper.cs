@@ -15,7 +15,7 @@ internal static class Helper
     private const byte Quote = (byte)'"';
     private const byte BackSlash = (byte)'\\';
 
-    public static Tag[] PrepareTags(KeyValuePair<string, object?>[] tags)
+    public static Tag[] ConvertTags(KeyValuePair<string, object?>[] tags)
     {
         var values = new Tag[tags.Length];
 

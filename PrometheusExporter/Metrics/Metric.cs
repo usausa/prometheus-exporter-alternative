@@ -8,27 +8,53 @@ internal sealed class Metric : IMetric
 {
     private readonly string name;
 
+    private readonly string? sort;
+
     private readonly object sync = new();
 
     private readonly List<Gauge> entries = [];
 
-    public Metric(string name)
+    public Metric(string name, string? sort)
     {
         this.name = name;
+        this.sort = sort;
     }
 
     void IMetric.Write(IBufferWriter<byte> writer, long timestamp)
     {
         lock (sync)
         {
-            if (entries.Count > 0)
+            var pooledBuffer = default(double[]?);
+            var values = entries.Count <= 64 ? stackalloc double[entries.Count] : (pooledBuffer = ArrayPool<double>.Shared.Rent(entries.Count)).AsSpan();
+
+            for (var i = 0; i < entries.Count; i++)
+            {
+                values[i] = entries[i].Value;
+            }
+
+            var hasValue = false;
+            for (var i = 0; i < entries.Count; i++)
+            {
+                if (Double.IsFinite(values[i]))
+                {
+                    hasValue = true;
+                    break;
+                }
+            }
+
+            if (hasValue)
             {
                 Helper.WriteType(writer, name);
 
-                foreach (var entry in entries)
+                for (var i = 0; i < entries.Count; i++)
                 {
-                    entry.Write(writer, timestamp, name);
+                    Helper.WriteValue(writer, timestamp, name, values[i], entries[i].Tags);
                 }
+            }
+
+            if (pooledBuffer is not null)
+            {
+                ArrayPool<double>.Shared.Return(pooledBuffer);
             }
         }
     }
@@ -37,8 +63,16 @@ internal sealed class Metric : IMetric
     {
         lock (sync)
         {
-            var gauge = new Gauge(this, tags);
+            var stringTags = Helper.ConvertTags(tags);
+            var sortKey = sort is not null ? stringTags.FirstOrDefault(x => x.Key == sort)?.Value : null;
+            var gauge = new Gauge(this, sortKey, stringTags);
             entries.Add(gauge);
+
+            if (sort is not null)
+            {
+                entries.Sort(TagComparer.Instance);
+            }
+
             return gauge;
         }
     }
@@ -48,6 +82,31 @@ internal sealed class Metric : IMetric
         lock (sync)
         {
             entries.Remove(entry);
+        }
+    }
+
+    private sealed class TagComparer : IComparer<Gauge>
+    {
+        public static TagComparer Instance { get; } = new();
+
+        public int Compare(Gauge? x, Gauge? y)
+        {
+            var key1 = x!.SortKey;
+            var key2 = y!.SortKey;
+
+            if ((key1 is null) && (key2 is null))
+            {
+                return 0;
+            }
+            if (key1 is null)
+            {
+                return -1;
+            }
+            if (key2 is null)
+            {
+                return 1;
+            }
+            return String.CompareOrdinal(key1, key2);
         }
     }
 }

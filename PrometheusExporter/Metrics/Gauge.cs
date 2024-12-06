@@ -1,14 +1,10 @@
 namespace PrometheusExporter.Metrics;
 
-using System.Buffers;
-
 using PrometheusExporter.Abstractions;
 
 internal sealed class Gauge : IGauge
 {
     private readonly Metric parent;
-
-    private readonly Tag[] tags;
 
     public double Value
     {
@@ -16,19 +12,19 @@ internal sealed class Gauge : IGauge
         set => Interlocked.Exchange(ref field, value);
     }
 
-    public Gauge(Metric parent, KeyValuePair<string, object?>[] tags)
+    public string? SortKey { get; }
+
+    public Tag[] Tags { get; }
+
+    public Gauge(Metric parent, string? sortKey, Tag[] tags)
     {
         this.parent = parent;
-        this.tags = Helper.PrepareTags(tags);
+        SortKey = sortKey;
+        Tags = tags;
     }
 
     public void Remove()
     {
         parent.Unregister(this);
-    }
-
-    internal void Write(IBufferWriter<byte> writer, long timestamp, string name)
-    {
-        Helper.WriteValue(writer, timestamp, name, Value, tags);
     }
 }

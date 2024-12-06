@@ -32,7 +32,7 @@ internal sealed class WifiInstrumentation
         knownOnly = options.KnownOnly;
         knownAccessPoints = options.KnownAccessPoint.Select(NormalizeAddress).ToHashSet();
 
-        metric = manager.CreateMetric("wifi_rssi");
+        metric = manager.CreateMetric("wifi_rssi", "ssid");
 
         manager.AddBeforeCollectCallback(Update);
     }
@@ -56,7 +56,6 @@ internal sealed class WifiInstrumentation
         }
 
         // Update
-        var added = false;
         foreach (var network in NativeWifi.EnumerateBssNetworks())
         {
             if (network.SignalStrength <= signalThreshold)
@@ -65,6 +64,8 @@ internal sealed class WifiInstrumentation
             }
 
             var bssid = network.Bssid.ToString();
+            var ssid = network.Ssid.ToString();
+
             if (knownOnly && !knownAccessPoints.Contains(bssid))
             {
                 continue;
@@ -80,11 +81,15 @@ internal sealed class WifiInstrumentation
                 }
             }
 
+            if ((ap is not null) && (ap.Ssid != ssid))
+            {
+                ap = null;
+            }
+
             if (ap is null)
             {
-                ap = new AccessPoint(bssid, network.Ssid.ToString(), metric.CreateGauge(MakeTags(network)));
+                ap = new AccessPoint(bssid, ssid, metric.CreateGauge(MakeTags(network)));
                 accessPoints.Add(ap);
-                added = true;
             }
 
             ap.Detected = true;
@@ -100,11 +105,6 @@ internal sealed class WifiInstrumentation
                 accessPoints.RemoveAt(i);
                 ap.Unregister();
             }
-        }
-
-        if (added)
-        {
-            accessPoints.Sort(static (x, y) => String.Compare(x.Ssid, y.Ssid, StringComparison.Ordinal));
         }
 
         lastUpdate = now;

@@ -59,4 +59,10 @@
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Wifi\PrometheusExporter.Instrumentation.Wifi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="appsettings.Platform.*.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -114,6 +114,8 @@ performance_* (default)
 
 ## Hyper-V
 
+![Hyper-V](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/hyperv.png)
+
 ```
 hyperv_vm_count
 hyperv_vm_information

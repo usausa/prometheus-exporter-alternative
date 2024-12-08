@@ -161,7 +161,22 @@ sc start PrometheusExporter
 
 ## Linux
 
-(TODO)
+Service file example.
+
+```
+[Unit]
+Description=Prometheus Exporter
+
+[Service]
+WorkingDirectory=/opt/exporter
+ExecStart=/opt/exporter/PrometheusExporter
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+
+[Install]
+WantedBy = multi-user.target
+```
 
 ## Prometheus
 

@@ -3,8 +3,6 @@
 Prometheus Exporter alternative implementation by .NET
 
 ![Windows](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/windows.png)
-![Summary](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/summary.png)
-![Power](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/power.png)
 
 # Metrics
 
@@ -143,6 +141,12 @@ ble_rssi
 ```
 wifi_rssi
 ```
+
+# Gallery
+
+![Summary](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/summary.png)
+![Uptime](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/uptime.png)
+![Power](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/power.png)
 
 # Install
 

@@ -144,9 +144,10 @@ wifi_rssi
 
 # Gallery
 
-![Summary](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/summary.png)
-![Uptime](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/uptime.png)
 ![Power](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/power.png)
+![Room](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/room.png)
+![Uptime](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/uptime.png)
+![Summary](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/summary.png)
 
 # Install
 

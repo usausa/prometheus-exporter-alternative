@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 9,
+  "id": 32,
   "links": [],
   "panels": [
     {
@@ -541,7 +541,7 @@
           "useBackend": false
         }
       ],
-      "title": "🕰Uptime(day)",
+      "title": "🕰️Uptime(day)",
       "type": "timeseries"
     },
     {
@@ -745,7 +745,7 @@
           "useBackend": false
         }
       ],
-      "title": "⚙CPU queue",
+      "title": "⚙️CPU queue",
       "type": "timeseries"
     },
     {
@@ -848,7 +848,7 @@
           "useBackend": false
         }
       ],
-      "title": "⚙Memory page",
+      "title": "⚙️Memory page",
       "type": "timeseries"
     },
     {
@@ -950,7 +950,7 @@
           "useBackend": false
         }
       ],
-      "title": "⚙Disk queue",
+      "title": "⚙️Disk queue",
       "type": "timeseries"
     },
     {
@@ -1462,7 +1462,7 @@
           "useBackend": false
         }
       ],
-      "title": "🌡CPU temperature(℃)",
+      "title": "🌡️CPU temperature(℃)",
       "type": "timeseries"
     },
     {
@@ -1573,7 +1573,7 @@
           "refId": "B"
         }
       ],
-      "title": "🌡HDD temperature(℃)",
+      "title": "🌡️HDD temperature(℃)",
       "type": "timeseries"
     },
     {
@@ -1787,7 +1787,7 @@
           "useBackend": false
         }
       ],
-      "title": "🛠Context switch",
+      "title": "🛠️Context switch",
       "type": "timeseries"
     },
     {
@@ -1890,7 +1890,7 @@
           "useBackend": false
         }
       ],
-      "title": "🛠Exception dispatch",
+      "title": "🛠️Exception dispatch",
       "type": "timeseries"
     }
   ],
@@ -1904,13 +1904,13 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "PC Summary",
   "uid": "summary",
-  "version": 115,
+  "version": 6,
   "weekStart": ""
 }

@@ -20,7 +20,7 @@ using PrometheusExporter.Instrumentation.PerformanceCounter;
 #endif
 using PrometheusExporter.Instrumentation.Ping;
 #if !WINDOWS_EXPORTER
-using PrometheusExporter.Instrumentation.Platform.Linux;
+using PrometheusExporter.Instrumentation.ProcessFileSystem;
 #endif
 using PrometheusExporter.Instrumentation.SensorOmron;
 #if WINDOWS_EXPORTER
@@ -85,10 +85,10 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
     }
 #endif
 #if !WINDOWS_EXPORTER
-    if (setting.EnablePlatformLinux)
+    if (setting.EnableProcessFileSystem)
     {
-        setting.PlatformLinux.Host = String.IsNullOrWhiteSpace(setting.PlatformLinux.Host) ? host : setting.PlatformLinux.Host;
-        metrics.AddPlatformLinuxInstrumentation(setting.PlatformLinux);
+        setting.ProcessFileSystem.Host = String.IsNullOrWhiteSpace(setting.ProcessFileSystem.Host) ? host : setting.ProcessFileSystem.Host;
+        metrics.AddProcessFileSystemInstrumentation(setting.ProcessFileSystem);
     }
 #endif
 

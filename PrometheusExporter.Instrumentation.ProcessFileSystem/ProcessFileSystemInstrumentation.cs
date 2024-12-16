@@ -1,10 +1,10 @@
-namespace PrometheusExporter.Instrumentation.Platform.Linux;
+namespace PrometheusExporter.Instrumentation.ProcessFileSystem;
 
 using System.Globalization;
 
 using PrometheusExporter.Abstractions;
 
-internal sealed class PlatformLinuxInstrumentation
+internal sealed class ProcessFileSystemInstrumentation
 {
     private readonly string host;
 
@@ -14,7 +14,7 @@ internal sealed class PlatformLinuxInstrumentation
 
     private DateTime lastUpdate;
 
-    public PlatformLinuxInstrumentation(IMetricManager manager, PlatformLinuxOptions options)
+    public ProcessFileSystemInstrumentation(IMetricManager manager, ProcessFileSystemOptions options)
     {
         host = options.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);

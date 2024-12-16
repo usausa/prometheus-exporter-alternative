@@ -52,7 +52,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrume
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Linux", "Linux", "{20D25B09-CED7-4CFC-AA1F-BA376D4A6736}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.ProcessFileSystem", "PrometheusExporter.Instrumentation.ProcessFileSystem\PrometheusExporter.Instrumentation.ProcessFileSystem.csproj", "{EB1F654F-5C5A-42F2-9835-31242A1DCA59}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrometheusExporter.Instrumentation.Platform.Linux", "PrometheusExporter.Instrumentation.Platform.Linux\PrometheusExporter.Instrumentation.Platform.Linux.csproj", "{EB1F654F-5C5A-42F2-9835-31242A1DCA59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,10 +1,12 @@
-namespace PrometheusExporter.Instrumentation.ProcessFileSystem;
+namespace PrometheusExporter.Instrumentation.SystemControl;
 
-using System.Globalization;
+using System.Runtime.InteropServices;
 
 using PrometheusExporter.Abstractions;
 
-internal sealed class ProcessFileSystemInstrumentation
+using static PrometheusExporter.Instrumentation.SystemControl.NativeMethods;
+
+internal sealed class SystemControlInstrumentation
 {
     private readonly string host;
 
@@ -14,7 +16,7 @@ internal sealed class ProcessFileSystemInstrumentation
 
     private DateTime lastUpdate;
 
-    public ProcessFileSystemInstrumentation(IMetricManager manager, ProcessFileSystemOptions options)
+    public SystemControlInstrumentation(IMetricManager manager, SystemControlOptions options)
     {
         host = options.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
@@ -50,9 +52,6 @@ internal sealed class ProcessFileSystemInstrumentation
 
     private KeyValuePair<string, object?>[] MakeTags() => [new("host", host)];
 
-    private static string ReadString(string filename) =>
-        File.ReadAllText(filename);
-
     //--------------------------------------------------------------------------------
     // Uptime
     //--------------------------------------------------------------------------------
@@ -64,9 +63,16 @@ internal sealed class ProcessFileSystemInstrumentation
 
         static double ReadValue()
         {
-            // TODO
-            var str = ReadString("/proc/uptime");
-            return Double.Parse(str.Split(' ')[0], CultureInfo.InvariantCulture);
+            var time = new timeval { tv_sec = 0, tv_usec = 0 };
+            var size = Marshal.SizeOf<timeval>();
+            if (sysctlbyname("kern.boottime", ref time, ref size, IntPtr.Zero, 0) != 0)
+            {
+                return double.NaN;
+            }
+
+            var boot = DateTimeOffset.FromUnixTimeMilliseconds((time.tv_sec * 1000) + (time.tv_usec / 1000));
+            var uptime = DateTimeOffset.Now - boot;
+            return uptime.TotalMilliseconds;
         }
     }
 

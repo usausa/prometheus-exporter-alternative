@@ -52,6 +52,9 @@
   <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.SwitchBot\PrometheusExporter.Instrumentation.SwitchBot.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows')) == 'false'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.SystemControl\PrometheusExporter.Instrumentation.SystemControl.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.WFWattch2\PrometheusExporter.Instrumentation.WFWattch2.csproj" />
   </ItemGroup>

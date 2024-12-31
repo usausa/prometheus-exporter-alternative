@@ -22,6 +22,9 @@ using PrometheusExporter.Instrumentation.SensorOmron;
 #if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.SwitchBot;
 #endif
+#if !WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.SystemControl;
+#endif
 using PrometheusExporter.Instrumentation.Ping;
 using PrometheusExporter.Instrumentation.WFWattch2;
 #if WINDOWS_EXPORTER
@@ -105,6 +108,14 @@ public sealed class ExporterSetting
     public bool EnableSwitchBot { get; set; }
 
     public SwitchBotOptions SwitchBot { get; set; } = new();
+#endif
+
+    // SystemControl
+
+#if !WINDOWS_EXPORTER
+    public bool EnableSystemControl { get; set; }
+
+    public SystemControlOptions SystemControl { get; set; } = new();
 #endif
 
     // WFWattch2

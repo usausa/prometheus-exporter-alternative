@@ -26,6 +26,9 @@ using PrometheusExporter.Instrumentation.SensorOmron;
 #if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.SwitchBot;
 #endif
+#if !WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.SystemControl;
+#endif
 using PrometheusExporter.Instrumentation.WFWattch2;
 #if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.Wifi;
@@ -89,6 +92,13 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
     {
         setting.ProcessFileSystem.Host = String.IsNullOrWhiteSpace(setting.ProcessFileSystem.Host) ? host : setting.ProcessFileSystem.Host;
         metrics.AddProcessFileSystemInstrumentation(setting.ProcessFileSystem);
+    }
+#endif
+#if !WINDOWS_EXPORTER
+    if (setting.EnableSystemControl)
+    {
+        setting.SystemControl.Host = String.IsNullOrWhiteSpace(setting.SystemControl.Host) ? host : setting.SystemControl.Host;
+        metrics.AddSystemControlInstrumentation(setting.SystemControl);
     }
 #endif
 

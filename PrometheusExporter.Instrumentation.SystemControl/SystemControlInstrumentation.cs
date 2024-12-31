@@ -72,7 +72,7 @@ internal sealed class SystemControlInstrumentation
 
             var boot = DateTimeOffset.FromUnixTimeMilliseconds((time.tv_sec * 1000) + (time.tv_usec / 1000));
             var uptime = DateTimeOffset.Now - boot;
-            return uptime.TotalMilliseconds;
+            return uptime.TotalSeconds;
         }
     }
 

@@ -14,17 +14,18 @@
     <Project Path="PrometheusExporter.Abstractions/PrometheusExporter.Abstractions.csproj" />
   </Folder>
   <Folder Name="/Instrumentation/" />
-  <Folder Name="/Instrumentation/Generic/">
+  <Folder Name="/Instrumentation/Generic/" Id="6d6b40bc-bc5e-1e73-7ce6-645b7cbc5cc4">
     <Project Path="PrometheusExporter.Instrumentation.Ping/PrometheusExporter.Instrumentation.Ping.csproj" />
     <Project Path="PrometheusExporter.Instrumentation.SensorOmron/PrometheusExporter.Instrumentation.SensorOmron.csproj" />
     <Project Path="PrometheusExporter.Instrumentation.WFWattch2/PrometheusExporter.Instrumentation.WFWattch2.csproj" />
   </Folder>
-  <Folder Name="/Instrumentation/Linux/">
+  <Folder Name="/Instrumentation/Linux/" Id="d3544f15-978a-240d-a106-159d4d4cfedb">
     <Project Path="PrometheusExporter.Instrumentation.ProcessFileSystem/PrometheusExporter.Instrumentation.ProcessFileSystem.csproj" />
     <Project Path="PrometheusExporter.Instrumentation.SystemControl/PrometheusExporter.Instrumentation.SystemControl.csproj" />
   </Folder>
-  <Folder Name="/Instrumentation/Windows/">
+  <Folder Name="/Instrumentation/Windows/" Id="3a82fe61-5525-4032-bd3b-afbf4e55cadc">
     <Project Path="PrometheusExporter.Instrumentation.Ble/PrometheusExporter.Instrumentation.Ble.csproj" />
+    <Project Path="PrometheusExporter.Instrumentation.BTWattch2/PrometheusExporter.Instrumentation.BTWattch2.csproj" Id="aad8d23b-b615-4237-a893-b6c637a08b68" />
     <Project Path="PrometheusExporter.Instrumentation.DiskInfo/PrometheusExporter.Instrumentation.DiskInfo.csproj" />
     <Project Path="PrometheusExporter.Instrumentation.HardwareMonitor/PrometheusExporter.Instrumentation.HardwareMonitor.csproj" />
     <Project Path="PrometheusExporter.Instrumentation.HyperV/PrometheusExporter.Instrumentation.HyperV.csproj" />

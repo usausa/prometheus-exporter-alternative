@@ -4,6 +4,9 @@ namespace PrometheusExporter.Settings;
 using PrometheusExporter.Instrumentation.Ble;
 #endif
 #if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.BTWattch2;
+#endif
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.DiskInfo;
 #endif
 #if WINDOWS_EXPORTER
@@ -48,6 +51,14 @@ public sealed class ExporterSetting
     public bool EnableBle { get; set; }
 
     public BleOptions Ble { get; set; } = new();
+#endif
+
+    // BTWattch2
+
+#if WINDOWS_EXPORTER
+    public bool EnableBTWattch2 { get; set; }
+
+    public BTWattch2Options BTWattch2 { get; set; } = new();
 #endif
 
     // DiskInfo

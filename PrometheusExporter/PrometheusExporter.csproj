@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
@@ -28,6 +28,9 @@
   </ItemGroup>
   <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ble\PrometheusExporter.Instrumentation.Ble.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.BTWattch2\PrometheusExporter.Instrumentation.BTWattch2.csproj" />
   </ItemGroup>
   <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj" />

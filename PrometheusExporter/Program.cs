@@ -7,6 +7,9 @@ using PrometheusExporter.Instrumentation;
 using PrometheusExporter.Instrumentation.Ble;
 #endif
 #if WINDOWS_EXPORTER
+using PrometheusExporter.Instrumentation.BTWattch2;
+#endif
+#if WINDOWS_EXPORTER
 using PrometheusExporter.Instrumentation.DiskInfo;
 #endif
 #if WINDOWS_EXPORTER
@@ -114,6 +117,12 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
 
     // Sensor
 
+#if WINDOWS_EXPORTER
+    if (setting.EnableBTWattch2)
+    {
+        metrics.AddBTWattch2Instrumentation(setting.BTWattch2);
+    }
+#endif
     if (setting.EnableWFWattch2)
     {
         metrics.AddWFWattch2Instrumentation(setting.WFWattch2);

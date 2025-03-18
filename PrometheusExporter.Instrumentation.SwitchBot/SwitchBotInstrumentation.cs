@@ -12,7 +12,7 @@ internal sealed class SwitchBotInstrumentation : IDisposable
 
     private readonly object sync = new();
 
-    private readonly List<Device> devices = [];
+    private readonly Device[] devices;
 
     private readonly BluetoothLEAdvertisementWatcher watcher;
 
@@ -26,14 +26,14 @@ internal sealed class SwitchBotInstrumentation : IDisposable
         var co2Metric = manager.CreateMetric("sensor_co2");
         var powerMetric = manager.CreateMetric("sensor_power");
 
+        var list = new List<Device>();
         foreach (var entry in options.Device)
         {
             var address = NormalizeAddress(entry.Address);
-
             if (entry.Type == DeviceType.Meter)
             {
                 var tags = MakeTags(address, entry.Name);
-                devices.Add(new MeterDevice(
+                list.Add(new MeterDevice(
                     address,
                     rssiMetric.CreateGauge(tags),
                     temperatureMetric.CreateGauge(tags),
@@ -43,12 +43,13 @@ internal sealed class SwitchBotInstrumentation : IDisposable
             else if (entry.Type == DeviceType.PlugMini)
             {
                 var tags = MakeTags(address, entry.Name);
-                devices.Add(new PlugMiniDevice(
+                list.Add(new PlugMiniDevice(
                     address,
                     rssiMetric.CreateGauge(tags),
                     powerMetric.CreateGauge(tags)));
             }
         }
+        devices = list.ToArray();
 
         manager.AddBeforeCollectCallback(Update);
 
@@ -106,7 +107,7 @@ internal sealed class SwitchBotInstrumentation : IDisposable
         }
     }
 
-    public void Update()
+    private void Update()
     {
         lock (sync)
         {
@@ -139,9 +140,9 @@ internal sealed class SwitchBotInstrumentation : IDisposable
     {
         public ulong Address { get; }
 
-        public DateTime LastUpdate { get; set; }
-
         public IGauge Rssi { get; }
+
+        public DateTime LastUpdate { get; set; }
 
         protected Device(ulong address, IGauge rssi)
         {

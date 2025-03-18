@@ -16,7 +16,18 @@ sensor_current
 sensor_voltage
 ```
 
-## SwitchBot
+## RS-BTWATTCH2 (Advertisement packet)
+
+for [RS-BTWATTCH2](https://www.ratocsystems.com/products/sensor/watt/rsbtwattch2/)
+
+```
+sensor_rssi
+sensor_power
+sensor_current
+sensor_voltage
+```
+
+## SwitchBot (Advertisement packet)
 
 for [SwitchBot Meter](https://www.switchbot.jp/products/switchbot-meter)
 
@@ -33,7 +44,7 @@ for [SwitchBot Plug Mini](https://www.switchbot.jp/products/switchbot-plug-mini)
 sensor_power
 ```
 
-## 2JCIE-BU
+## 2JCIE-BU (Serial port)
 
 for [2JCIE-BU](https://www.fa.omron.co.jp/products/family/3724/lineup.html)
 

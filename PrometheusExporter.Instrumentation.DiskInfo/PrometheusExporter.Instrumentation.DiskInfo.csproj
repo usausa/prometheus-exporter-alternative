@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="HardwareInfo.Disk" Version="1.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.3" />
   </ItemGroup>
 
 </Project>

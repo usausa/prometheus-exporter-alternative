@@ -220,10 +220,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
             {
                 foreach (var gauge in gauges)
                 {
-                    if (gauge is not null)
-                    {
-                        gauge.Value = double.NaN;
-                    }
+                    gauge?.Value = double.NaN;
                 }
             }
         }

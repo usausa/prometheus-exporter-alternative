@@ -11,6 +11,8 @@ internal sealed class PingInstrumentation : IDisposable
 
     private readonly Timer timer;
 
+    private volatile int isRunning;
+
     public PingInstrumentation(IMetricManager manager, PingOptions options)
     {
         var timeMetric = manager.CreateMetric("ping_result_time");
@@ -41,7 +43,19 @@ internal sealed class PingInstrumentation : IDisposable
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
-        await Task.WhenAll(targets.Select(async static x => await x.UpdateAsync()));
+        if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.WhenAll(targets.Select(async static x => await x.UpdateAsync()));
+        }
+        finally
+        {
+            Interlocked.Exchange(ref isRunning, 0);
+        }
     }
 
     //--------------------------------------------------------------------------------

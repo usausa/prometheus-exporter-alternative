@@ -22,7 +22,7 @@ internal sealed class MetricManager : IMetricManager, IDisposable
     {
         var gauge = new Metric(name, sort);
 
-        semaphore.Wait(0);
+        semaphore.Wait();
         try
         {
             gauges.Add(gauge);
@@ -47,7 +47,7 @@ internal sealed class MetricManager : IMetricManager, IDisposable
 
     public async Task CollectAsync(IBufferWriter<byte> writer, long timestamp, CancellationToken cancel)
     {
-        await semaphore.WaitAsync(0, cancel).ConfigureAwait(false);
+        await semaphore.WaitAsync(cancel).ConfigureAwait(false);
         try
         {
             foreach (var callback in beforeCollectCallbacks)

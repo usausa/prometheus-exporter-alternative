@@ -58,7 +58,7 @@ internal sealed class WifiInstrumentation
         // Update
         foreach (var network in NativeWifi.EnumerateBssNetworks())
         {
-            if (network.SignalStrength <= signalThreshold)
+            if (network.Rssi <= signalThreshold)
             {
                 continue;
             }
@@ -93,7 +93,7 @@ internal sealed class WifiInstrumentation
             }
 
             ap.Detected = true;
-            ap.Rssi.Value = network.SignalStrength;
+            ap.Rssi.Value = network.Rssi;
         }
 
         // Post update

@@ -1,4 +1,4 @@
-namespace PrometheusExporter.Metrics;
+namespace PrometheusExporter.Instrumentation;
 
 internal sealed class InstrumentationProvider : IInstrumentationProvider
 {
@@ -24,7 +24,7 @@ internal sealed class InstrumentationProvider : IInstrumentationProvider
         {
             provider.GetRequiredService(registration.Type);
 
-            log.InfoMetricsEnabled(registration.Name);
+            log.InfoInstrumentationEnabled(registration.Name);
         }
     }
 }

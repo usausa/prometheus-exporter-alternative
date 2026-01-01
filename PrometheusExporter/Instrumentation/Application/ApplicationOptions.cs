@@ -1,4 +1,4 @@
-namespace PrometheusExporter.Instrumentation;
+namespace PrometheusExporter.Instrumentation.Application;
 
 public sealed class ApplicationOptions
 {

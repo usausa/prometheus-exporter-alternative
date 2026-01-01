@@ -1,10 +1,9 @@
-namespace PrometheusExporter.Instrumentation;
+namespace PrometheusExporter.Instrumentation.Application;
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 using PrometheusExporter.Abstractions;
-using PrometheusExporter.Metrics;
 
 internal sealed class ApplicationInstrumentation
 {

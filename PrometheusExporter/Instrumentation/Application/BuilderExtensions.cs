@@ -1,7 +1,6 @@
-namespace PrometheusExporter.Instrumentation;
+namespace PrometheusExporter.Instrumentation.Application;
 
 using PrometheusExporter.Abstractions;
-using PrometheusExporter.Metrics;
 
 public static class BuilderExtensions
 {

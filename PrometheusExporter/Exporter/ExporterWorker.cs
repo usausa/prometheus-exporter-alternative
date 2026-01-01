@@ -3,7 +3,7 @@ namespace PrometheusExporter.Exporter;
 using System.Net;
 
 using PrometheusExporter.Abstractions;
-using PrometheusExporter.Metrics;
+using PrometheusExporter.Instrumentation;
 
 internal sealed class ExporterWorker : BackgroundService
 {

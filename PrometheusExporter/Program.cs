@@ -36,7 +36,6 @@ using PrometheusExporter.Instrumentation;
 //#if WINDOWS_EXPORTER
 //using PrometheusExporter.Instrumentation.Wifi;
 //#endif
-using PrometheusExporter.Metrics;
 using PrometheusExporter.Settings;
 
 using Serilog;

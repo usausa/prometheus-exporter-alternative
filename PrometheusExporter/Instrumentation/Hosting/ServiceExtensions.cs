@@ -1,6 +1,7 @@
-namespace PrometheusExporter.Metrics;
+namespace PrometheusExporter.Instrumentation;
 
 using PrometheusExporter.Abstractions;
+using PrometheusExporter.Metrics;
 
 internal static class ServiceExtensions
 {

@@ -1,4 +1,4 @@
-namespace PrometheusExporter.Metrics;
+namespace PrometheusExporter.Instrumentation;
 
 using PrometheusExporter.Abstractions;
 

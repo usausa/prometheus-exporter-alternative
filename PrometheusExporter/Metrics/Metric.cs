@@ -10,7 +10,7 @@ internal sealed class Metric : IMetric
 
     private readonly string? sort;
 
-    private readonly object sync = new();
+    private readonly Lock sync = new();
 
     private readonly List<Gauge> entries = [];
 

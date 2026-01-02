@@ -57,8 +57,8 @@ builder.Logging.ClearProviders();
 builder.Services.AddSerilog(options => options.ReadFrom.Configuration(builder.Configuration));
 
 // Metrics
-builder.Services.AddPrometheusMetrics((metrics, _) =>
-{
+//builder.Services.AddPrometheusMetrics((metrics, _) =>
+//{
     //var host = setting.Host ?? Environment.MachineName;
 
     //if (setting.EnableApplication)
@@ -158,7 +158,7 @@ builder.Services.AddPrometheusMetrics((metrics, _) =>
 //        setting.Ping.Host = String.IsNullOrWhiteSpace(setting.Ping.Host) ? host : setting.Ping.Host;
 //        metrics.AddPingInstrumentation(setting.Ping);
 //    }
-});
+//});
 
 // Worker
 builder.Services.AddSingleton(new ExporterWorkerOptions

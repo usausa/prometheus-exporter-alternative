@@ -2,9 +2,9 @@ namespace PrometheusExporter.Abstractions;
 
 public interface IInstrumentationBuilder
 {
-    IInstrumentationBuilder AddInstrumentation<T>(string name)
-        where T : class;
+    void AddSetting<TSetting>()
+        where TSetting : class;
 
-    IInstrumentationBuilder AddInstrumentation<T>(string name, Func<IServiceProvider, T> factory)
-        where T : class;
+    void AddInstrumentation<TInstrumentation>()
+        where TInstrumentation : class;
 }

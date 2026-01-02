@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFrameworks>net10.0</TargetFrameworks>
@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PrometheusExporter.Abstractions\PrometheusExporter.Abstractions.csproj" />
   </ItemGroup>
+  <!--
   <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ble\PrometheusExporter.Instrumentation.Ble.csproj" />
   </ItemGroup>
@@ -54,6 +55,7 @@
   <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Wifi\PrometheusExporter.Instrumentation.Wifi.csproj" />
   </ItemGroup>
+  -->
 
   <ItemGroup>
     <None Include="appsettings.Platform.*.json">

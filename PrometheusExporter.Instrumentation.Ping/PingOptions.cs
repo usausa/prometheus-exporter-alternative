@@ -1,6 +1,7 @@
 namespace PrometheusExporter.Instrumentation.Ping;
 
-public sealed class TargetEntry
+#pragma warning disable CA1812
+internal sealed class TargetEntry
 {
     public string Address { get; set; } = default!;
 
@@ -8,7 +9,7 @@ public sealed class TargetEntry
 }
 
 #pragma warning disable CA1819
-public sealed class PingOptions
+internal sealed class PingOptions
 {
     public string Host { get; set; } = default!;
 
@@ -19,3 +20,4 @@ public sealed class PingOptions
     public TargetEntry[] Target { get; set; } = default!;
 }
 #pragma warning restore CA1819
+#pragma warning restore CA1812

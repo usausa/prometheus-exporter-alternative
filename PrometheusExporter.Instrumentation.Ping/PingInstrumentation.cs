@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 
 using PrometheusExporter.Abstractions;
 
+#pragma warning disable CA1812
 internal sealed class PingInstrumentation : IDisposable
 {
     private readonly Target[] targets;
@@ -107,3 +108,4 @@ internal sealed class PingInstrumentation : IDisposable
 #pragma warning restore CA1031
     }
 }
+#pragma warning restore CA1812

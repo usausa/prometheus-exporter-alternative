@@ -41,37 +41,25 @@
     <ProjectReference Include="..\PrometheusExporter.Abstractions\PrometheusExporter.Abstractions.csproj" />
   </ItemGroup>
 
-  <!--
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ble\PrometheusExporter.Instrumentation.Ble.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.BTWattch2\PrometheusExporter.Instrumentation.BTWattch2.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.HardwareMonitor\PrometheusExporter.Instrumentation.HardwareMonitor.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.HyperV\PrometheusExporter.Instrumentation.HyperV.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.PerformanceCounter\PrometheusExporter.Instrumentation.PerformanceCounter.csproj" />
-  </ItemGroup>
-  -->
   <ItemGroup Condition="'$(BuildPlatform)' != ''">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ping\PrometheusExporter.Instrumentation.Ping.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.SensorOmron\PrometheusExporter.Instrumentation.SensorOmron.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.WFWattch2\PrometheusExporter.Instrumentation.WFWattch2.csproj" />
   </ItemGroup>
-  <!--
+
   <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ble\PrometheusExporter.Instrumentation.Ble.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.BTWattch2\PrometheusExporter.Instrumentation.BTWattch2.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.SwitchBot\PrometheusExporter.Instrumentation.SwitchBot.csproj" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Wifi\PrometheusExporter.Instrumentation.Wifi.csproj" />
   </ItemGroup>
-  -->
+
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.HardwareMonitor\PrometheusExporter.Instrumentation.HardwareMonitor.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.HyperV\PrometheusExporter.Instrumentation.HyperV.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.PerformanceCounter\PrometheusExporter.Instrumentation.PerformanceCounter.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="appsettings.Platform.*.json">

@@ -8,21 +8,21 @@ using PrometheusExporter.Abstractions;
 internal sealed class ApplicationInstrumentation
 {
     public ApplicationInstrumentation(
-        IMetricManager manager,
+        IInstrumentationEnvironment environment,
         IInstrumentationProvider provider,
-        ApplicationOptions options)
+        IMetricManager manager)
     {
         // Information
         var informationMetric = manager.CreateMetric("exporter_information");
         informationMetric.CreateGauge(
-            new("host", options.Host),
+            new("host", environment.Host),
             new("version", typeof(Program).Assembly.GetName().Version),
             new("platform", ResolvePlatformString()),
             new("os", RuntimeInformation.OSDescription)).Value = 1;
 
         // Uptime
         var uptimeMetric = manager.CreateMetric("exporter_uptime");
-        var uptime = uptimeMetric.CreateGauge([new("host", options.Host)]);
+        var uptime = uptimeMetric.CreateGauge([new("host", environment.Host)]);
         manager.AddBeforeCollectCallback(() =>
         {
             uptime.Value = (long)(DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds;
@@ -32,7 +32,7 @@ internal sealed class ApplicationInstrumentation
         var instrumentationMetric = manager.CreateMetric("exporter_instrumentation");
         foreach (var registration in provider.Registrations)
         {
-            var gauge = instrumentationMetric.CreateGauge(new("host", options.Host), new("name", registration.Name));
+            var gauge = instrumentationMetric.CreateGauge(new("host", environment.Host), new("name", registration.Name));
             gauge.Value = 1;
         }
     }

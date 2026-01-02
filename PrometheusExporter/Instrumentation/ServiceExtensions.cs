@@ -1,5 +1,9 @@
 namespace PrometheusExporter.Instrumentation;
 
+using System.Reflection;
+using System.Runtime.Loader;
+
+using PrometheusExporter.Abstractions;
 using PrometheusExporter.Instrumentation.Application;
 
 internal static class ServiceExtensions
@@ -17,24 +21,49 @@ internal static class ServiceExtensions
         services.AddSingleton(environment);
 
         // Registration
-        var registrationManager = new RegistrationManager();
-        services.AddSingleton<IRegistrationManager>(registrationManager);
-
-        // Load instrumentation
-        var registry = new InstrumentationRegistry(services, configuration.GetSection("Exporter").GetSection("Instrumentation"), registrationManager);
-
-        // Application
-        registry.Register("Application", builder =>
+        services.AddSingleton<IRegistrationManager>(p =>
         {
-            builder.AddSetting<ApplicationOptions>();
-            builder.AddInstrumentation<ApplicationInstrumentation>();
-        });
+            var log = p.GetRequiredService<ILogger<RegistrationManager>>();
 
-        // Enable instrumentation
-        // TODO
-        //foreach (var name in config.Enable)
-        //{
-        //}
+            var registrationManager = new RegistrationManager();
+
+            // Load instrumentation
+            var registry = new InstrumentationRegistry(services, configuration.GetSection("Exporter").GetSection("Instrumentation"), registrationManager);
+
+            // Application
+            registry.Register("Application", builder =>
+            {
+                builder.AddInstrumentation<ApplicationInstrumentation>();
+            });
+
+            // Enable instrumentation
+            foreach (var name in config.Enable)
+            {
+                var assemblyName = "PrometheusExporter.Instrumentation." + name;
+
+#pragma warning disable CA1031
+                try
+                {
+                    var dllPath = Path.Combine(AppContext.BaseDirectory, assemblyName + ".dll");
+                    var assembly = File.Exists(dllPath)
+                        ? Assembly.LoadFrom(dllPath)
+                        : AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(assemblyName));
+                    foreach (var loaderType in assembly.GetTypes()
+                                 .Where(static x => typeof(IInstrumentationLoader).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false }))
+                    {
+                        var loader = (IInstrumentationLoader)Activator.CreateInstance(loaderType)!;
+                        loader.Load(registry);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorInstrumentationLoadFailed(ex, assemblyName);
+                }
+#pragma warning restore CA1031
+            }
+
+            return registrationManager;
+        });
 
         return services;
     }

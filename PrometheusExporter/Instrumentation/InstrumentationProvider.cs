@@ -28,5 +28,10 @@ internal sealed class InstrumentationProvider : IInstrumentationProvider
 
             log.InfoInstrumentationEnabled(registration.Name);
         }
+
+        foreach (var error in registrationManager.Errors)
+        {
+            log.ErrorInstrumentationLoadFailed(error.Exception, error.Name);
+        }
     }
 }

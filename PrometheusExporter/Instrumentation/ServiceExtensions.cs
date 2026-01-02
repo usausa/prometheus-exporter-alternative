@@ -53,7 +53,7 @@ internal static class ServiceExtensions
             }
             catch (Exception ex)
             {
-                //log.ErrorInstrumentationLoadFailed(ex, assemblyName);
+                registrationManager.AddError(name, ex);
             }
 #pragma warning restore CA1031
         }

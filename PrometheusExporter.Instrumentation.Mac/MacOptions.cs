@@ -1,6 +1,6 @@
-namespace PrometheusExporter.Instrumentation.SystemControl;
+namespace PrometheusExporter.Instrumentation.Mac;
 
-public sealed class SystemControlOptions
+internal sealed class MacOptions
 {
     public string Host { get; set; } = default!;
 

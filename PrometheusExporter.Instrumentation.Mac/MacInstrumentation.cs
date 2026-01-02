@@ -1,12 +1,12 @@
-namespace PrometheusExporter.Instrumentation.SystemControl;
+namespace PrometheusExporter.Instrumentation.Mac;
 
 using System.Runtime.InteropServices;
 
 using PrometheusExporter.Abstractions;
 
-using static PrometheusExporter.Instrumentation.SystemControl.NativeMethods;
+using static PrometheusExporter.Instrumentation.Mac.NativeMethods;
 
-internal sealed class SystemControlInstrumentation
+internal sealed class MacInstrumentation
 {
     private readonly string host;
 
@@ -16,7 +16,7 @@ internal sealed class SystemControlInstrumentation
 
     private DateTime lastUpdate;
 
-    public SystemControlInstrumentation(IMetricManager manager, SystemControlOptions options)
+    public MacInstrumentation(IMetricManager manager, MacOptions options)
     {
         host = options.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
@@ -80,7 +80,7 @@ internal sealed class SystemControlInstrumentation
     // Entry
     //--------------------------------------------------------------------------------
 
-    public sealed class Entry
+    private sealed class Entry
     {
         private readonly Func<double> measurement;
 

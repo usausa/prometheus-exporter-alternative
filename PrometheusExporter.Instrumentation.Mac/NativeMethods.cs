@@ -1,4 +1,4 @@
-namespace PrometheusExporter.Instrumentation.SystemControl;
+namespace PrometheusExporter.Instrumentation.Mac;
 
 using System.Runtime.InteropServices;
 

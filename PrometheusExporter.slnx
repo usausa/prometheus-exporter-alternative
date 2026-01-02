@@ -10,15 +10,27 @@
     <File Path="PrometheusExporter.sln.DotSettings" />
     <File Path="README.md" />
   </Folder>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="DebugLinux" />
+    <BuildType Name="DebugMac" />
+    <BuildType Name="Release" />
+  </Configurations>
   <Folder Name="/Abstraction/">
-    <Project Path="PrometheusExporter.Abstractions/PrometheusExporter.Abstractions.csproj" />
+    <Project Path="PrometheusExporter.Abstractions/PrometheusExporter.Abstractions.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Instrumentation/" />
   <Folder Name="/Instrumentation/Generic/">
-    <Project Path="PrometheusExporter.Instrumentation.Ping/PrometheusExporter.Instrumentation.Ping.csproj" />
+    <Project Path="PrometheusExporter.Instrumentation.Ping/PrometheusExporter.Instrumentation.Ping.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+    </Project>
   </Folder>
   <Folder Name="/Instrumentation/Linux/" />
-  <Folder Name="/Instrumentation/MacOS/" />
+  <Folder Name="/Instrumentation/Mac/" />
   <Folder Name="/Instrumentation/Windows/" />
   <Folder Name="/Service/">
     <Project Path="PrometheusExporter/PrometheusExporter.csproj" />

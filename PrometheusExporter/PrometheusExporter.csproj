@@ -7,10 +7,23 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
     <UserSecretsId>a43540ca-94ec-411c-8add-55fa9b5eb5b4</UserSecretsId>
+    <Configurations>Debug;Release;DebugLinux;DebugMac</Configurations>
   </PropertyGroup>
 
-  <PropertyGroup Condition="$(TargetFramework.Contains('-windows'))">
-    <DefineConstants>$(DefineConstants);WINDOWS_EXPORTER</DefineConstants>
+  <!-- Debug compatible setting -->
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugLinux' or '$(Configuration)' == 'DebugMac'">
+    <Optimize>false</Optimize>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Build platform setting -->
+  <PropertyGroup>
+    <BuildPlatform></BuildPlatform>
+    <BuildPlatform Condition="$(TargetFramework.Contains('windows'))">windows</BuildPlatform>
+    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugMac')">mac</BuildPlatform>
+    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugLinux')">linux</BuildPlatform>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,32 +40,35 @@
   <ItemGroup>
     <ProjectReference Include="..\PrometheusExporter.Abstractions\PrometheusExporter.Abstractions.csproj" />
   </ItemGroup>
+
   <!--
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ble\PrometheusExporter.Instrumentation.Ble.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.BTWattch2\PrometheusExporter.Instrumentation.BTWattch2.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HardwareMonitor\PrometheusExporter.Instrumentation.HardwareMonitor.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HyperV\PrometheusExporter.Instrumentation.HyperV.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.PerformanceCounter\PrometheusExporter.Instrumentation.PerformanceCounter.csproj" />
   </ItemGroup>
-  <ItemGroup>
+  -->
+  <ItemGroup Condition="'$(BuildPlatform)' != ''">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ping\PrometheusExporter.Instrumentation.Ping.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <!--
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.SwitchBot\PrometheusExporter.Instrumentation.SwitchBot.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Wifi\PrometheusExporter.Instrumentation.Wifi.csproj" />
   </ItemGroup>
   -->

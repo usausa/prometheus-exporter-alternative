@@ -11,19 +11,20 @@ internal sealed class ExporterWorker : BackgroundService
 
     private readonly ExporterWorkerOptions options;
 
+    private readonly IInstrumentationProvider provider;
+
     private readonly IMetricManager manager;
 
     public ExporterWorker(
         ILogger<ExporterWorker> log,
-        IInstrumentationProvider provider,
         ExporterWorkerOptions options,
+        IInstrumentationProvider provider,
         IMetricManager manager)
     {
         this.log = log;
         this.options = options;
+        this.provider = provider;
         this.manager = manager;
-
-        provider.Setup();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -41,6 +42,10 @@ internal sealed class ExporterWorker : BackgroundService
         using var listener = new HttpListener();
         listener.Prefixes.Add($"{options.EndPoint.TrimEnd('/')}{path}");
 
+        // Setup instrumentation
+        provider.Setup();
+
+        // Listen start
 #pragma warning disable CA1031
         try
         {

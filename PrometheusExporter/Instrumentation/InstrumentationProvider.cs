@@ -6,21 +6,23 @@ internal sealed class InstrumentationProvider : IInstrumentationProvider
 
     private readonly IServiceProvider provider;
 
-    public IEnumerable<Registration> Registrations { get; }
+    private readonly IRegistrationManager registrationManager;
+
+    public IEnumerable<Registration> Registrations => registrationManager.Registrations;
 
     public InstrumentationProvider(
         ILogger<InstrumentationProvider> log,
         IServiceProvider provider,
-        IEnumerable<Registration> registrations)
+        IRegistrationManager registrationManager)
     {
         this.log = log;
         this.provider = provider;
-        Registrations = registrations;
+        this.registrationManager = registrationManager;
     }
 
     public void Setup()
     {
-        foreach (var registration in Registrations)
+        foreach (var registration in registrationManager.Registrations)
         {
             provider.GetRequiredService(registration.Type);
 

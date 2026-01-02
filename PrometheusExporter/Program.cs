@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using PrometheusExporter;
 using PrometheusExporter.Exporter;
 using PrometheusExporter.Instrumentation;
+using PrometheusExporter.Metrics;
 using PrometheusExporter.Settings;
 
 using Serilog;
@@ -24,7 +25,7 @@ builder.Logging.ClearProviders();
 builder.Services.AddSerilog(options => options.ReadFrom.Configuration(builder.Configuration));
 
 // Metrics
-builder.Services.AddMetrics();
+builder.Services.AddMetricManager();
 
 // Instrumentation
 builder.Services.AddInstrumentation(builder.Configuration, config =>

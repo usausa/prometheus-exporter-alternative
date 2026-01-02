@@ -4,7 +4,7 @@ using PrometheusExporter.Abstractions;
 
 internal static class ServiceExtensions
 {
-    public static IServiceCollection AddMetrics(this IServiceCollection services)
+    public static IServiceCollection AddMetricManager(this IServiceCollection services)
     {
         services.AddSingleton<IMetricManager, MetricManager>();
 

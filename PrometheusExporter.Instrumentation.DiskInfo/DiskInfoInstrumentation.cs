@@ -16,7 +16,10 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
     private DateTime lastUpdate;
 
-    public DiskInfoInstrumentation(IMetricManager manager, DiskInfoOptions options)
+    public DiskInfoInstrumentation(
+        DiskInfoOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
     {
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
@@ -29,18 +32,18 @@ internal sealed class DiskInfoInstrumentation : IDisposable
         foreach (var disk in disks)
         {
             var drive = MakeDriveValue(disk);
-            var sector = sectorMetric.CreateGauge(MakeTags(options.Host, disk.Index, disk.Model, drive));
+            var sector = sectorMetric.CreateGauge(MakeTags(environment.Host, disk.Index, disk.Model, drive));
             sector.Value = disk.BytesPerSector;
 
             if (disk.SmartType == SmartType.Nvme)
             {
                 var smart = (ISmartNvme)disk.Smart;
-                nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, options.Host, disk, drive), smart));
+                nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, environment.Host, disk, drive), smart));
             }
             else if (disk.SmartType == SmartType.Generic)
             {
                 var smart = (ISmartGeneric)disk.Smart;
-                genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, options.Host, disk, drive), smart));
+                genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, environment.Host, disk, drive), smart));
             }
         }
 

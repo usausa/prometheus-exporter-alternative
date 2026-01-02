@@ -10,7 +10,9 @@ internal sealed class SensorOmronInstrumentation : IDisposable
 
     private readonly Timer timer;
 
-    public SensorOmronInstrumentation(IMetricManager manager, SensorOmronOptions options)
+    public SensorOmronInstrumentation(
+        SensorOmronOptions options,
+        IMetricManager manager)
     {
         var temperatureMetric = manager.CreateMetric("sensor_temperature");
         var humidityMetric = manager.CreateMetric("sensor_humidity");

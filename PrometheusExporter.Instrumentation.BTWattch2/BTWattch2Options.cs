@@ -1,6 +1,6 @@
 namespace PrometheusExporter.Instrumentation.BTWattch2;
 
-public sealed class DeviceEntry
+internal sealed class DeviceEntry
 {
     public string Address { get; set; } = default!;
 
@@ -8,7 +8,7 @@ public sealed class DeviceEntry
 }
 
 #pragma warning disable CA1819
-public sealed class BTWattch2Options
+internal sealed class BTWattch2Options
 {
     public int TimeThreshold { get; set; } = 180_000;
 

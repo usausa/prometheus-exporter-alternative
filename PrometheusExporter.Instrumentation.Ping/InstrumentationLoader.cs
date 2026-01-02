@@ -2,7 +2,7 @@ namespace PrometheusExporter.Instrumentation.Ping;
 
 using PrometheusExporter.Abstractions;
 
-public sealed class InstrumentationLoader : IInstrumentationLoader
+internal sealed class InstrumentationLoader : IInstrumentationLoader
 {
     public void Load(IInstrumentationRegistry registry)
     {

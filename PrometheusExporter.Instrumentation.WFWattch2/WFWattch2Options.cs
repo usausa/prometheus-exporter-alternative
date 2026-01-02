@@ -1,6 +1,6 @@
 namespace PrometheusExporter.Instrumentation.WFWattch2;
 
-public sealed class DeviceEntry
+internal sealed class DeviceEntry
 {
     public string Address { get; set; } = default!;
 
@@ -8,7 +8,7 @@ public sealed class DeviceEntry
 }
 
 #pragma warning disable CA1819
-public sealed class WFWattch2Options
+internal sealed class WFWattch2Options
 {
     public int Interval { get; set; } = 5000;
 

@@ -1,12 +1,12 @@
 namespace PrometheusExporter.Instrumentation.SwitchBot;
 
-public enum DeviceType
+internal enum DeviceType
 {
     Meter,
     PlugMini
 }
 
-public sealed class DeviceEntry
+internal sealed class DeviceEntry
 {
     public DeviceType Type { get; set; }
 
@@ -16,7 +16,7 @@ public sealed class DeviceEntry
 }
 
 #pragma warning disable CA1819
-public sealed class SwitchBotOptions
+internal sealed class SwitchBotOptions
 {
     public int TimeThreshold { get; set; } = 180_000;
 

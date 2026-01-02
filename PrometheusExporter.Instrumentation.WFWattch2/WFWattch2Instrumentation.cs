@@ -13,7 +13,9 @@ internal sealed class WFWattch2Instrumentation : IDisposable
 
     private readonly Timer timer;
 
-    public WFWattch2Instrumentation(IMetricManager manager, WFWattch2Options options)
+    public WFWattch2Instrumentation(
+        WFWattch2Options options,
+        IMetricManager manager)
     {
         var powerMetric = manager.CreateMetric("sensor_power");
         var currentMetric = manager.CreateMetric("sensor_current");

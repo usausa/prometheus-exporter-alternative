@@ -1,6 +1,6 @@
 namespace PrometheusExporter.Instrumentation.PerformanceCounter;
 #pragma warning disable CA1819
-public sealed class CounterEntry
+internal sealed class CounterEntry
 {
     public string Name { get; set; } = default!;
 
@@ -15,10 +15,8 @@ public sealed class CounterEntry
 #pragma warning restore CA1819
 
 #pragma warning disable CA1819
-public sealed class PerformanceCounterOptions
+internal sealed class PerformanceCounterOptions
 {
-    public string Host { get; set; } = default!;
-
     public int UpdateDuration { get; set; } = 1000;
 
     public CounterEntry[] Counter { get; set; } = default!;

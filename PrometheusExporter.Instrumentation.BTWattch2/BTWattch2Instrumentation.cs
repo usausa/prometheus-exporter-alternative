@@ -10,13 +10,15 @@ internal sealed class BTWattch2Instrumentation : IDisposable
 {
     private readonly TimeSpan timeThreshold;
 
-    private readonly object sync = new();
+    private readonly Lock sync = new();
 
     private readonly Device[] devices;
 
     private readonly BluetoothLEAdvertisementWatcher watcher;
 
-    public BTWattch2Instrumentation(IMetricManager manager, BTWattch2Options options)
+    public BTWattch2Instrumentation(
+        BTWattch2Options options,
+        IMetricManager manager)
     {
         timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
 

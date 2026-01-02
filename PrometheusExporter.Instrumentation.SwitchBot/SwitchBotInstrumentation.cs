@@ -10,7 +10,7 @@ internal sealed class SwitchBotInstrumentation : IDisposable
 {
     private readonly TimeSpan timeThreshold;
 
-    private readonly object sync = new();
+    private readonly Lock sync = new();
 
     private readonly Device[] devices;
 

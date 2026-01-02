@@ -1,6 +1,6 @@
 namespace PrometheusExporter.Instrumentation.HardwareMonitor;
 
-public sealed class HardwareMonitorOptions
+internal sealed class HardwareMonitorOptions
 {
     public int UpdateDuration { get; set; } = 1000;
 
@@ -21,6 +21,4 @@ public sealed class HardwareMonitorOptions
     //public bool IsPsuEnabled { get; set; } = true;
 
     public bool IsStorageEnabled { get; set; } = true;
-
-    public string Host { get; set; } = default!;
 }

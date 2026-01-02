@@ -24,9 +24,12 @@ internal sealed class WifiInstrumentation
 
     private DateTime lastUpdate;
 
-    public WifiInstrumentation(IMetricManager manager, WifiOptions options)
+    public WifiInstrumentation(
+        IInstrumentationEnvironment environment,
+        WifiOptions options,
+        IMetricManager manager)
     {
-        host = options.Host;
+        host = environment.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
         signalThreshold = options.SignalThreshold;
         knownOnly = options.KnownOnly;

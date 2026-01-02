@@ -13,7 +13,10 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
 
     private DateTime lastUpdate;
 
-    public PerformanceCounterInstrumentation(IMetricManager manager, PerformanceCounterOptions options)
+    public PerformanceCounterInstrumentation(
+        PerformanceCounterOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
     {
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
@@ -27,7 +30,7 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
 
                 var tags = new List<KeyValuePair<string, object?>>
                 {
-                    new("host", options.Host)
+                    new("host", environment.Host)
                 };
                 if (!String.IsNullOrEmpty(counter.InstanceName))
                 {

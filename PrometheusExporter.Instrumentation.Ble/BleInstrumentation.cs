@@ -18,15 +18,18 @@ internal sealed class BleInstrumentation : IDisposable
 
     private readonly IMetric metric;
 
-    private readonly object sync = new();
+    private readonly Lock sync = new();
 
     private readonly List<Device> devices = [];
 
     private readonly BluetoothLEAdvertisementWatcher watcher;
 
-    public BleInstrumentation(IMetricManager manager, BleOptions options)
+    public BleInstrumentation(
+        BleOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
     {
-        host = options.Host;
+        host = environment.Host;
         signalThreshold = options.SignalThreshold;
         timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
         knownOnly = options.KnownOnly;
@@ -89,7 +92,7 @@ internal sealed class BleInstrumentation : IDisposable
         }
     }
 
-    public void Update()
+    private void Update()
     {
         lock (sync)
         {

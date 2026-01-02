@@ -29,15 +29,18 @@ internal sealed class HyperVInstrumentation
 
     private DateTime lastUpdate;
 
-    public HyperVInstrumentation(IMetricManager manager, HyperVOptions options)
+    public HyperVInstrumentation(
+        HyperVOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
     {
-        host = options.Host;
+        host = environment.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
         filter = !String.IsNullOrEmpty(options.IgnoreExpression)
             ? new Regex(options.IgnoreExpression, RegexOptions.Compiled)
             : null;
 
-        countGauge = manager.CreateMetric("hyperv_vm_count").CreateGauge([new("host", options.Host)]);
+        countGauge = manager.CreateMetric("hyperv_vm_count").CreateGauge([new("host", environment.Host)]);
         informationMetric = manager.CreateMetric("hyperv_vm_information", "name");
         stateMetric = manager.CreateMetric("hyperv_vm_state", "name");
         processorLoadMetric = manager.CreateMetric("hyperv_vm_processor_load", "name");

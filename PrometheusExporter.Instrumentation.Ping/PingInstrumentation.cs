@@ -5,7 +5,6 @@ using System.Net.NetworkInformation;
 
 using PrometheusExporter.Abstractions;
 
-#pragma warning disable CA1812
 internal sealed class PingInstrumentation : IDisposable
 {
     private readonly Target[] targets;
@@ -14,13 +13,16 @@ internal sealed class PingInstrumentation : IDisposable
 
     private volatile int isRunning;
 
-    public PingInstrumentation(IMetricManager manager, PingOptions options)
+    public PingInstrumentation(
+        PingOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
     {
         var timeMetric = manager.CreateMetric("ping_result_time");
 
         targets = options.Target
             .Select(x => new Target(
-                timeMetric.CreateGauge(MakeTags(options.Host, x)),
+                timeMetric.CreateGauge(MakeTags(environment.Host, x)),
                 options.Timeout,
                 Dns.GetHostAddresses(x.Address)[0]))
             .ToArray();
@@ -108,4 +110,3 @@ internal sealed class PingInstrumentation : IDisposable
 #pragma warning restore CA1031
     }
 }
-#pragma warning restore CA1812

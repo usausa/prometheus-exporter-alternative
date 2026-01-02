@@ -20,9 +20,12 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
 
     private DateTime lastUpdate;
 
-    public HardwareMonitorInstrumentation(IMetricManager manager, HardwareMonitorOptions options)
+    public HardwareMonitorInstrumentation(
+        HardwareMonitorOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
     {
-        host = options.Host;
+        host = environment.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
         computer = new Computer

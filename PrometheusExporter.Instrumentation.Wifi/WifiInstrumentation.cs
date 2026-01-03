@@ -59,45 +59,54 @@ internal sealed class WifiInstrumentation
         }
 
         // Update
-        foreach (var network in NativeWifi.EnumerateBssNetworks())
+#pragma warning disable CA1031
+        try
         {
-            if (network.Rssi <= signalThreshold)
+            foreach (var network in NativeWifi.EnumerateBssNetworks())
             {
-                continue;
-            }
-
-            var bssid = network.Bssid.ToString();
-            var ssid = network.Ssid.ToString();
-
-            if (knownOnly && !knownAccessPoints.Contains(bssid))
-            {
-                continue;
-            }
-
-            var ap = default(AccessPoint);
-            foreach (var accessPoint in accessPoints)
-            {
-                if (accessPoint.Bssid == bssid)
+                if (network.Rssi <= signalThreshold)
                 {
-                    ap = accessPoint;
-                    break;
+                    continue;
                 }
-            }
 
-            if ((ap is not null) && (ap.Ssid != ssid))
-            {
-                ap = null;
-            }
+                var bssid = network.Bssid.ToString();
+                var ssid = network.Ssid.ToString();
 
-            if (ap is null)
-            {
-                ap = new AccessPoint(bssid, ssid, metric.CreateGauge(MakeTags(network)));
-                accessPoints.Add(ap);
-            }
+                if (knownOnly && !knownAccessPoints.Contains(bssid))
+                {
+                    continue;
+                }
 
-            ap.Detected = true;
-            ap.Rssi.Value = network.Rssi;
+                var ap = default(AccessPoint);
+                foreach (var accessPoint in accessPoints)
+                {
+                    if (accessPoint.Bssid == bssid)
+                    {
+                        ap = accessPoint;
+                        break;
+                    }
+                }
+
+                if ((ap is not null) && (ap.Ssid != ssid))
+                {
+                    ap = null;
+                }
+
+                if (ap is null)
+                {
+                    ap = new AccessPoint(bssid, ssid, metric.CreateGauge(MakeTags(network)));
+                    accessPoints.Add(ap);
+                }
+
+                ap.Detected = true;
+                ap.Rssi.Value = network.Rssi;
+            }
         }
+        catch
+        {
+            // Ignore errors
+        }
+#pragma warning restore CA1031
 
         // Post update
         for (var i = accessPoints.Count - 1; i >= 0; i--)

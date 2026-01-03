@@ -16,7 +16,9 @@ internal sealed class SwitchBotInstrumentation : IDisposable
 
     private readonly BluetoothLEAdvertisementWatcher watcher;
 
-    public SwitchBotInstrumentation(IMetricManager manager, SwitchBotOptions options)
+    public SwitchBotInstrumentation(
+        SwitchBotOptions options,
+        IMetricManager manager)
     {
         timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
 

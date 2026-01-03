@@ -33,7 +33,7 @@ internal static class ServiceExtensions
         });
 
         // Enable instrumentation
-        foreach (var name in config.Enable)
+        foreach (var name in config.Enable.Distinct())
         {
             var assemblyName = "PrometheusExporter.Instrumentation." + name;
 

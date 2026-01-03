@@ -76,7 +76,7 @@ internal sealed class ExporterWorker : BackgroundService
             var timestamp = DateTimeOffset.UtcNow;
 
             using var buffer = new ResponseBuffer<byte>(65536);
-            await manager.CollectAsync(buffer, timestamp.ToUnixTimeMilliseconds(), default!);
+            await manager.CollectAsync(buffer, timestamp.ToUnixTimeMilliseconds(), stoppingToken);
 
             context.Response.StatusCode = (int)HttpStatusCode.OK;
             context.Response.Headers.Add("Last-Modified", timestamp.ToString("R"));

@@ -14,9 +14,12 @@ internal sealed class MacInstrumentation
 
     private DateTime lastUpdate;
 
-    public MacInstrumentation(IMetricManager manager, MacOptions options)
+    public MacInstrumentation(
+        MacOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
     {
-        host = options.Host;
+        host = environment.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
         SetupUptimeMetric(manager);

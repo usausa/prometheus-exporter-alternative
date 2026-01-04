@@ -8,6 +8,7 @@
     <File Path="Directory.Build.targets" />
     <File Path="LICENSE" />
     <File Path="PrometheusExporter.sln.DotSettings" />
+    <File Path="publish.bat" />
     <File Path="README.md" />
   </Folder>
   <Configurations>

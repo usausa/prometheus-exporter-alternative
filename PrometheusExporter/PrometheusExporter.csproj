@@ -22,8 +22,8 @@
   <PropertyGroup>
     <BuildPlatform></BuildPlatform>
     <BuildPlatform Condition="$(TargetFramework.Contains('windows'))">windows</BuildPlatform>
-    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugMac')">mac</BuildPlatform>
     <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugLinux')">linux</BuildPlatform>
+    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugMac')">mac</BuildPlatform>
   </PropertyGroup>
 
   <ItemGroup>
@@ -59,6 +59,14 @@
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HardwareMonitor\PrometheusExporter.Instrumentation.HardwareMonitor.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HyperV\PrometheusExporter.Instrumentation.HyperV.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.PerformanceCounter\PrometheusExporter.Instrumentation.PerformanceCounter.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildPlatform)' == 'linux'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.Linux\PrometheusExporter.Instrumentation.Linux.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildPlatform)' == 'mac'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.Mac\PrometheusExporter.Instrumentation.Mac.csproj" />
   </ItemGroup>
 
   <ItemGroup>

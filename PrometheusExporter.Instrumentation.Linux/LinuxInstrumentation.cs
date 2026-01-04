@@ -1,7 +1,5 @@
 namespace PrometheusExporter.Instrumentation.Linux;
 
-using System.Globalization;
-
 using LinuxDotNet.SystemInfo;
 
 using PrometheusExporter.Abstractions;
@@ -54,9 +52,6 @@ internal sealed class LinuxInstrumentation
     //--------------------------------------------------------------------------------
 
     private KeyValuePair<string, object?>[] MakeTags() => [new("host", host)];
-
-    private static string ReadString(string filename) =>
-        File.ReadAllText(filename);
 
     //--------------------------------------------------------------------------------
     // Uptime

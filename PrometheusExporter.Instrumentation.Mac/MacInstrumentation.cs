@@ -1,10 +1,8 @@
 namespace PrometheusExporter.Instrumentation.Mac;
 
-using System.Runtime.InteropServices;
-
 using PrometheusExporter.Abstractions;
 
-using static PrometheusExporter.Instrumentation.Mac.NativeMethods;
+using MacDotNet.SystemInfo;
 
 internal sealed class MacInstrumentation
 {
@@ -58,20 +56,17 @@ internal sealed class MacInstrumentation
 
     private void SetupUptimeMetric(IMetricManager manager)
     {
+        // Uptime
+        var uptimeInfo = PlatformProvider.GetUptime();
+
         var metric = manager.CreateMetric("system_uptime");
         entries.Add(new Entry(ReadValue, metric.CreateGauge(MakeTags())));
+        return;
 
-        static double ReadValue()
+        double ReadValue()
         {
-            var time = new timeval { tv_sec = 0, tv_usec = 0 };
-            var size = Marshal.SizeOf<timeval>();
-            if (sysctlbyname("kern.boottime", ref time, ref size, IntPtr.Zero, 0) != 0)
-            {
-                return double.NaN;
-            }
-
-            var boot = DateTimeOffset.FromUnixTimeMilliseconds((time.tv_sec * 1000) + (time.tv_usec / 1000));
-            var uptime = DateTimeOffset.Now - boot;
+            uptimeInfo.Update();
+            var uptime = uptimeInfo.Uptime;
             return uptime.TotalSeconds;
         }
     }

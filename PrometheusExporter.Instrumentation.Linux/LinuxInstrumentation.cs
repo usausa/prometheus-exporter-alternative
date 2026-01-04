@@ -2,6 +2,8 @@ namespace PrometheusExporter.Instrumentation.Linux;
 
 using System.Globalization;
 
+using LinuxDotNet.SystemInfo;
+
 using PrometheusExporter.Abstractions;
 
 internal sealed class LinuxInstrumentation
@@ -62,14 +64,18 @@ internal sealed class LinuxInstrumentation
 
     private void SetupUptimeMetric(IMetricManager manager)
     {
+        // Uptime
+        var uptimeInfo = PlatformProvider.GetUptime();
+
         var metric = manager.CreateMetric("system_uptime");
         entries.Add(new Entry(ReadValue, metric.CreateGauge(MakeTags())));
+        return;
 
-        static double ReadValue()
+        double ReadValue()
         {
-            // TODO
-            var str = ReadString("/proc/uptime");
-            return Double.Parse(str.Split(' ')[0], CultureInfo.InvariantCulture);
+            uptimeInfo.Update();
+            var uptime = uptimeInfo.Uptime;
+            return uptime.TotalSeconds;
         }
     }
 
@@ -77,7 +83,7 @@ internal sealed class LinuxInstrumentation
     // Entry
     //--------------------------------------------------------------------------------
 
-    public sealed class Entry
+    private sealed class Entry
     {
         private readonly Func<double> measurement;
 

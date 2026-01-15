@@ -176,10 +176,14 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => load.Update());
 
-        // TODO
-        //Console.WriteLine($"Average1:  {load.Average1:F2}");
-        //Console.WriteLine($"Average5:  {load.Average5:F2}");
-        //Console.WriteLine($"Average15: {load.Average15:F2}");
+        var metric1 = manager.CreateMetric("system_load_average1");
+        updateEntries.Add(new Entry(() => load.Average1, metric1.CreateGauge(MakeTags())));
+
+        var metric5 = manager.CreateMetric("system_load_average5");
+        updateEntries.Add(new Entry(() => load.Average5, metric5.CreateGauge(MakeTags())));
+
+        var metric15 = manager.CreateMetric("system_load_average15");
+        updateEntries.Add(new Entry(() => load.Average15, metric15.CreateGauge(MakeTags())));
     }
 
     private void SetupMemoryMetric(IMetricManager manager)

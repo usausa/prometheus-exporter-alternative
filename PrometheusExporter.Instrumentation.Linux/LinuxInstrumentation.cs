@@ -62,13 +62,9 @@ internal sealed class LinuxInstrumentation
         {
             SetupNetworkStaticMetric(manager);
         }
-        if (options.TcpStatic)
+        if (options.TcpStatic || options.Tcp6Static)
         {
-            SetupTcpStaticMetric(manager);
-        }
-        if (options.Tcp6Static)
-        {
-            SetupTcp6StaticMetric(manager);
+            SetupTcpStaticMetric(manager, options.TcpStatic, options.Tcp6Static);
         }
         if (options.ProcessSummary)
         {
@@ -275,10 +271,11 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => fd.Update());
 
-        // TODO
-        //Console.WriteLine($"Allocated: {fd.Allocated}");
-        //Console.WriteLine($"Used:      {fd.Used}");
-        //Console.WriteLine($"Max:       {fd.Max}");
+        var metricAllocated = manager.CreateMetric("system_fd_allocated");
+        updateEntries.Add(new Entry(() => fd.Allocated, metricAllocated.CreateGauge(MakeTags())));
+
+        var metricUsed = manager.CreateMetric("system_fd_used");
+        updateEntries.Add(new Entry(() => fd.Used, metricUsed.CreateGauge(MakeTags())));
     }
 
     private void SetupNetworkStaticMetric(IMetricManager manager)
@@ -287,7 +284,7 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => network.Update());
 
-        // TODO
+        // TODO n
         //foreach (var nif in network.Interfaces)
         //{
         //    Console.WriteLine($"Interface:    {nif.Interface}");
@@ -310,46 +307,42 @@ internal sealed class LinuxInstrumentation
         //}
     }
 
-    private void SetupTcpStaticMetric(IMetricManager manager)
+    private void SetupTcpStaticMetric(IMetricManager manager, bool useTcp4, bool useTcp6)
     {
-        var tcp = PlatformProvider.GetTcp();
+        var metric = manager.CreateMetric("system_tcp_statics");
 
-        prepareEntries.Add(() => tcp.Update());
+        if (useTcp4)
+        {
+            var tcp = PlatformProvider.GetTcp();
 
-        // TODO
-        //Console.WriteLine($"Established: {tcp.Established}");
-        //Console.WriteLine($"SynSent:     {tcp.SynSent}");
-        //Console.WriteLine($"SynRecv:     {tcp.SynRecv}");
-        //Console.WriteLine($"FinWait1:    {tcp.FinWait1}");
-        //Console.WriteLine($"FinWait2:    {tcp.FinWait2}");
-        //Console.WriteLine($"TimeWait:    {tcp.TimeWait}");
-        //Console.WriteLine($"Close:       {tcp.Close}");
-        //Console.WriteLine($"CloseWait:   {tcp.CloseWait}");
-        //Console.WriteLine($"LastAck:     {tcp.LastAck}");
-        //Console.WriteLine($"Listen:      {tcp.Listen}");
-        //Console.WriteLine($"Closing:     {tcp.Closing}");
-        //Console.WriteLine($"Total:       {tcp.Total}");
-    }
+            prepareEntries.Add(() => tcp.Update());
 
-    private void SetupTcp6StaticMetric(IMetricManager manager)
-    {
-        var tcp6 = PlatformProvider.GetTcp6();
+            SetupTcpStaticEntries(tcp, 4);
+        }
 
-        prepareEntries.Add(() => tcp6.Update());
+        if (useTcp6)
+        {
+            var tcp6 = PlatformProvider.GetTcp6();
 
-        // TODO
-        //Console.WriteLine($"Established: {tcp.Established}");
-        //Console.WriteLine($"SynSent:     {tcp.SynSent}");
-        //Console.WriteLine($"SynRecv:     {tcp.SynRecv}");
-        //Console.WriteLine($"FinWait1:    {tcp.FinWait1}");
-        //Console.WriteLine($"FinWait2:    {tcp.FinWait2}");
-        //Console.WriteLine($"TimeWait:    {tcp.TimeWait}");
-        //Console.WriteLine($"Close:       {tcp.Close}");
-        //Console.WriteLine($"CloseWait:   {tcp.CloseWait}");
-        //Console.WriteLine($"LastAck:     {tcp.LastAck}");
-        //Console.WriteLine($"Listen:      {tcp.Listen}");
-        //Console.WriteLine($"Closing:     {tcp.Closing}");
-        //Console.WriteLine($"Total:       {tcp.Total}");
+            prepareEntries.Add(() => tcp6.Update());
+
+            SetupTcpStaticEntries(tcp6, 6);
+        }
+
+        void SetupTcpStaticEntries(TcpInfo info, int version)
+        {
+            updateEntries.Add(new Entry(() => info.Established, metric.CreateGauge(MakeTags(new("version", version), new("state", "established")))));
+            updateEntries.Add(new Entry(() => info.SynSent, metric.CreateGauge(MakeTags(new("version", version), new("state", "syn_sent")))));
+            updateEntries.Add(new Entry(() => info.SynRecv, metric.CreateGauge(MakeTags(new("version", version), new("state", "syn_recv")))));
+            updateEntries.Add(new Entry(() => info.FinWait1, metric.CreateGauge(MakeTags(new("version", version), new("state", "fin_wait1")))));
+            updateEntries.Add(new Entry(() => info.FinWait2, metric.CreateGauge(MakeTags(new("version", version), new("state", "fin_wait2")))));
+            updateEntries.Add(new Entry(() => info.TimeWait, metric.CreateGauge(MakeTags(new("version", version), new("state", "time_wait")))));
+            updateEntries.Add(new Entry(() => info.Close, metric.CreateGauge(MakeTags(new("version", version), new("state", "close")))));
+            updateEntries.Add(new Entry(() => info.CloseWait, metric.CreateGauge(MakeTags(new("version", version), new("state", "close_wait")))));
+            updateEntries.Add(new Entry(() => info.LastAck, metric.CreateGauge(MakeTags(new("version", version), new("state", "last_ack")))));
+            updateEntries.Add(new Entry(() => info.Listen, metric.CreateGauge(MakeTags(new("version", version), new("state", "listen")))));
+            updateEntries.Add(new Entry(() => info.Closing, metric.CreateGauge(MakeTags(new("version", version), new("state", "closing")))));
+        }
     }
 
     private void SetupProcessSummaryMetric(IMetricManager manager)

@@ -123,7 +123,17 @@ internal sealed class LinuxInstrumentation
     // Helper
     //--------------------------------------------------------------------------------
 
-    private KeyValuePair<string, object?>[] MakeTags() => [new("host", host)];
+    private KeyValuePair<string, object?>[] MakeTags(params KeyValuePair<string, object?>[] options)
+    {
+        if (options.Length == 0)
+        {
+            return [new("host", host)];
+        }
+
+        var tags = new List<KeyValuePair<string, object?>>([new("host", host)]);
+        tags.AddRange(options);
+        return [.. tags];
+    }
 
     //--------------------------------------------------------------------------------
     // Uptime
@@ -176,14 +186,10 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => load.Update());
 
-        var metric1 = manager.CreateMetric("system_load_average1");
-        updateEntries.Add(new Entry(() => load.Average1, metric1.CreateGauge(MakeTags())));
-
-        var metric5 = manager.CreateMetric("system_load_average5");
-        updateEntries.Add(new Entry(() => load.Average5, metric5.CreateGauge(MakeTags())));
-
-        var metric15 = manager.CreateMetric("system_load_average15");
-        updateEntries.Add(new Entry(() => load.Average15, metric15.CreateGauge(MakeTags())));
+        var metric = manager.CreateMetric("system_load_average");
+        updateEntries.Add(new Entry(() => load.Average1, metric.CreateGauge(MakeTags([new("window", 1)]))));
+        updateEntries.Add(new Entry(() => load.Average5, metric.CreateGauge(MakeTags([new("window", 5)]))));
+        updateEntries.Add(new Entry(() => load.Average15, metric.CreateGauge(MakeTags([new("window", 15)]))));
     }
 
     private void SetupMemoryMetric(IMetricManager manager)

@@ -382,32 +382,41 @@ internal sealed class LinuxInstrumentation
     private void SetupBatteryMetric(IMetricManager manager)
     {
         var battery = PlatformProvider.GetBattery();
+        if (!battery.Supported)
+        {
+            return;
+        }
 
         prepareEntries.Add(() => battery.Update());
 
-        // TODO
-        //if (battery.Supported)
-        //{
-        //    Console.WriteLine($"Capacity:   {battery.Capacity}");
-        //    Console.WriteLine($"Status:     {battery.Status}");
-        //    Console.WriteLine($"Voltage:    {battery.Voltage / 1000.0:F2}");
-        //    Console.WriteLine($"Current:    {battery.Current / 1000.0:F2}");
-        //    Console.WriteLine($"Charge:     {battery.Charge / 1000.0:F2}");
-        //    Console.WriteLine($"ChargeFull: {battery.ChargeFull / 1000.0:F2}");
-        //}
+        var metricCapacity = manager.CreateMetric("system_battery_capacity");
+        updateEntries.Add(new Entry(() => battery.Capacity, metricCapacity.CreateGauge(MakeTags())));
+
+        var metricVoltage = manager.CreateMetric("system_battery_voltage");
+        updateEntries.Add(new Entry(() => battery.Voltage / 1000.0, metricVoltage.CreateGauge(MakeTags())));
+
+        var metricCurrent = manager.CreateMetric("system_battery_current");
+        updateEntries.Add(new Entry(() => battery.Current / 1000.0, metricCurrent.CreateGauge(MakeTags())));
+
+        var metricCharge = manager.CreateMetric("system_battery_charge");
+        updateEntries.Add(new Entry(() => battery.Charge / 1000.0, metricCharge.CreateGauge(MakeTags())));
+
+        var metricChargeFull = manager.CreateMetric("system_battery_charge_full");
+        updateEntries.Add(new Entry(() => battery.ChargeFull / 1000.0, metricChargeFull.CreateGauge(MakeTags())));
     }
 
     private void SetupMainsAdapterMetric(IMetricManager manager)
     {
         var adapter = PlatformProvider.GetMainsAdapter();
+        if (!adapter.Supported)
+        {
+            return;
+        }
 
         prepareEntries.Add(() => adapter.Update());
 
-        // TODO
-        //if (adapter.Supported)
-        //{
-        //    Console.WriteLine($"Online: {adapter.Online}");
-        //}
+        var metric = manager.CreateMetric("system_ac_online");
+        updateEntries.Add(new Entry(() => adapter.Online ? 1 : 0, metric.CreateGauge(MakeTags())));
     }
 
     private void SetupHardwareMonitorMetric(IMetricManager manager)

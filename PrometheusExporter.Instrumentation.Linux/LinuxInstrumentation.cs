@@ -351,9 +351,11 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => process.Update());
 
-        // TODO
-        //Console.WriteLine($"ProcessCount: {process.ProcessCount}");
-        //Console.WriteLine($"ThreadCount:  {process.ThreadCount}");
+        var metricProcess = manager.CreateMetric("system_process_count");
+        updateEntries.Add(new Entry(() => process.ProcessCount, metricProcess.CreateGauge(MakeTags())));
+
+        var metricThread = manager.CreateMetric("system_thread_count");
+        updateEntries.Add(new Entry(() => process.ThreadCount, metricThread.CreateGauge(MakeTags())));
     }
 
     private void SetupCpuMetric(IMetricManager manager)
@@ -362,21 +364,20 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => cpu.Update());
 
-        // TODO
-        //Console.WriteLine("Frequency");
-        //foreach (var core in cpu.Cores)
-        //{
-        //    Console.WriteLine($"{core.Name}: {core.Frequency}");
-        //}
+        var metricFrequency = manager.CreateMetric("hardware_cpu_frequency");
+        foreach (var core in cpu.Cores)
+        {
+            updateEntries.Add(new Entry(() => core.Frequency, metricFrequency.CreateGauge(MakeTags([new("name", core.Name)]))));
+        }
 
-        //if (cpu.Powers.Count > 0)
-        //{
-        //    Console.WriteLine("Power");
-        //    foreach (var power in cpu.Powers)
-        //    {
-        //        Console.WriteLine($"{power.Name}: {power.Energy / 1000.0}");
-        //    }
-        //}
+        if (cpu.Powers.Count > 0)
+        {
+            var metricPower = manager.CreateMetric("hardware_cpu_power");
+            foreach (var power in cpu.Powers)
+            {
+                updateEntries.Add(new Entry(() => power.Energy / 1000.0, metricFrequency.CreateGauge(MakeTags([new("name", power.Name)]))));
+            }
+        }
     }
 
     private void SetupBatteryMetric(IMetricManager manager)
@@ -389,19 +390,19 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => battery.Update());
 
-        var metricCapacity = manager.CreateMetric("system_battery_capacity");
+        var metricCapacity = manager.CreateMetric("hardware_battery_capacity");
         updateEntries.Add(new Entry(() => battery.Capacity, metricCapacity.CreateGauge(MakeTags())));
 
-        var metricVoltage = manager.CreateMetric("system_battery_voltage");
+        var metricVoltage = manager.CreateMetric("hardware_battery_voltage");
         updateEntries.Add(new Entry(() => battery.Voltage / 1000.0, metricVoltage.CreateGauge(MakeTags())));
 
-        var metricCurrent = manager.CreateMetric("system_battery_current");
+        var metricCurrent = manager.CreateMetric("hardware_battery_current");
         updateEntries.Add(new Entry(() => battery.Current / 1000.0, metricCurrent.CreateGauge(MakeTags())));
 
-        var metricCharge = manager.CreateMetric("system_battery_charge");
+        var metricCharge = manager.CreateMetric("hardware_battery_charge");
         updateEntries.Add(new Entry(() => battery.Charge / 1000.0, metricCharge.CreateGauge(MakeTags())));
 
-        var metricChargeFull = manager.CreateMetric("system_battery_charge_full");
+        var metricChargeFull = manager.CreateMetric("hardware_battery_charge_full");
         updateEntries.Add(new Entry(() => battery.ChargeFull / 1000.0, metricChargeFull.CreateGauge(MakeTags())));
     }
 
@@ -415,7 +416,7 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => adapter.Update());
 
-        var metric = manager.CreateMetric("system_ac_online");
+        var metric = manager.CreateMetric("hardware_ac_online");
         updateEntries.Add(new Entry(() => adapter.Online ? 1 : 0, metric.CreateGauge(MakeTags())));
     }
 
@@ -423,27 +424,32 @@ internal sealed class LinuxInstrumentation
     {
         var monitors = PlatformProvider.GetHardwareMonitors();
 
-        //prepareEntries.Add(() => monitors.Update());
+        prepareEntries.Add(() =>
+        {
+            foreach (var monitor in monitors)
+            {
+                foreach (var sensor in monitor.Sensors)
+                {
+                    sensor.Update();
+                }
+            }
+        });
 
-        // TODO
-        //foreach (var monitor in monitors)
-        //{
-        //    Console.WriteLine($"Monitor: {monitor.Type}");
-        //    Console.WriteLine($"Name:    {monitor.Name}");
-        //    foreach (var sensor in monitor.Sensors)
-        //    {
-        //        Console.WriteLine($"Sensor:  {sensor.Type}");
-        //        Console.WriteLine($"Label:   {sensor.Label}");
-        //        Console.WriteLine($"Value:   {sensor.Value}");
-        //    }
-        //}
+        var metric = manager.CreateMetric("hardware_monitor");
+
+        foreach (var monitor in monitors)
+        {
+            foreach (var sensor in monitor.Sensors)
+            {
+                updateEntries.Add(new Entry(() => sensor.Value, metric.CreateGauge(MakeTags(new("name", monitor.Name), new("sensor", sensor.Type), new("type", monitor.Type), new("label", sensor.Label)))));
+            }
+        }
     }
 
     //--------------------------------------------------------------------------------
     // Entry
     //--------------------------------------------------------------------------------
 
-    // TODO
     private sealed class Entry
     {
         private readonly Func<double> measurement;

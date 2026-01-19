@@ -247,22 +247,30 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => disk.Update());
 
-        // TODO
-        //foreach (var device in disk.Devices)
-        //{
-        //    Console.WriteLine($"Name:           {device.Name}");
-        //    Console.WriteLine($"ReadCompleted:  {device.ReadCompleted}");
-        //    Console.WriteLine($"ReadMerged:     {device.ReadMerged}");
-        //    Console.WriteLine($"ReadSectors:    {device.ReadSectors}");
-        //    Console.WriteLine($"ReadTime:       {device.ReadTime}");
-        //    Console.WriteLine($"WriteCompleted: {device.WriteCompleted}");
-        //    Console.WriteLine($"WriteMerged:    {device.WriteMerged}");
-        //    Console.WriteLine($"WriteSectors:   {device.WriteSectors}");
-        //    Console.WriteLine($"WriteTime:      {device.WriteTime}");
-        //    Console.WriteLine($"IosInProgress:  {device.IosInProgress}");
-        //    Console.WriteLine($"IoTime:         {device.IoTime}");
-        //    Console.WriteLine($"WeightIoTime:   {device.WeightIoTime}");
-        //}
+        var metricCompleted = manager.CreateMetric("system_disk_completed_total");
+        var metricMerged = manager.CreateMetric("system_disk_merged_total");
+        var metricSectors = manager.CreateMetric("system_disk_sectors_total");
+        var metricTime = manager.CreateMetric("system_disk_time_total");
+        var metricIosInProgress = manager.CreateMetric("system_disk_ios_in_progress");
+        var metricIoTime = manager.CreateMetric("system_disk_io_time_total");
+        var metricWeightIoTime = manager.CreateMetric("system_disk_weight_io_time_total");
+
+        foreach (var device in disk.Devices)
+        {
+            updateEntries.Add(new Entry(() => device.ReadCompleted, metricCompleted.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+            updateEntries.Add(new Entry(() => device.ReadMerged, metricMerged.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+            updateEntries.Add(new Entry(() => device.ReadSectors, metricSectors.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+            updateEntries.Add(new Entry(() => device.ReadTime, metricTime.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+
+            updateEntries.Add(new Entry(() => device.WriteCompleted, metricCompleted.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+            updateEntries.Add(new Entry(() => device.WriteMerged, metricMerged.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+            updateEntries.Add(new Entry(() => device.WriteSectors, metricSectors.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+            updateEntries.Add(new Entry(() => device.WriteTime, metricTime.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+
+            updateEntries.Add(new Entry(() => device.IosInProgress, metricIosInProgress.CreateGauge(MakeTags([new("name", device.Name)]))));
+            updateEntries.Add(new Entry(() => device.IoTime, metricIoTime.CreateGauge(MakeTags([new("name", device.Name)]))));
+            updateEntries.Add(new Entry(() => device.WeightIoTime, metricWeightIoTime.CreateGauge(MakeTags([new("name", device.Name)]))));
+        }
     }
 
     private void SetupFileDescriptorMetric(IMetricManager manager)

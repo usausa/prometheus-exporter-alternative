@@ -284,27 +284,37 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => network.Update());
 
-        // TODO n
-        //foreach (var nif in network.Interfaces)
-        //{
-        //    Console.WriteLine($"Interface:    {nif.Interface}");
-        //    Console.WriteLine($"RxBytes:      {nif.RxBytes}");
-        //    Console.WriteLine($"RxPackets:    {nif.RxPackets}");
-        //    Console.WriteLine($"RxErrors:     {nif.RxErrors}");
-        //    Console.WriteLine($"RxDropped:    {nif.RxDropped}");
-        //    Console.WriteLine($"RxFifo:       {nif.RxFifo}");
-        //    Console.WriteLine($"RxFrame:      {nif.RxFrame}");
-        //    Console.WriteLine($"RxCompressed: {nif.RxCompressed}");
-        //    Console.WriteLine($"RxMulticast:  {nif.RxMulticast}");
-        //    Console.WriteLine($"TxBytes:      {nif.TxBytes}");
-        //    Console.WriteLine($"TxPackets:    {nif.TxPackets}");
-        //    Console.WriteLine($"TxErrors:     {nif.TxErrors}");
-        //    Console.WriteLine($"TxDropped:    {nif.TxDropped}");
-        //    Console.WriteLine($"TxFifo:       {nif.TxFifo}");
-        //    Console.WriteLine($"TxCollisions: {nif.TxCollisions}");
-        //    Console.WriteLine($"TxCarrier:    {nif.TxCarrier}");
-        //    Console.WriteLine($"TxCompressed: {nif.TxCompressed}");
-        //}
+        var metricBytes = manager.CreateMetric("system_network_bytes_total");
+        var metricPackets = manager.CreateMetric("system_network_packets_total");
+        var metricErrors = manager.CreateMetric("system_network_errors_total");
+        var metricDropped = manager.CreateMetric("system_network_dropped_total");
+        var metricFifo = manager.CreateMetric("system_network_fifo_total");
+        var metricCompressed = manager.CreateMetric("system_network_compressed_total");
+        var metricFrame = manager.CreateMetric("system_network_frame_total");
+        var metricMulticast = manager.CreateMetric("system_network_multicast_total");
+        var metricCollisions = manager.CreateMetric("system_network_collisions_total");
+        var metricCarrier = manager.CreateMetric("system_network_carrier_total");
+
+        foreach (var nif in network.Interfaces)
+        {
+            updateEntries.Add(new Entry(() => nif.RxBytes, metricBytes.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(new Entry(() => nif.RxBytes, metricPackets.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(new Entry(() => nif.RxErrors, metricErrors.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(new Entry(() => nif.RxDropped, metricDropped.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(new Entry(() => nif.RxFifo, metricFifo.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(new Entry(() => nif.RxCompressed, metricCompressed.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(new Entry(() => nif.RxFrame, metricFrame.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(new Entry(() => nif.RxMulticast, metricMulticast.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+
+            updateEntries.Add(new Entry(() => nif.TxBytes, metricBytes.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(new Entry(() => nif.TxBytes, metricPackets.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(new Entry(() => nif.TxErrors, metricErrors.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(new Entry(() => nif.TxDropped, metricDropped.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(new Entry(() => nif.TxFifo, metricFifo.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(new Entry(() => nif.TxCompressed, metricCompressed.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(new Entry(() => nif.TxCollisions, metricCollisions.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(new Entry(() => nif.TxCarrier, metricCarrier.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+        }
     }
 
     private void SetupTcpStaticMetric(IMetricManager manager, bool useTcp4, bool useTcp6)

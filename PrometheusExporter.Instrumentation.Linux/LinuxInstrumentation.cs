@@ -146,34 +146,106 @@ internal sealed class LinuxInstrumentation
         updateEntries.Add(new Entry(() => uptimeInfo.Uptime.TotalSeconds, metric.CreateGauge(MakeTags())));
     }
 
-    // TODO delete
-    // ReSharper disable UnusedVariable
-    // ReSharper disable UnusedParameter.Local
-#pragma warning disable CA1822
-
     private void SetupStaticsMetric(IMetricManager manager)
     {
         var statics = PlatformProvider.GetStatics();
 
-        prepareEntries.Add(() => statics.Update());
+        var totalPrevious = new PreviousCpuTotal();
+        var corePrevious = new PreviousCpuTotal[statics.CpuCores.Count];
+        for (var i = 0; i < corePrevious.Length; i++)
+        {
+            corePrevious[i] = new PreviousCpuTotal();
+        }
 
-        // TODO
-        //Console.WriteLine($"Interrupt:      {statics.Interrupt}");
-        //Console.WriteLine($"ContextSwitch:  {statics.ContextSwitch}");
-        //Console.WriteLine($"SoftIrq:        {statics.SoftIrq}");
-        //Console.WriteLine($"ProcessRunning: {statics.ProcessRunning}");
-        //Console.WriteLine($"ProcessBlocked: {statics.ProcessBlocked}");
+        prepareEntries.Add(() =>
+        {
+            UpdatePrevious(totalPrevious, statics.CpuTotal);
+            for (var i = 0; i < corePrevious.Length; i++)
+            {
+                UpdatePrevious(corePrevious[i], statics.CpuCores[i]);
+            }
 
-        //Console.WriteLine($"User:           {statics.CpuTotal.User}");
-        //Console.WriteLine($"Nice:           {statics.CpuTotal.Nice}");
-        //Console.WriteLine($"System:         {statics.CpuTotal.System}");
-        //Console.WriteLine($"Idle:           {statics.CpuTotal.Idle}");
-        //Console.WriteLine($"IoWait:         {statics.CpuTotal.IoWait}");
-        //Console.WriteLine($"Irq:            {statics.CpuTotal.Irq}");
-        //Console.WriteLine($"SoftIrq:        {statics.CpuTotal.SoftIrq}");
-        //Console.WriteLine($"Steal:          {statics.CpuTotal.Steal}");
-        //Console.WriteLine($"Guest:          {statics.CpuTotal.Guest}");
-        //Console.WriteLine($"GuestNice:      {statics.CpuTotal.GuestNice}");
+            statics.Update();
+        });
+
+        var metricInterrupt = manager.CreateMetric("system_interrupt_total");
+        var metricContextSwitch = manager.CreateMetric("system_context_switch_total");
+        var metricSoftIrq = manager.CreateMetric("system_softirq_total");
+
+        updateEntries.Add(new Entry(() => statics.Interrupt, metricInterrupt.CreateGauge(MakeTags())));
+        updateEntries.Add(new Entry(() => statics.ContextSwitch, metricContextSwitch.CreateGauge(MakeTags())));
+        updateEntries.Add(new Entry(() => statics.SoftIrq, metricSoftIrq.CreateGauge(MakeTags())));
+
+        var metricScheduler = manager.CreateMetric("system_scheduler_task");
+
+        updateEntries.Add(new Entry(() => statics.ProcessRunning, metricScheduler.CreateGauge(MakeTags([new("state", "running")]))));
+        updateEntries.Add(new Entry(() => statics.ProcessBlocked, metricScheduler.CreateGauge(MakeTags([new("state", "blocked")]))));
+
+        var metricCpuTimeTotal = manager.CreateMetric("system_cpu_time_total");
+
+        foreach (var cpu in statics.CpuCores)
+        {
+            SetupCpuTimeEntries(cpu);
+        }
+        SetupCpuTimeEntries(statics.CpuTotal);
+
+        var metricCpuLoad = manager.CreateMetric("system_cpu_load");
+
+        for (var i = 0; i < corePrevious.Length; i++)
+        {
+            SetupCpuLoadEntries(corePrevious[i], statics.CpuCores[i]);
+        }
+        SetupCpuLoadEntries(totalPrevious, statics.CpuTotal);
+
+        return;
+
+        void SetupCpuLoadEntries(PreviousCpuTotal previous, CpuStatics cpu)
+        {
+            updateEntries.Add(new Entry(() =>
+            {
+                var nonIdle = CalcCpuNonIdle(cpu);
+                var idle = CalcCpuIdle(cpu);
+                var total = idle + nonIdle;
+
+                var totalDiff = total - previous.Total;
+                var nonIdleDiff = nonIdle - previous.NonIdle;
+                return totalDiff == 0 ? 0 : (double)nonIdleDiff / totalDiff * 100.0;
+            }, metricCpuLoad.CreateGauge(MakeTags([new("name", cpu.Name)]))));
+        }
+
+        void SetupCpuTimeEntries(CpuStatics cpu)
+        {
+            // ReSharper disable StringLiteralTypo
+            updateEntries.Add(new Entry(() => cpu.User, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "user")))));
+            updateEntries.Add(new Entry(() => cpu.Nice, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "nice")))));
+            updateEntries.Add(new Entry(() => cpu.System, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "system")))));
+            updateEntries.Add(new Entry(() => cpu.Idle, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "idle")))));
+            updateEntries.Add(new Entry(() => cpu.IoWait, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "iowait")))));
+            updateEntries.Add(new Entry(() => cpu.Irq, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "irq")))));
+            updateEntries.Add(new Entry(() => cpu.SoftIrq, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "softirq")))));
+            updateEntries.Add(new Entry(() => cpu.Steal, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "steal")))));
+            updateEntries.Add(new Entry(() => cpu.Guest, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "guest")))));
+            updateEntries.Add(new Entry(() => cpu.GuestNice, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "guestnice")))));
+            // ReSharper restore StringLiteralTypo
+        }
+
+        static void UpdatePrevious(PreviousCpuTotal previous, CpuStatics cpu)
+        {
+            var nonIdle = CalcCpuNonIdle(cpu);
+            var idle = CalcCpuIdle(cpu);
+            previous.NonIdle = nonIdle;
+            previous.Total = idle + nonIdle;
+        }
+
+        static long CalcCpuIdle(CpuStatics cpu)
+        {
+            return cpu.Idle + cpu.IoWait;
+        }
+
+        static long CalcCpuNonIdle(CpuStatics cpu)
+        {
+            return cpu.User + cpu.Nice + cpu.System + cpu.Irq + cpu.SoftIrq + cpu.Steal;
+        }
     }
 
     private void SetupLoadAverageMetric(IMetricManager manager)
@@ -188,6 +260,10 @@ internal sealed class LinuxInstrumentation
         updateEntries.Add(new Entry(() => load.Average15, metric.CreateGauge(MakeTags([new("window", 15)]))));
     }
 
+    // TODO delete
+    // ReSharper disable UnusedVariable
+    // ReSharper disable UnusedParameter.Local
+#pragma warning disable CA1822
     private void SetupMemoryMetric(IMetricManager manager)
     {
         var memory = PlatformProvider.GetMemory();
@@ -484,5 +560,12 @@ internal sealed class LinuxInstrumentation
         {
             gauge.Value = measurement();
         }
+    }
+
+    private sealed class PreviousCpuTotal
+    {
+        public long NonIdle { get; set; }
+
+        public long Total { get; set; }
     }
 }

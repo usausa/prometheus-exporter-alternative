@@ -146,6 +146,10 @@ internal sealed class LinuxInstrumentation
         updateEntries.Add(new Entry(() => uptimeInfo.Uptime.TotalSeconds, metric.CreateGauge(MakeTags())));
     }
 
+    //--------------------------------------------------------------------------------
+    // Statics
+    //--------------------------------------------------------------------------------
+
     private void SetupStaticsMetric(IMetricManager manager)
     {
         var statics = PlatformProvider.GetStatics();
@@ -248,6 +252,10 @@ internal sealed class LinuxInstrumentation
         }
     }
 
+    //--------------------------------------------------------------------------------
+    // LoadAverage
+    //--------------------------------------------------------------------------------
+
     private void SetupLoadAverageMetric(IMetricManager manager)
     {
         var load = PlatformProvider.GetLoadAverage();
@@ -259,6 +267,10 @@ internal sealed class LinuxInstrumentation
         updateEntries.Add(new Entry(() => load.Average5, metric.CreateGauge(MakeTags([new("window", 5)]))));
         updateEntries.Add(new Entry(() => load.Average15, metric.CreateGauge(MakeTags([new("window", 15)]))));
     }
+
+    //--------------------------------------------------------------------------------
+    // Memory
+    //--------------------------------------------------------------------------------
 
     // TODO delete
     // ReSharper disable UnusedVariable
@@ -278,6 +290,10 @@ internal sealed class LinuxInstrumentation
         //Console.WriteLine($"Usage:   {(int)Math.Ceiling(memory.Usage)}");
     }
 
+    //--------------------------------------------------------------------------------
+    // VirtualMemory
+    //--------------------------------------------------------------------------------
+
     private void SetupVirtualMemoryMetric(IMetricManager manager)
     {
         var vm = PlatformProvider.GetVirtualMemory();
@@ -293,6 +309,10 @@ internal sealed class LinuxInstrumentation
         //Console.WriteLine($"MajorPageFault:    {vm.MajorPageFault}");
         //Console.WriteLine($"OutOfMemoryKiller: {vm.OutOfMemoryKiller}");
     }
+
+    //--------------------------------------------------------------------------------
+    // Partition
+    //--------------------------------------------------------------------------------
 
     private void SetupPartitionMetric(IMetricManager manager)
     {
@@ -316,6 +336,10 @@ internal sealed class LinuxInstrumentation
         //    Console.WriteLine($"Usage:         {usage}");
         //}
     }
+
+    //--------------------------------------------------------------------------------
+    // DiskStatics
+    //--------------------------------------------------------------------------------
 
     private void SetupDiskStaticsMetric(IMetricManager manager)
     {
@@ -349,6 +373,10 @@ internal sealed class LinuxInstrumentation
         }
     }
 
+    //--------------------------------------------------------------------------------
+    // FileDescriptor
+    //--------------------------------------------------------------------------------
+
     private void SetupFileDescriptorMetric(IMetricManager manager)
     {
         var fd = PlatformProvider.GetFileDescriptor();
@@ -361,6 +389,10 @@ internal sealed class LinuxInstrumentation
         var metricUsed = manager.CreateMetric("system_fd_used");
         updateEntries.Add(new Entry(() => fd.Used, metricUsed.CreateGauge(MakeTags())));
     }
+
+    //--------------------------------------------------------------------------------
+    // NetworkStatic
+    //--------------------------------------------------------------------------------
 
     private void SetupNetworkStaticMetric(IMetricManager manager)
     {
@@ -401,6 +433,10 @@ internal sealed class LinuxInstrumentation
         }
     }
 
+    //--------------------------------------------------------------------------------
+    // Tcp/Tcp6
+    //--------------------------------------------------------------------------------
+
     private void SetupTcpStaticMetric(IMetricManager manager, bool useTcp4, bool useTcp6)
     {
         var metric = manager.CreateMetric("system_tcp_statics");
@@ -439,6 +475,10 @@ internal sealed class LinuxInstrumentation
         }
     }
 
+    //--------------------------------------------------------------------------------
+    // ProcessSummary
+    //--------------------------------------------------------------------------------
+
     private void SetupProcessSummaryMetric(IMetricManager manager)
     {
         var process = PlatformProvider.GetProcessSummary();
@@ -451,6 +491,10 @@ internal sealed class LinuxInstrumentation
         var metricThread = manager.CreateMetric("system_thread_count");
         updateEntries.Add(new Entry(() => process.ThreadCount, metricThread.CreateGauge(MakeTags())));
     }
+
+    //--------------------------------------------------------------------------------
+    // Cpu
+    //--------------------------------------------------------------------------------
 
     private void SetupCpuMetric(IMetricManager manager)
     {
@@ -473,6 +517,10 @@ internal sealed class LinuxInstrumentation
             }
         }
     }
+
+    //--------------------------------------------------------------------------------
+    // Battery
+    //--------------------------------------------------------------------------------
 
     private void SetupBatteryMetric(IMetricManager manager)
     {
@@ -500,6 +548,10 @@ internal sealed class LinuxInstrumentation
         updateEntries.Add(new Entry(() => battery.ChargeFull / 1000.0, metricChargeFull.CreateGauge(MakeTags())));
     }
 
+    //--------------------------------------------------------------------------------
+    // MainsAdapter
+    //--------------------------------------------------------------------------------
+
     private void SetupMainsAdapterMetric(IMetricManager manager)
     {
         var adapter = PlatformProvider.GetMainsAdapter();
@@ -513,6 +565,10 @@ internal sealed class LinuxInstrumentation
         var metric = manager.CreateMetric("hardware_ac_online");
         updateEntries.Add(new Entry(() => adapter.Online ? 1 : 0, metric.CreateGauge(MakeTags())));
     }
+
+    //--------------------------------------------------------------------------------
+    // HardwareMonitor
+    //--------------------------------------------------------------------------------
 
     private void SetupHardwareMonitorMetric(IMetricManager manager)
     {

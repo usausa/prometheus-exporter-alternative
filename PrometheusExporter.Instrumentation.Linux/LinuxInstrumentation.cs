@@ -327,7 +327,7 @@ internal sealed class LinuxInstrumentation
         {
             if (IsTarget(targets, name))
             {
-                var metric = manager.CreateMetric("system_memory_" + name);
+                var metric = manager.CreateMetric($"system_memory_{name}");
                 updateEntries.Add(new Entry(selector, metric.CreateGauge(MakeTags())));
             }
         }
@@ -336,7 +336,7 @@ internal sealed class LinuxInstrumentation
         {
             if (IsTarget(targets, name))
             {
-                var metric = manager.CreateMetric("system_memory_" + name);
+                var metric = manager.CreateMetric($"system_memory_{name}");
                 updateEntries.AddRange(func(metric));
             }
         }
@@ -356,14 +356,50 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() => vm.Update());
 
-        // TODO
-        //Console.WriteLine($"PageIn:            {vm.PageIn}");
-        //Console.WriteLine($"PageOut:           {vm.PageOut}");
-        //Console.WriteLine($"SwapIn:            {vm.SwapIn}");
-        //Console.WriteLine($"SwapOut:           {vm.SwapOut}");
-        //Console.WriteLine($"PageFault:         {vm.PageFault}");
-        //Console.WriteLine($"MajorPageFault:    {vm.MajorPageFault}");
-        //Console.WriteLine($"OutOfMemoryKiller: {vm.OutOfMemoryKiller}");
+        SetupCustomMetrics("page", metric =>
+        [
+            new Entry(() => vm.PageIn, metric.CreateGauge(MakeTags([new("type", "in")]))),
+            new Entry(() => vm.PageOut, metric.CreateGauge(MakeTags([new("type", "out")])))
+        ]);
+        SetupCustomMetrics("swap", metric =>
+        [
+            new Entry(() => vm.SwapIn, metric.CreateGauge(MakeTags([new("type", "in")]))),
+            new Entry(() => vm.SwapOut, metric.CreateGauge(MakeTags([new("type", "out")])))
+        ]);
+        SetupCustomMetrics("page_faults", metric =>
+        [
+            new Entry(() => vm.PageFaults, metric.CreateGauge(MakeTags([new("type", "in")]))),
+            new Entry(() => vm.MajorPageFaults, metric.CreateGauge(MakeTags([new("type", "out")])))
+        ]);
+        SetupCustomMetrics("steal", metric =>
+        [
+            new Entry(() => vm.StealKernel, metric.CreateGauge(MakeTags([new("type", "kernel")]))),
+            new Entry(() => vm.StealDirect, metric.CreateGauge(MakeTags([new("type", "direct")])))
+        ]);
+        SetupCustomMetrics("scan", metric =>
+        [
+            new Entry(() => vm.ScanKernel, metric.CreateGauge(MakeTags([new("type", "kernel")]))),
+            new Entry(() => vm.ScanDirect, metric.CreateGauge(MakeTags([new("type", "direct")])))
+        ]);
+        SetupSimpleMetrics("oom_kill", () => vm.OutOfMemoryKiller);
+
+        void SetupSimpleMetrics(string name, Func<double> selector)
+        {
+            if (IsTarget(targets, name))
+            {
+                var metric = manager.CreateMetric($"system_virtual_{name}_total");
+                updateEntries.Add(new Entry(selector, metric.CreateGauge(MakeTags())));
+            }
+        }
+
+        void SetupCustomMetrics(string name, Func<IMetric, Entry[]> func)
+        {
+            if (IsTarget(targets, name))
+            {
+                var metric = manager.CreateMetric($"system_virtual_{name}_total");
+                updateEntries.AddRange(func(metric));
+            }
+        }
     }
 
     //--------------------------------------------------------------------------------

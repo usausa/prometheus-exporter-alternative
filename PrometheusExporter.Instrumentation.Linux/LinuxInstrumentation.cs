@@ -129,6 +129,9 @@ internal sealed class LinuxInstrumentation
         return [.. tags];
     }
 
+    private static bool IsTarget(IEnumerable<string> targets, string name) =>
+        targets.Any(x => (x == "*") || (x == name));
+
     //--------------------------------------------------------------------------------
     // Uptime
     //--------------------------------------------------------------------------------
@@ -346,10 +349,6 @@ internal sealed class LinuxInstrumentation
     // VirtualMemory
     //--------------------------------------------------------------------------------
 
-    // TODO delete
-    // ReSharper disable UnusedVariable
-    // ReSharper disable UnusedParameter.Local
-#pragma warning disable CA1822
     private void SetupVirtualMemoryMetric(IMetricManager manager, string[] targets)
     {
         var vm = PlatformProvider.GetVirtualMemory();
@@ -409,24 +408,25 @@ internal sealed class LinuxInstrumentation
     private void SetupPartitionMetric(IMetricManager manager)
     {
         var partitions = PlatformProvider.GetPartitions();
+        var drives = partitions.Select(static x => new DriveInfo(x.MountPoints[0])).ToList();
 
-        //prepareEntries.Add(() => partitions.Update());
+        var metricUsed = manager.CreateMetric("system_partition_used");
+        foreach (var drive in drives)
+        {
+            updateEntries.Add(new Entry(() => (double)(drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize * 100, metricUsed.CreateGauge([new("name", drive.Name)])));
+        }
 
-        // TODO
-        //foreach (var partition in partitions)
-        //{
-        //    var drive = new DriveInfo(partition.MountPoints[0]);
-        //    var used = drive.TotalSize - drive.TotalFreeSpace;
-        //    var available = drive.AvailableFreeSpace;
-        //    var usage = (int)Math.Ceiling((double)used / (available + used) * 100);
+        var metricTotal = manager.CreateMetric("system_partition_total");
+        foreach (var drive in drives)
+        {
+            updateEntries.Add(new Entry(() => drive.TotalSize, metricTotal.CreateGauge([new("name", drive.Name)])));
+        }
 
-        //    Console.WriteLine($"Name:          {partition.Name}");
-        //    Console.WriteLine($"MountPoint:    {String.Join(' ', partition.MountPoints)}");
-        //    Console.WriteLine($"TotalSize:     {drive.TotalSize / 1024}");
-        //    Console.WriteLine($"UsedSize:      {used / 1024}");
-        //    Console.WriteLine($"AvailableSize: {available / 1024}");
-        //    Console.WriteLine($"Usage:         {usage}");
-        //}
+        var metricFree = manager.CreateMetric("system_partition_free");
+        foreach (var drive in drives)
+        {
+            updateEntries.Add(new Entry(() => drive.TotalFreeSpace, metricFree.CreateGauge([new("name", drive.Name)])));
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -605,7 +605,7 @@ internal sealed class LinuxInstrumentation
             var metricPower = manager.CreateMetric("hardware_cpu_power");
             foreach (var power in cpu.Powers)
             {
-                updateEntries.Add(new Entry(() => power.Energy / 1000.0, metricFrequency.CreateGauge(MakeTags([new("name", power.Name)]))));
+                updateEntries.Add(new Entry(() => power.Energy / 1000.0, metricPower.CreateGauge(MakeTags([new("name", power.Name)]))));
             }
         }
     }
@@ -687,13 +687,6 @@ internal sealed class LinuxInstrumentation
             }
         }
     }
-
-    //--------------------------------------------------------------------------------
-    // Helper
-    //--------------------------------------------------------------------------------
-
-    private static bool IsTarget(IEnumerable<string> targets, string name) =>
-        targets.Any(x => (x == "*") || (x == name));
 
     //--------------------------------------------------------------------------------
     // Entry

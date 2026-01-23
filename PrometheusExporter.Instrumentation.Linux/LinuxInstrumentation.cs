@@ -1,7 +1,5 @@
 namespace PrometheusExporter.Instrumentation.Linux;
 
-using System;
-
 using LinuxDotNet.SystemInfo;
 
 using PrometheusExporter.Abstractions;
@@ -38,13 +36,13 @@ internal sealed class LinuxInstrumentation
         {
             SetupLoadAverageMetric(manager);
         }
-        if (options.Memory)
+        if (options.Memory.Length > 0)
         {
-            SetupMemoryMetric(manager);
+            SetupMemoryMetric(manager, options.Memory);
         }
-        if (options.VirtualMemory)
+        if (options.VirtualMemory.Length > 0)
         {
-            SetupVirtualMemoryMetric(manager);
+            SetupVirtualMemoryMetric(manager, options.VirtualMemory);
         }
         if (options.Partition)
         {
@@ -174,16 +172,16 @@ internal sealed class LinuxInstrumentation
 
         var metricInterrupt = manager.CreateMetric("system_interrupt_total");
         var metricContextSwitch = manager.CreateMetric("system_context_switch_total");
+        var metricForks = manager.CreateMetric("system_forks_total");
+        var metricScheduler = manager.CreateMetric("system_scheduler_task");
         var metricSoftIrq = manager.CreateMetric("system_softirq_total");
 
         updateEntries.Add(new Entry(() => statics.Interrupt, metricInterrupt.CreateGauge(MakeTags())));
         updateEntries.Add(new Entry(() => statics.ContextSwitch, metricContextSwitch.CreateGauge(MakeTags())));
+        updateEntries.Add(new Entry(() => statics.Forks, metricForks.CreateGauge(MakeTags())));
+        updateEntries.Add(new Entry(() => statics.RunnableTasks, metricScheduler.CreateGauge(MakeTags([new("state", "runnable")]))));
+        updateEntries.Add(new Entry(() => statics.BlockedTasks, metricScheduler.CreateGauge(MakeTags([new("state", "blocked")]))));
         updateEntries.Add(new Entry(() => statics.SoftIrq, metricSoftIrq.CreateGauge(MakeTags())));
-
-        var metricScheduler = manager.CreateMetric("system_scheduler_task");
-
-        updateEntries.Add(new Entry(() => statics.ProcessRunning, metricScheduler.CreateGauge(MakeTags([new("state", "running")]))));
-        updateEntries.Add(new Entry(() => statics.ProcessBlocked, metricScheduler.CreateGauge(MakeTags([new("state", "blocked")]))));
 
         var metricCpuTimeTotal = manager.CreateMetric("system_cpu_time_total");
 
@@ -272,29 +270,87 @@ internal sealed class LinuxInstrumentation
     // Memory
     //--------------------------------------------------------------------------------
 
-    // TODO delete
-    // ReSharper disable UnusedVariable
-    // ReSharper disable UnusedParameter.Local
-#pragma warning disable CA1822
-    private void SetupMemoryMetric(IMetricManager manager)
+    private void SetupMemoryMetric(IMetricManager manager, string[] targets)
     {
         var memory = PlatformProvider.GetMemory();
 
         prepareEntries.Add(() => memory.Update());
 
-        // TODO
-        //Console.WriteLine($"Total:   {memory.Total}");
-        //Console.WriteLine($"Free:    {memory.Free}");
-        //Console.WriteLine($"Buffers: {memory.Buffers}");
-        //Console.WriteLine($"Cached:  {memory.Cached}");
-        //Console.WriteLine($"Usage:   {(int)Math.Ceiling(memory.Usage)}");
+        // ReSharper disable StringLiteralTypo
+        SetupCustomMetrics("load", metric =>
+        [
+            new Entry(() => (double)(memory.MemoryTotal - memory.MemoryAvailable) / memory.MemoryTotal * 100, metric.CreateGauge(MakeTags()))
+        ]);
+        SetupCustomMetrics("mem", metric =>
+        [
+            new Entry(() => memory.MemoryTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
+            new Entry(() => memory.MemoryAvailable, metric.CreateGauge(MakeTags([new("type", "available")]))),
+            new Entry(() => memory.MemoryFree, metric.CreateGauge(MakeTags([new("type", "free")])))
+        ]);
+        SetupSimpleMetrics("buffers", () => memory.Buffers);
+        SetupSimpleMetrics("cached", () => memory.Cached);
+        SetupSimpleMetrics("swap_cached", () => memory.SwapCached);
+        SetupCustomMetrics("lru", metric =>
+        [
+            new Entry(() => memory.ActiveAnonymous, metric.CreateGauge(MakeTags(new("type", "anon"), new("state", "active")))),
+            new Entry(() => memory.InactiveAnonymous, metric.CreateGauge(MakeTags(new("type", "anon"), new("state", "inactive")))),
+            new Entry(() => memory.ActiveFile, metric.CreateGauge(MakeTags(new("type", "file"), new("state", "active")))),
+            new Entry(() => memory.InactiveFile, metric.CreateGauge(MakeTags(new("type", "file"), new("state", "inactive"))))
+        ]);
+        SetupSimpleMetrics("unevictable", () => memory.Unevictable);
+        SetupSimpleMetrics("mlocked", () => memory.MemoryLocked);
+        SetupCustomMetrics("swap", metric =>
+        [
+            new Entry(() => memory.SwapTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
+            new Entry(() => memory.SwapFree, metric.CreateGauge(MakeTags([new("type", "free")])))
+        ]);
+        SetupSimpleMetrics("dirty", () => memory.Dirty);
+        SetupSimpleMetrics("writeback", () => memory.Writeback);
+        SetupSimpleMetrics("anon_pages", () => memory.AnonymousPages);
+        SetupSimpleMetrics("mapped", () => memory.Mapped);
+        SetupSimpleMetrics("shmem", () => memory.SharedMemory);
+        SetupSimpleMetrics("k_reclaimable", () => memory.KernelReclaimable);
+        SetupCustomMetrics("slab", metric =>
+        [
+            new Entry(() => memory.SlabTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
+            new Entry(() => memory.SlabReclaimable, metric.CreateGauge(MakeTags([new("type", "reclaimable")]))),
+            new Entry(() => memory.SlabUnreclaimable, metric.CreateGauge(MakeTags([new("type", "unreclaimable")])))
+        ]);
+        SetupSimpleMetrics("kernel_stack", () => memory.KernelStack);
+        SetupSimpleMetrics("page_tables", () => memory.PageTables);
+        SetupSimpleMetrics("commit_limit", () => memory.CommitLimit);
+        SetupSimpleMetrics("committed_as", () => memory.CommittedAddressSpace);
+        SetupSimpleMetrics("hardware_corrupted", () => memory.HardwareCorrupted);
+        // ReSharper restore StringLiteralTypo
+
+        void SetupSimpleMetrics(string name, Func<double> selector)
+        {
+            if (IsTarget(targets, name))
+            {
+                var metric = manager.CreateMetric("system_memory_" + name);
+                updateEntries.Add(new Entry(selector, metric.CreateGauge(MakeTags())));
+            }
+        }
+
+        void SetupCustomMetrics(string name, Func<IMetric, Entry[]> func)
+        {
+            if (IsTarget(targets, name))
+            {
+                var metric = manager.CreateMetric("system_memory_" + name);
+                updateEntries.AddRange(func(metric));
+            }
+        }
     }
 
     //--------------------------------------------------------------------------------
     // VirtualMemory
     //--------------------------------------------------------------------------------
 
-    private void SetupVirtualMemoryMetric(IMetricManager manager)
+    // TODO delete
+    // ReSharper disable UnusedVariable
+    // ReSharper disable UnusedParameter.Local
+#pragma warning disable CA1822
+    private void SetupVirtualMemoryMetric(IMetricManager manager, string[] targets)
     {
         var vm = PlatformProvider.GetVirtualMemory();
 
@@ -595,6 +651,13 @@ internal sealed class LinuxInstrumentation
             }
         }
     }
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    private static bool IsTarget(IEnumerable<string> targets, string name) =>
+        targets.Any(x => (x == "*") || (x == name));
 
     //--------------------------------------------------------------------------------
     // Entry

@@ -10,9 +10,9 @@ internal sealed class LinuxOptions
 
     public bool LoadAverage { get; set; } = true;
 
-    public bool Memory { get; set; } = true;
+    public string[] Memory { get; set; } = ["*"];
 
-    public bool VirtualMemory { get; set; } = true;
+    public string[] VirtualMemory { get; set; } = ["*"];
 
     public bool Partition { get; set; } = true;
 

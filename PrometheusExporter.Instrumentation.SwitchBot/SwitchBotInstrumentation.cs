@@ -22,11 +22,11 @@ internal sealed class SwitchBotInstrumentation : IDisposable
     {
         timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
 
-        var rssiMetric = manager.CreateMetric("sensor_rssi");
-        var temperatureMetric = manager.CreateMetric("sensor_temperature");
-        var humidityMetric = manager.CreateMetric("sensor_humidity");
-        var co2Metric = manager.CreateMetric("sensor_co2");
-        var powerMetric = manager.CreateMetric("sensor_power");
+        var rssiMetric = manager.CreateGauge("sensor_rssi");
+        var temperatureMetric = manager.CreateGauge("sensor_temperature");
+        var humidityMetric = manager.CreateGauge("sensor_humidity");
+        var co2Metric = manager.CreateGauge("sensor_co2");
+        var powerMetric = manager.CreateGauge("sensor_power");
 
         var list = new List<Device>();
         foreach (var entry in options.Device)

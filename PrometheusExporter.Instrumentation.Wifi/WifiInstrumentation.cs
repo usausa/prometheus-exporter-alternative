@@ -35,7 +35,7 @@ internal sealed class WifiInstrumentation
         knownOnly = options.KnownOnly;
         knownAccessPoints = options.KnownAccessPoint.Select(NormalizeAddress).ToHashSet();
 
-        metric = manager.CreateMetric("wifi_rssi", "ssid");
+        metric = manager.CreateGauge("wifi_rssi", "ssid");
 
         manager.AddBeforeCollectCallback(Update);
     }

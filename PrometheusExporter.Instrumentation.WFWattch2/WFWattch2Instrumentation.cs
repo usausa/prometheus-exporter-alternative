@@ -17,9 +17,9 @@ internal sealed class WFWattch2Instrumentation : IDisposable
         WFWattch2Options options,
         IMetricManager manager)
     {
-        var powerMetric = manager.CreateMetric("sensor_power");
-        var currentMetric = manager.CreateMetric("sensor_current");
-        var voltageMetric = manager.CreateMetric("sensor_voltage");
+        var powerMetric = manager.CreateGauge("sensor_power");
+        var currentMetric = manager.CreateGauge("sensor_current");
+        var voltageMetric = manager.CreateGauge("sensor_voltage");
 
         devices = options.Device
             .Select(x =>

@@ -3,6 +3,7 @@ namespace PrometheusExporter.Metrics;
 using System.Buffers;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 internal static class Helper
 {
@@ -22,20 +23,51 @@ internal static class Helper
         for (var i = 0; i < tags.Length; i++)
         {
             var tag = tags[i];
-            values[i] = new Tag(tag.Key, GetValueString(tag.Value));
+            var value = GetValueString(tag.Value);
+            values[i] = new Tag(tag.Key, value);
         }
 
         return values;
     }
 
-    public static string GetValueString(object? value)
+    private static string GetValueString(object? value)
     {
         if (value is bool b)
         {
             return b ? "true" : "false";
         }
 
-        return value?.ToString() ?? string.Empty;
+        var str = value?.ToString();
+        if (String.IsNullOrEmpty(str))
+        {
+            return string.Empty;
+        }
+
+        var sb = new StringBuilder();
+        foreach (var c in str)
+        {
+            var ordinal = (ushort)c;
+            switch (ordinal)
+            {
+                case Quote:
+                    sb.Append(BackSlash);
+                    sb.Append(Quote);
+                    break;
+                case BackSlash:
+                    sb.Append(BackSlash);
+                    sb.Append(BackSlash);
+                    break;
+                case LineFeed:
+                    sb.Append(BackSlash);
+                    sb.Append((byte)'n');
+                    break;
+                default:
+                    sb.Append(c);
+                    break;
+            }
+        }
+
+        return sb.ToString();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -100,83 +132,13 @@ internal static class Helper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteString(IBufferWriter<byte> writer, string value)
-    {
-        var span = writer.GetSpan(value.Length * 3);
-
-        var written = 0;
-        foreach (var c in value)
-        {
-            var ordinal = (ushort)c;
-            written += WriteUnicodeNoEscape(span[written..], ordinal);
-        }
-
-        writer.Advance(written);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteEscapedString(IBufferWriter<byte> writer, string value)
-    {
-        var span = writer.GetSpan(value.Length * 3);
-
-        var written = 0;
-        foreach (var c in value)
-        {
-            var ordinal = (ushort)c;
-            switch (ordinal)
-            {
-                case Quote:
-                    span[written++] = BackSlash;
-                    span[written++] = Quote;
-                    break;
-                case BackSlash:
-                    span[written++] = BackSlash;
-                    span[written++] = BackSlash;
-                    break;
-                case LineFeed:
-                    span[written++] = BackSlash;
-                    span[written++] = unchecked((byte)'n');
-                    break;
-                default:
-                    written += WriteUnicodeNoEscape(span[written..], ordinal);
-                    break;
-            }
-        }
-
-        writer.Advance(written);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int WriteUnicodeNoEscape(Span<byte> span, ushort ordinal)
-    {
-        var written = 0;
-        if (ordinal <= 0x7F)
-        {
-            span[written++] = unchecked((byte)ordinal);
-        }
-        else if (ordinal <= 0x07FF)
-        {
-            span[written++] = unchecked((byte)(0b_1100_0000 | (ordinal >> 6)));
-            span[written++] = unchecked((byte)(0b_1000_0000 | (ordinal & 0b_0011_1111)));
-        }
-        else
-        {
-            span[written++] = unchecked((byte)(0b_1110_0000 | (ordinal >> 12)));
-            span[written++] = unchecked((byte)(0b_1000_0000 | ((ordinal >> 6) & 0b_0011_1111)));
-            span[written++] = unchecked((byte)(0b_1000_0000 | (ordinal & 0b_0011_1111)));
-        }
-
-        return written;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteType(IBufferWriter<byte> writer, string name)
+    public static void WriteType(IBufferWriter<byte> writer, byte[] type, byte[] name)
     {
         WriteBytes(writer, "# TYPE"u8);
         WriteByte(writer, Blank);
-        WriteString(writer, name);
+        WriteBytes(writer, name);
         WriteByte(writer, Blank);
-        WriteBytes(writer, "gauge"u8);
+        WriteBytes(writer, type);
         WriteByte(writer, LineFeed);
     }
 
@@ -188,9 +150,9 @@ internal static class Helper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteValue(IBufferWriter<byte> writer, long timestamp, string name, double value, Tag[] tags)
+    public static void WriteValue(IBufferWriter<byte> writer, long timestamp, byte[] name, double value, Tag[] tags)
     {
-        WriteString(writer, name);
+        WriteBytes(writer, name);
         if (tags.Length > 0)
         {
             WriteByte(writer, TagStart);
@@ -202,10 +164,10 @@ internal static class Helper
                 }
 
                 var tag = tags[i];
-                WriteString(writer, tag.Key);
+                WriteBytes(writer, tag.KeyBytes);
                 WriteByte(writer, Equal);
                 WriteByte(writer, Quote);
-                WriteEscapedString(writer, tag.Value);
+                WriteBytes(writer, tag.ValueBytes);
                 WriteByte(writer, Quote);
             }
             WriteByte(writer, TagEnd);

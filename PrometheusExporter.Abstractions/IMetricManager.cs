@@ -4,7 +4,9 @@ using System.Buffers;
 
 public interface IMetricManager
 {
-    IMetric CreateMetric(string name, string? sort = null);
+    IMetric CreateGauge(string name, string? sort = null);
+
+    IMetric CreateCounter(string name, string? sort = null);
 
     void AddBeforeCollectCallback(Action callback);
 

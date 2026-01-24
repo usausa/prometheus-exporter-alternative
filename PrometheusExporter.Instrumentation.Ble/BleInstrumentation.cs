@@ -35,7 +35,7 @@ internal sealed class BleInstrumentation : IDisposable
         knownOnly = options.KnownOnly;
         knownDevices = options.KnownDevice.ToDictionary(static x => NormalizeAddress(x.Address));
 
-        metric = manager.CreateMetric("ble_rssi");
+        metric = manager.CreateGauge("ble_rssi");
 
         manager.AddBeforeCollectCallback(Update);
 

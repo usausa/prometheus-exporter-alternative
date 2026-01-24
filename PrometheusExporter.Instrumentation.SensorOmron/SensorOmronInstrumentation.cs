@@ -14,16 +14,16 @@ internal sealed class SensorOmronInstrumentation : IDisposable
         SensorOmronOptions options,
         IMetricManager manager)
     {
-        var temperatureMetric = manager.CreateMetric("sensor_temperature");
-        var humidityMetric = manager.CreateMetric("sensor_humidity");
-        var lightMetric = manager.CreateMetric("sensor_light");
-        var pressureMetric = manager.CreateMetric("sensor_pressure");
-        var noiseMetric = manager.CreateMetric("sensor_noise");
-        var discomfortMetric = manager.CreateMetric("sensor_discomfort");
-        var heatMetric = manager.CreateMetric("sensor_heat");
-        var etvocMetric = manager.CreateMetric("sensor_tvoc");
-        var eco2Metric = manager.CreateMetric("sensor_co2");
-        var seismicMetric = manager.CreateMetric("sensor_seismic");
+        var temperatureMetric = manager.CreateGauge("sensor_temperature");
+        var humidityMetric = manager.CreateGauge("sensor_humidity");
+        var lightMetric = manager.CreateGauge("sensor_light");
+        var pressureMetric = manager.CreateGauge("sensor_pressure");
+        var noiseMetric = manager.CreateGauge("sensor_noise");
+        var discomfortMetric = manager.CreateGauge("sensor_discomfort");
+        var heatMetric = manager.CreateGauge("sensor_heat");
+        var etvocMetric = manager.CreateGauge("sensor_tvoc");
+        var eco2Metric = manager.CreateGauge("sensor_co2");
+        var seismicMetric = manager.CreateGauge("sensor_seismic");
 
         sensors = options.Sensor
             .Select(x =>

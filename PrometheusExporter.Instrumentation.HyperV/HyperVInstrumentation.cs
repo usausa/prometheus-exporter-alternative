@@ -40,12 +40,12 @@ internal sealed class HyperVInstrumentation
             ? new Regex(options.IgnoreExpression, RegexOptions.Compiled)
             : null;
 
-        countGauge = manager.CreateMetric("hyperv_vm_count").CreateGauge([new("host", environment.Host)]);
-        informationMetric = manager.CreateMetric("hyperv_vm_information", "name");
-        stateMetric = manager.CreateMetric("hyperv_vm_state", "name");
-        processorLoadMetric = manager.CreateMetric("hyperv_vm_processor_load", "name");
-        memoryUsageMetric = manager.CreateMetric("hyperv_vm_memory_usage", "name");
-        uptimeMetric = manager.CreateMetric("hyperv_vm_uptime", "name");
+        countGauge = manager.CreateGauge("hyperv_vm_count").CreateGauge([new("host", environment.Host)]);
+        informationMetric = manager.CreateGauge("hyperv_vm_information", "name");
+        stateMetric = manager.CreateGauge("hyperv_vm_state", "name");
+        processorLoadMetric = manager.CreateGauge("hyperv_vm_processor_load", "name");
+        memoryUsageMetric = manager.CreateGauge("hyperv_vm_memory_usage", "name");
+        uptimeMetric = manager.CreateGauge("hyperv_vm_uptime", "name");
 
         manager.AddBeforeCollectCallback(Update);
     }

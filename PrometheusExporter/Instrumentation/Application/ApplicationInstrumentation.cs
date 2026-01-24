@@ -13,7 +13,7 @@ internal sealed class ApplicationInstrumentation
         IMetricManager manager)
     {
         // Information
-        var informationMetric = manager.CreateMetric("exporter_information");
+        var informationMetric = manager.CreateGauge("exporter_information");
         informationMetric.CreateGauge(
             new("host", environment.Host),
             new("version", typeof(Program).Assembly.GetName().Version),
@@ -21,7 +21,7 @@ internal sealed class ApplicationInstrumentation
             new("os", RuntimeInformation.OSDescription)).Value = 1;
 
         // Uptime
-        var uptimeMetric = manager.CreateMetric("exporter_uptime");
+        var uptimeMetric = manager.CreateGauge("exporter_uptime");
         var uptime = uptimeMetric.CreateGauge([new("host", environment.Host)]);
         manager.AddBeforeCollectCallback(() =>
         {
@@ -29,7 +29,7 @@ internal sealed class ApplicationInstrumentation
         });
 
         // Instrumentation
-        var instrumentationMetric = manager.CreateMetric("exporter_instrumentation");
+        var instrumentationMetric = manager.CreateGauge("exporter_instrumentation");
         foreach (var registration in provider.Registrations)
         {
             var gauge = instrumentationMetric.CreateGauge(new("host", environment.Host), new("name", registration.Name));

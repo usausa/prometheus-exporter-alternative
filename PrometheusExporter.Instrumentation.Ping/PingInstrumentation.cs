@@ -18,7 +18,7 @@ internal sealed class PingInstrumentation : IDisposable
         IInstrumentationEnvironment environment,
         IMetricManager manager)
     {
-        var timeMetric = manager.CreateMetric("ping_result_time");
+        var timeMetric = manager.CreateGauge("ping_result_time");
 
         targets = options.Target
             .Select(x => new Target(

@@ -18,9 +18,13 @@ internal sealed class MetricManager : IMetricManager, IDisposable
         semaphore.Dispose();
     }
 
-    public IMetric CreateMetric(string name, string? sort = null)
+    public IMetric CreateGauge(string name, string? sort = null) => CreateMetric("gauge", name, sort);
+
+    public IMetric CreateCounter(string name, string? sort = null) => CreateMetric("counter", name, sort);
+
+    private Metric CreateMetric(string type, string name, string? sort)
     {
-        var gauge = new Metric(name, sort);
+        var gauge = new Metric(type, name, sort);
 
         semaphore.Wait();
         try

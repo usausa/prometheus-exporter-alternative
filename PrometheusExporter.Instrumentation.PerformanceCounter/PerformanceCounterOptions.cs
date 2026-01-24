@@ -1,8 +1,17 @@
 namespace PrometheusExporter.Instrumentation.PerformanceCounter;
+
+internal enum CounterType
+{
+    Gauge,
+    Counter
+}
+
 #pragma warning disable CA1819
 internal sealed class CounterEntry
 {
     public string Name { get; set; } = default!;
+
+    public CounterType Type { get; set; } = CounterType.Gauge;
 
     public string Category { get; set; } = default!;
 

@@ -1,12 +1,15 @@
 namespace PrometheusExporter.Metrics;
 
 using System.Buffers;
+using System.Text;
 
 using PrometheusExporter.Abstractions;
 
 internal sealed class Metric : IMetric
 {
-    private readonly string name;
+    private readonly byte[] type;
+
+    private readonly byte[] name;
 
     private readonly string? sort;
 
@@ -14,9 +17,10 @@ internal sealed class Metric : IMetric
 
     private readonly List<Gauge> entries = [];
 
-    public Metric(string name, string? sort)
+    public Metric(string type, string name, string? sort)
     {
-        this.name = name;
+        this.type = Encoding.UTF8.GetBytes(type);
+        this.name = Encoding.UTF8.GetBytes(name);
         this.sort = sort;
     }
 
@@ -44,7 +48,7 @@ internal sealed class Metric : IMetric
 
             if (hasValue)
             {
-                Helper.WriteType(writer, name);
+                Helper.WriteType(writer, type, name);
 
                 for (var i = 0; i < entries.Count; i++)
                 {

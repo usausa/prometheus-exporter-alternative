@@ -23,9 +23,9 @@ internal sealed class DiskInfoInstrumentation : IDisposable
     {
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
-        var sectorMetric = manager.CreateMetric("smart_disk_byte_per_sector");
-        var nvmeMetric = manager.CreateMetric("smart_nvme_value");
-        var genericMetric = manager.CreateMetric("smart_generic_value");
+        var sectorMetric = manager.CreateGauge("smart_disk_byte_per_sector");
+        var nvmeMetric = manager.CreateGauge("smart_nvme_value");
+        var genericMetric = manager.CreateGauge("smart_generic_value");
 
         disks = DiskInfo.GetInformation();
 

@@ -52,7 +52,7 @@ internal sealed class WFWattch2Instrumentation : IDisposable
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
-        await Task.WhenAll(devices.Select(static x => x.UpdateAsync()));
+        await Task.WhenAll(devices.Select(static x => x.UpdateAsync())).ConfigureAwait(false);
     }
 
     //--------------------------------------------------------------------------------
@@ -96,10 +96,10 @@ internal sealed class WFWattch2Instrumentation : IDisposable
             {
                 if (!client.IsConnected())
                 {
-                    await client.ConnectAsync();
+                    await client.ConnectAsync().ConfigureAwait(false);
                 }
 
-                var result = await client.UpdateAsync();
+                var result = await client.UpdateAsync().ConfigureAwait(false);
                 if (result)
                 {
                     ReadValues();

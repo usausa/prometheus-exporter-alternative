@@ -63,7 +63,7 @@ internal sealed class SensorOmronInstrumentation : IDisposable
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
-        await Task.WhenAll(sensors.Select(static x => x.UpdateAsync()));
+        await Task.WhenAll(sensors.Select(static x => x.UpdateAsync())).ConfigureAwait(false);
     }
 
     //--------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ internal sealed class SensorOmronInstrumentation : IDisposable
                     sensor.Open();
                 }
 
-                var result = await sensor.UpdateAsync();
+                var result = await sensor.UpdateAsync().ConfigureAwait(false);
                 if (result)
                 {
                     ReadValues();

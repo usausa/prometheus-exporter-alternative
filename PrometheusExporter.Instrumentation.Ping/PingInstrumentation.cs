@@ -53,7 +53,7 @@ internal sealed class PingInstrumentation : IDisposable
 
         try
         {
-            await Task.WhenAll(targets.Select(async static x => await x.UpdateAsync()));
+            await Task.WhenAll(targets.Select(async static x => await x.UpdateAsync().ConfigureAwait(false))).ConfigureAwait(false);
         }
         finally
         {
@@ -99,7 +99,7 @@ internal sealed class PingInstrumentation : IDisposable
         {
             try
             {
-                var result = await ping.SendPingAsync(address, timeout);
+                var result = await ping.SendPingAsync(address, timeout).ConfigureAwait(false);
                 time.Value = result.Status == IPStatus.Success ? result.RoundtripTime : double.NaN;
             }
             catch

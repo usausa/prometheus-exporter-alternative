@@ -12,7 +12,7 @@ internal sealed class LinuxInstrumentation
 
     private readonly List<Action> prepareEntries = [];
 
-    private readonly List<Entry> updateEntries = [];
+    private readonly List<Action> updateEntries = [];
 
     private DateTime lastUpdate;
 
@@ -105,9 +105,9 @@ internal sealed class LinuxInstrumentation
             action();
         }
 
-        foreach (var entry in updateEntries)
+        foreach (var action in updateEntries)
         {
-            entry.Update();
+            action();
         }
 
         lastUpdate = now;
@@ -132,6 +132,11 @@ internal sealed class LinuxInstrumentation
     private static bool IsTarget(IEnumerable<string> targets, string name) =>
         targets.Any(x => (x == "*") || (x == name));
 
+    private static Action MakeEntry(Func<double> measurement, IGauge gauge)
+    {
+        return () => gauge.Value = measurement();
+    }
+
     //--------------------------------------------------------------------------------
     // Uptime
     //--------------------------------------------------------------------------------
@@ -144,7 +149,7 @@ internal sealed class LinuxInstrumentation
         prepareEntries.Add(() => uptimeInfo.Update());
 
         var metric = manager.CreateGauge("system_uptime");
-        updateEntries.Add(new Entry(() => uptimeInfo.Uptime.TotalSeconds, metric.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => uptimeInfo.Uptime.TotalSeconds, metric.CreateGauge(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
@@ -179,34 +184,58 @@ internal sealed class LinuxInstrumentation
         var metricScheduler = manager.CreateGauge("system_scheduler_task");
         var metricSoftIrq = manager.CreateCounter("system_softirq_total");
 
-        updateEntries.Add(new Entry(() => statics.Interrupt, metricInterrupt.CreateGauge(MakeTags())));
-        updateEntries.Add(new Entry(() => statics.ContextSwitch, metricContextSwitch.CreateGauge(MakeTags())));
-        updateEntries.Add(new Entry(() => statics.Forks, metricForks.CreateGauge(MakeTags())));
-        updateEntries.Add(new Entry(() => statics.RunnableTasks, metricScheduler.CreateGauge(MakeTags([new("state", "runnable")]))));
-        updateEntries.Add(new Entry(() => statics.BlockedTasks, metricScheduler.CreateGauge(MakeTags([new("state", "blocked")]))));
-        updateEntries.Add(new Entry(() => statics.SoftIrq, metricSoftIrq.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => statics.Interrupt, metricInterrupt.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => statics.ContextSwitch, metricContextSwitch.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => statics.Forks, metricForks.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => statics.RunnableTasks, metricScheduler.CreateGauge(MakeTags([new("state", "runnable")]))));
+        updateEntries.Add(MakeEntry(() => statics.BlockedTasks, metricScheduler.CreateGauge(MakeTags([new("state", "blocked")]))));
+        updateEntries.Add(MakeEntry(() => statics.SoftIrq, metricSoftIrq.CreateGauge(MakeTags())));
 
         var metricCpuTimeTotal = manager.CreateCounter("system_cpu_time_total");
 
         foreach (var cpu in statics.CpuCores)
         {
-            SetupCpuTimeEntries(cpu);
+            SetupCpuTimeEntry(cpu);
         }
-        SetupCpuTimeEntries(statics.CpuTotal);
+        SetupCpuTimeEntry(statics.CpuTotal);
 
         var metricCpuLoad = manager.CreateGauge("system_cpu_load");
 
         for (var i = 0; i < corePrevious.Length; i++)
         {
-            SetupCpuLoadEntries(corePrevious[i], statics.CpuCores[i]);
+            SetupCpuLoadEntry(corePrevious[i], statics.CpuCores[i]);
         }
-        SetupCpuLoadEntries(totalPrevious, statics.CpuTotal);
+        SetupCpuLoadEntry(totalPrevious, statics.CpuTotal);
 
         return;
 
-        void SetupCpuLoadEntries(PreviousCpuTotal previous, CpuStatics cpu)
+        static void UpdatePrevious(PreviousCpuTotal previous, CpuStatics cpu)
         {
-            updateEntries.Add(new Entry(() =>
+            var nonIdle = CalcCpuNonIdle(cpu);
+            var idle = CalcCpuIdle(cpu);
+            previous.NonIdle = nonIdle;
+            previous.Total = idle + nonIdle;
+        }
+
+        void SetupCpuTimeEntry(CpuStatics cpu)
+        {
+            // ReSharper disable StringLiteralTypo
+            updateEntries.Add(MakeEntry(() => cpu.User, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "user")))));
+            updateEntries.Add(MakeEntry(() => cpu.Nice, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "nice")))));
+            updateEntries.Add(MakeEntry(() => cpu.System, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "system")))));
+            updateEntries.Add(MakeEntry(() => cpu.Idle, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "idle")))));
+            updateEntries.Add(MakeEntry(() => cpu.IoWait, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "iowait")))));
+            updateEntries.Add(MakeEntry(() => cpu.Irq, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "irq")))));
+            updateEntries.Add(MakeEntry(() => cpu.SoftIrq, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "softirq")))));
+            updateEntries.Add(MakeEntry(() => cpu.Steal, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "steal")))));
+            updateEntries.Add(MakeEntry(() => cpu.Guest, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "guest")))));
+            updateEntries.Add(MakeEntry(() => cpu.GuestNice, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "guestnice")))));
+            // ReSharper restore StringLiteralTypo
+        }
+
+        void SetupCpuLoadEntry(PreviousCpuTotal previous, CpuStatics cpu)
+        {
+            updateEntries.Add(MakeEntry(() =>
             {
                 var nonIdle = CalcCpuNonIdle(cpu);
                 var idle = CalcCpuIdle(cpu);
@@ -216,30 +245,6 @@ internal sealed class LinuxInstrumentation
                 var nonIdleDiff = nonIdle - previous.NonIdle;
                 return totalDiff == 0 ? 0 : (double)nonIdleDiff / totalDiff * 100.0;
             }, metricCpuLoad.CreateGauge(MakeTags([new("name", cpu.Name)]))));
-        }
-
-        void SetupCpuTimeEntries(CpuStatics cpu)
-        {
-            // ReSharper disable StringLiteralTypo
-            updateEntries.Add(new Entry(() => cpu.User, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "user")))));
-            updateEntries.Add(new Entry(() => cpu.Nice, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "nice")))));
-            updateEntries.Add(new Entry(() => cpu.System, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "system")))));
-            updateEntries.Add(new Entry(() => cpu.Idle, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "idle")))));
-            updateEntries.Add(new Entry(() => cpu.IoWait, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "iowait")))));
-            updateEntries.Add(new Entry(() => cpu.Irq, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "irq")))));
-            updateEntries.Add(new Entry(() => cpu.SoftIrq, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "softirq")))));
-            updateEntries.Add(new Entry(() => cpu.Steal, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "steal")))));
-            updateEntries.Add(new Entry(() => cpu.Guest, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "guest")))));
-            updateEntries.Add(new Entry(() => cpu.GuestNice, metricCpuTimeTotal.CreateGauge(MakeTags(new("name", cpu.Name), new("mode", "guestnice")))));
-            // ReSharper restore StringLiteralTypo
-        }
-
-        static void UpdatePrevious(PreviousCpuTotal previous, CpuStatics cpu)
-        {
-            var nonIdle = CalcCpuNonIdle(cpu);
-            var idle = CalcCpuIdle(cpu);
-            previous.NonIdle = nonIdle;
-            previous.Total = idle + nonIdle;
         }
 
         static long CalcCpuIdle(CpuStatics cpu)
@@ -253,6 +258,13 @@ internal sealed class LinuxInstrumentation
         }
     }
 
+    private sealed class PreviousCpuTotal
+    {
+        public long NonIdle { get; set; }
+
+        public long Total { get; set; }
+    }
+
     //--------------------------------------------------------------------------------
     // LoadAverage
     //--------------------------------------------------------------------------------
@@ -264,9 +276,9 @@ internal sealed class LinuxInstrumentation
         prepareEntries.Add(() => load.Update());
 
         var metric = manager.CreateGauge("system_load_average");
-        updateEntries.Add(new Entry(() => load.Average1, metric.CreateGauge(MakeTags([new("window", 1)]))));
-        updateEntries.Add(new Entry(() => load.Average5, metric.CreateGauge(MakeTags([new("window", 5)]))));
-        updateEntries.Add(new Entry(() => load.Average15, metric.CreateGauge(MakeTags([new("window", 15)]))));
+        updateEntries.Add(MakeEntry(() => load.Average1, metric.CreateGauge(MakeTags([new("window", 1)]))));
+        updateEntries.Add(MakeEntry(() => load.Average5, metric.CreateGauge(MakeTags([new("window", 5)]))));
+        updateEntries.Add(MakeEntry(() => load.Average15, metric.CreateGauge(MakeTags([new("window", 15)]))));
     }
 
     //--------------------------------------------------------------------------------
@@ -282,30 +294,30 @@ internal sealed class LinuxInstrumentation
         // ReSharper disable StringLiteralTypo
         SetupCustomMetrics("load", metric =>
         [
-            new Entry(() => (double)(memory.MemoryTotal - memory.MemoryAvailable) / memory.MemoryTotal * 100, metric.CreateGauge(MakeTags()))
+            MakeEntry(() => (double)(memory.MemoryTotal - memory.MemoryAvailable) / memory.MemoryTotal * 100, metric.CreateGauge(MakeTags()))
         ]);
         SetupCustomMetrics("mem", metric =>
         [
-            new Entry(() => memory.MemoryTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
-            new Entry(() => memory.MemoryAvailable, metric.CreateGauge(MakeTags([new("type", "available")]))),
-            new Entry(() => memory.MemoryFree, metric.CreateGauge(MakeTags([new("type", "free")])))
+            MakeEntry(() => memory.MemoryTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
+            MakeEntry(() => memory.MemoryAvailable, metric.CreateGauge(MakeTags([new("type", "available")]))),
+            MakeEntry(() => memory.MemoryFree, metric.CreateGauge(MakeTags([new("type", "free")])))
         ]);
         SetupSimpleMetrics("buffers", () => memory.Buffers);
         SetupSimpleMetrics("cached", () => memory.Cached);
         SetupSimpleMetrics("swap_cached", () => memory.SwapCached);
         SetupCustomMetrics("lru", metric =>
         [
-            new Entry(() => memory.ActiveAnonymous, metric.CreateGauge(MakeTags(new("type", "anon"), new("state", "active")))),
-            new Entry(() => memory.InactiveAnonymous, metric.CreateGauge(MakeTags(new("type", "anon"), new("state", "inactive")))),
-            new Entry(() => memory.ActiveFile, metric.CreateGauge(MakeTags(new("type", "file"), new("state", "active")))),
-            new Entry(() => memory.InactiveFile, metric.CreateGauge(MakeTags(new("type", "file"), new("state", "inactive"))))
+            MakeEntry(() => memory.ActiveAnonymous, metric.CreateGauge(MakeTags(new("type", "anon"), new("state", "active")))),
+            MakeEntry(() => memory.InactiveAnonymous, metric.CreateGauge(MakeTags(new("type", "anon"), new("state", "inactive")))),
+            MakeEntry(() => memory.ActiveFile, metric.CreateGauge(MakeTags(new("type", "file"), new("state", "active")))),
+            MakeEntry(() => memory.InactiveFile, metric.CreateGauge(MakeTags(new("type", "file"), new("state", "inactive"))))
         ]);
         SetupSimpleMetrics("unevictable", () => memory.Unevictable);
         SetupSimpleMetrics("mlocked", () => memory.MemoryLocked);
         SetupCustomMetrics("swap", metric =>
         [
-            new Entry(() => memory.SwapTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
-            new Entry(() => memory.SwapFree, metric.CreateGauge(MakeTags([new("type", "free")])))
+            MakeEntry(() => memory.SwapTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
+            MakeEntry(() => memory.SwapFree, metric.CreateGauge(MakeTags([new("type", "free")])))
         ]);
         SetupSimpleMetrics("dirty", () => memory.Dirty);
         SetupSimpleMetrics("writeback", () => memory.Writeback);
@@ -315,9 +327,9 @@ internal sealed class LinuxInstrumentation
         SetupSimpleMetrics("k_reclaimable", () => memory.KernelReclaimable);
         SetupCustomMetrics("slab", metric =>
         [
-            new Entry(() => memory.SlabTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
-            new Entry(() => memory.SlabReclaimable, metric.CreateGauge(MakeTags([new("type", "reclaimable")]))),
-            new Entry(() => memory.SlabUnreclaimable, metric.CreateGauge(MakeTags([new("type", "unreclaimable")])))
+            MakeEntry(() => memory.SlabTotal, metric.CreateGauge(MakeTags([new("type", "total")]))),
+            MakeEntry(() => memory.SlabReclaimable, metric.CreateGauge(MakeTags([new("type", "reclaimable")]))),
+            MakeEntry(() => memory.SlabUnreclaimable, metric.CreateGauge(MakeTags([new("type", "unreclaimable")])))
         ]);
         SetupSimpleMetrics("kernel_stack", () => memory.KernelStack);
         SetupSimpleMetrics("page_tables", () => memory.PageTables);
@@ -331,11 +343,11 @@ internal sealed class LinuxInstrumentation
             if (IsTarget(targets, name))
             {
                 var metric = manager.CreateGauge($"system_memory_{name}");
-                updateEntries.Add(new Entry(selector, metric.CreateGauge(MakeTags())));
+                updateEntries.Add(MakeEntry(selector, metric.CreateGauge(MakeTags())));
             }
         }
 
-        void SetupCustomMetrics(string name, Func<IMetric, Entry[]> func)
+        void SetupCustomMetrics(string name, Func<IMetric, Action[]> func)
         {
             if (IsTarget(targets, name))
             {
@@ -357,28 +369,28 @@ internal sealed class LinuxInstrumentation
 
         SetupCustomMetrics("page", metric =>
         [
-            new Entry(() => vm.PageIn, metric.CreateGauge(MakeTags([new("type", "in")]))),
-            new Entry(() => vm.PageOut, metric.CreateGauge(MakeTags([new("type", "out")])))
+            MakeEntry(() => vm.PageIn, metric.CreateGauge(MakeTags([new("type", "in")]))),
+            MakeEntry(() => vm.PageOut, metric.CreateGauge(MakeTags([new("type", "out")])))
         ]);
         SetupCustomMetrics("swap", metric =>
         [
-            new Entry(() => vm.SwapIn, metric.CreateGauge(MakeTags([new("type", "in")]))),
-            new Entry(() => vm.SwapOut, metric.CreateGauge(MakeTags([new("type", "out")])))
+            MakeEntry(() => vm.SwapIn, metric.CreateGauge(MakeTags([new("type", "in")]))),
+            MakeEntry(() => vm.SwapOut, metric.CreateGauge(MakeTags([new("type", "out")])))
         ]);
         SetupCustomMetrics("page_faults", metric =>
         [
-            new Entry(() => vm.PageFaults, metric.CreateGauge(MakeTags([new("type", "in")]))),
-            new Entry(() => vm.MajorPageFaults, metric.CreateGauge(MakeTags([new("type", "out")])))
+            MakeEntry(() => vm.PageFaults, metric.CreateGauge(MakeTags([new("type", "in")]))),
+            MakeEntry(() => vm.MajorPageFaults, metric.CreateGauge(MakeTags([new("type", "out")])))
         ]);
         SetupCustomMetrics("steal", metric =>
         [
-            new Entry(() => vm.StealKernel, metric.CreateGauge(MakeTags([new("type", "kernel")]))),
-            new Entry(() => vm.StealDirect, metric.CreateGauge(MakeTags([new("type", "direct")])))
+            MakeEntry(() => vm.StealKernel, metric.CreateGauge(MakeTags([new("type", "kernel")]))),
+            MakeEntry(() => vm.StealDirect, metric.CreateGauge(MakeTags([new("type", "direct")])))
         ]);
         SetupCustomMetrics("scan", metric =>
         [
-            new Entry(() => vm.ScanKernel, metric.CreateGauge(MakeTags([new("type", "kernel")]))),
-            new Entry(() => vm.ScanDirect, metric.CreateGauge(MakeTags([new("type", "direct")])))
+            MakeEntry(() => vm.ScanKernel, metric.CreateGauge(MakeTags([new("type", "kernel")]))),
+            MakeEntry(() => vm.ScanDirect, metric.CreateGauge(MakeTags([new("type", "direct")])))
         ]);
         SetupSimpleMetrics("oom_kill", () => vm.OutOfMemoryKiller);
 
@@ -387,11 +399,11 @@ internal sealed class LinuxInstrumentation
             if (IsTarget(targets, name))
             {
                 var metric = manager.CreateCounter($"system_virtual_{name}_total");
-                updateEntries.Add(new Entry(selector, metric.CreateGauge(MakeTags())));
+                updateEntries.Add(MakeEntry(selector, metric.CreateGauge(MakeTags())));
             }
         }
 
-        void SetupCustomMetrics(string name, Func<IMetric, Entry[]> func)
+        void SetupCustomMetrics(string name, Func<IMetric, Action[]> func)
         {
             if (IsTarget(targets, name))
             {
@@ -413,19 +425,19 @@ internal sealed class LinuxInstrumentation
         var metricUsed = manager.CreateGauge("system_partition_used");
         foreach (var drive in drives)
         {
-            updateEntries.Add(new Entry(() => (double)(drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize * 100, metricUsed.CreateGauge([new("name", drive.Name)])));
+            updateEntries.Add(MakeEntry(() => (double)(drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize * 100, metricUsed.CreateGauge([new("name", drive.Name)])));
         }
 
         var metricTotal = manager.CreateGauge("system_partition_total");
         foreach (var drive in drives)
         {
-            updateEntries.Add(new Entry(() => drive.TotalSize, metricTotal.CreateGauge([new("name", drive.Name)])));
+            updateEntries.Add(MakeEntry(() => drive.TotalSize, metricTotal.CreateGauge([new("name", drive.Name)])));
         }
 
         var metricFree = manager.CreateGauge("system_partition_free");
         foreach (var drive in drives)
         {
-            updateEntries.Add(new Entry(() => drive.TotalFreeSpace, metricFree.CreateGauge([new("name", drive.Name)])));
+            updateEntries.Add(MakeEntry(() => drive.TotalFreeSpace, metricFree.CreateGauge([new("name", drive.Name)])));
         }
     }
 
@@ -449,19 +461,19 @@ internal sealed class LinuxInstrumentation
 
         foreach (var device in disk.Devices)
         {
-            updateEntries.Add(new Entry(() => device.ReadCompleted, metricCompleted.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
-            updateEntries.Add(new Entry(() => device.ReadMerged, metricMerged.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
-            updateEntries.Add(new Entry(() => device.ReadSectors, metricSectors.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
-            updateEntries.Add(new Entry(() => device.ReadTime, metricTime.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.ReadCompleted, metricCompleted.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.ReadMerged, metricMerged.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.ReadSectors, metricSectors.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.ReadTime, metricTime.CreateGauge(MakeTags(new("name", device.Name), new("type", "read")))));
 
-            updateEntries.Add(new Entry(() => device.WriteCompleted, metricCompleted.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
-            updateEntries.Add(new Entry(() => device.WriteMerged, metricMerged.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
-            updateEntries.Add(new Entry(() => device.WriteSectors, metricSectors.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
-            updateEntries.Add(new Entry(() => device.WriteTime, metricTime.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+            updateEntries.Add(MakeEntry(() => device.WriteCompleted, metricCompleted.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+            updateEntries.Add(MakeEntry(() => device.WriteMerged, metricMerged.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+            updateEntries.Add(MakeEntry(() => device.WriteSectors, metricSectors.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
+            updateEntries.Add(MakeEntry(() => device.WriteTime, metricTime.CreateGauge(MakeTags(new("name", device.Name), new("type", "write")))));
 
-            updateEntries.Add(new Entry(() => device.IosInProgress, metricIosInProgress.CreateGauge(MakeTags([new("name", device.Name)]))));
-            updateEntries.Add(new Entry(() => device.IoTime, metricIoTime.CreateGauge(MakeTags([new("name", device.Name)]))));
-            updateEntries.Add(new Entry(() => device.WeightIoTime, metricWeightIoTime.CreateGauge(MakeTags([new("name", device.Name)]))));
+            updateEntries.Add(MakeEntry(() => device.IosInProgress, metricIosInProgress.CreateGauge(MakeTags([new("name", device.Name)]))));
+            updateEntries.Add(MakeEntry(() => device.IoTime, metricIoTime.CreateGauge(MakeTags([new("name", device.Name)]))));
+            updateEntries.Add(MakeEntry(() => device.WeightIoTime, metricWeightIoTime.CreateGauge(MakeTags([new("name", device.Name)]))));
         }
     }
 
@@ -476,10 +488,10 @@ internal sealed class LinuxInstrumentation
         prepareEntries.Add(() => fd.Update());
 
         var metricAllocated = manager.CreateGauge("system_fd_allocated");
-        updateEntries.Add(new Entry(() => fd.Allocated, metricAllocated.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => fd.Allocated, metricAllocated.CreateGauge(MakeTags())));
 
         var metricUsed = manager.CreateGauge("system_fd_used");
-        updateEntries.Add(new Entry(() => fd.Used, metricUsed.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => fd.Used, metricUsed.CreateGauge(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
@@ -505,23 +517,23 @@ internal sealed class LinuxInstrumentation
 
         foreach (var nif in network.Interfaces)
         {
-            updateEntries.Add(new Entry(() => nif.RxBytes, metricBytes.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
-            updateEntries.Add(new Entry(() => nif.RxBytes, metricPackets.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
-            updateEntries.Add(new Entry(() => nif.RxErrors, metricErrors.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
-            updateEntries.Add(new Entry(() => nif.RxDropped, metricDropped.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
-            updateEntries.Add(new Entry(() => nif.RxFifo, metricFifo.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
-            updateEntries.Add(new Entry(() => nif.RxCompressed, metricCompressed.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
-            updateEntries.Add(new Entry(() => nif.RxFrame, metricFrame.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
-            updateEntries.Add(new Entry(() => nif.RxMulticast, metricMulticast.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxBytes, metricBytes.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxBytes, metricPackets.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxErrors, metricErrors.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxDropped, metricDropped.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxFifo, metricFifo.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxCompressed, metricCompressed.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxFrame, metricFrame.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxMulticast, metricMulticast.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "rx")))));
 
-            updateEntries.Add(new Entry(() => nif.TxBytes, metricBytes.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
-            updateEntries.Add(new Entry(() => nif.TxBytes, metricPackets.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
-            updateEntries.Add(new Entry(() => nif.TxErrors, metricErrors.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
-            updateEntries.Add(new Entry(() => nif.TxDropped, metricDropped.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
-            updateEntries.Add(new Entry(() => nif.TxFifo, metricFifo.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
-            updateEntries.Add(new Entry(() => nif.TxCompressed, metricCompressed.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
-            updateEntries.Add(new Entry(() => nif.TxCollisions, metricCollisions.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
-            updateEntries.Add(new Entry(() => nif.TxCarrier, metricCarrier.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxBytes, metricBytes.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxBytes, metricPackets.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxErrors, metricErrors.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxDropped, metricDropped.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxFifo, metricFifo.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxCompressed, metricCompressed.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxCollisions, metricCollisions.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxCarrier, metricCarrier.CreateGauge(MakeTags(new("name", nif.Interface), new("type", "tx")))));
         }
     }
 
@@ -553,17 +565,17 @@ internal sealed class LinuxInstrumentation
 
         void SetupTcpStaticEntries(TcpInfo info, int version)
         {
-            updateEntries.Add(new Entry(() => info.Established, metric.CreateGauge(MakeTags(new("version", version), new("state", "established")))));
-            updateEntries.Add(new Entry(() => info.SynSent, metric.CreateGauge(MakeTags(new("version", version), new("state", "syn_sent")))));
-            updateEntries.Add(new Entry(() => info.SynRecv, metric.CreateGauge(MakeTags(new("version", version), new("state", "syn_recv")))));
-            updateEntries.Add(new Entry(() => info.FinWait1, metric.CreateGauge(MakeTags(new("version", version), new("state", "fin_wait1")))));
-            updateEntries.Add(new Entry(() => info.FinWait2, metric.CreateGauge(MakeTags(new("version", version), new("state", "fin_wait2")))));
-            updateEntries.Add(new Entry(() => info.TimeWait, metric.CreateGauge(MakeTags(new("version", version), new("state", "time_wait")))));
-            updateEntries.Add(new Entry(() => info.Close, metric.CreateGauge(MakeTags(new("version", version), new("state", "close")))));
-            updateEntries.Add(new Entry(() => info.CloseWait, metric.CreateGauge(MakeTags(new("version", version), new("state", "close_wait")))));
-            updateEntries.Add(new Entry(() => info.LastAck, metric.CreateGauge(MakeTags(new("version", version), new("state", "last_ack")))));
-            updateEntries.Add(new Entry(() => info.Listen, metric.CreateGauge(MakeTags(new("version", version), new("state", "listen")))));
-            updateEntries.Add(new Entry(() => info.Closing, metric.CreateGauge(MakeTags(new("version", version), new("state", "closing")))));
+            updateEntries.Add(MakeEntry(() => info.Established, metric.CreateGauge(MakeTags(new("version", version), new("state", "established")))));
+            updateEntries.Add(MakeEntry(() => info.SynSent, metric.CreateGauge(MakeTags(new("version", version), new("state", "syn_sent")))));
+            updateEntries.Add(MakeEntry(() => info.SynRecv, metric.CreateGauge(MakeTags(new("version", version), new("state", "syn_recv")))));
+            updateEntries.Add(MakeEntry(() => info.FinWait1, metric.CreateGauge(MakeTags(new("version", version), new("state", "fin_wait1")))));
+            updateEntries.Add(MakeEntry(() => info.FinWait2, metric.CreateGauge(MakeTags(new("version", version), new("state", "fin_wait2")))));
+            updateEntries.Add(MakeEntry(() => info.TimeWait, metric.CreateGauge(MakeTags(new("version", version), new("state", "time_wait")))));
+            updateEntries.Add(MakeEntry(() => info.Close, metric.CreateGauge(MakeTags(new("version", version), new("state", "close")))));
+            updateEntries.Add(MakeEntry(() => info.CloseWait, metric.CreateGauge(MakeTags(new("version", version), new("state", "close_wait")))));
+            updateEntries.Add(MakeEntry(() => info.LastAck, metric.CreateGauge(MakeTags(new("version", version), new("state", "last_ack")))));
+            updateEntries.Add(MakeEntry(() => info.Listen, metric.CreateGauge(MakeTags(new("version", version), new("state", "listen")))));
+            updateEntries.Add(MakeEntry(() => info.Closing, metric.CreateGauge(MakeTags(new("version", version), new("state", "closing")))));
         }
     }
 
@@ -578,10 +590,10 @@ internal sealed class LinuxInstrumentation
         prepareEntries.Add(() => process.Update());
 
         var metricProcess = manager.CreateGauge("system_process_count");
-        updateEntries.Add(new Entry(() => process.ProcessCount, metricProcess.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => process.ProcessCount, metricProcess.CreateGauge(MakeTags())));
 
         var metricThread = manager.CreateGauge("system_thread_count");
-        updateEntries.Add(new Entry(() => process.ThreadCount, metricThread.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => process.ThreadCount, metricThread.CreateGauge(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
@@ -597,7 +609,7 @@ internal sealed class LinuxInstrumentation
         var metricFrequency = manager.CreateGauge("hardware_cpu_frequency");
         foreach (var core in cpu.Cores)
         {
-            updateEntries.Add(new Entry(() => core.Frequency, metricFrequency.CreateGauge(MakeTags([new("name", core.Name)]))));
+            updateEntries.Add(MakeEntry(() => core.Frequency, metricFrequency.CreateGauge(MakeTags([new("name", core.Name)]))));
         }
 
         if (cpu.Powers.Count > 0)
@@ -605,7 +617,7 @@ internal sealed class LinuxInstrumentation
             var metricPower = manager.CreateGauge("hardware_cpu_power");
             foreach (var power in cpu.Powers)
             {
-                updateEntries.Add(new Entry(() => power.Energy / 1000.0, metricPower.CreateGauge(MakeTags([new("name", power.Name)]))));
+                updateEntries.Add(MakeEntry(() => power.Energy / 1000.0, metricPower.CreateGauge(MakeTags([new("name", power.Name)]))));
             }
         }
     }
@@ -625,19 +637,19 @@ internal sealed class LinuxInstrumentation
         prepareEntries.Add(() => battery.Update());
 
         var metricCapacity = manager.CreateGauge("hardware_battery_capacity");
-        updateEntries.Add(new Entry(() => battery.Capacity, metricCapacity.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => battery.Capacity, metricCapacity.CreateGauge(MakeTags())));
 
         var metricVoltage = manager.CreateGauge("hardware_battery_voltage");
-        updateEntries.Add(new Entry(() => battery.Voltage / 1000.0, metricVoltage.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => battery.Voltage / 1000.0, metricVoltage.CreateGauge(MakeTags())));
 
         var metricCurrent = manager.CreateGauge("hardware_battery_current");
-        updateEntries.Add(new Entry(() => battery.Current / 1000.0, metricCurrent.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => battery.Current / 1000.0, metricCurrent.CreateGauge(MakeTags())));
 
         var metricCharge = manager.CreateGauge("hardware_battery_charge");
-        updateEntries.Add(new Entry(() => battery.Charge / 1000.0, metricCharge.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => battery.Charge / 1000.0, metricCharge.CreateGauge(MakeTags())));
 
         var metricChargeFull = manager.CreateGauge("hardware_battery_charge_full");
-        updateEntries.Add(new Entry(() => battery.ChargeFull / 1000.0, metricChargeFull.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => battery.ChargeFull / 1000.0, metricChargeFull.CreateGauge(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
@@ -655,7 +667,7 @@ internal sealed class LinuxInstrumentation
         prepareEntries.Add(() => adapter.Update());
 
         var metric = manager.CreateGauge("hardware_ac_online");
-        updateEntries.Add(new Entry(() => adapter.Online ? 1 : 0, metric.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => adapter.Online ? 1 : 0, metric.CreateGauge(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
@@ -683,37 +695,8 @@ internal sealed class LinuxInstrumentation
         {
             foreach (var sensor in monitor.Sensors)
             {
-                updateEntries.Add(new Entry(() => sensor.Value, metric.CreateGauge(MakeTags(new("name", monitor.Name), new("sensor", sensor.Type), new("type", monitor.Type), new("label", sensor.Label)))));
+                updateEntries.Add(MakeEntry(() => sensor.Value, metric.CreateGauge(MakeTags(new("name", monitor.Name), new("sensor", sensor.Type), new("type", monitor.Type), new("label", sensor.Label)))));
             }
         }
-    }
-
-    //--------------------------------------------------------------------------------
-    // Entry
-    //--------------------------------------------------------------------------------
-
-    private sealed class Entry
-    {
-        private readonly Func<double> measurement;
-
-        private readonly IGauge gauge;
-
-        public Entry(Func<double> measurement, IGauge gauge)
-        {
-            this.measurement = measurement;
-            this.gauge = gauge;
-        }
-
-        public void Update()
-        {
-            gauge.Value = measurement();
-        }
-    }
-
-    private sealed class PreviousCpuTotal
-    {
-        public long NonIdle { get; set; }
-
-        public long Total { get; set; }
     }
 }

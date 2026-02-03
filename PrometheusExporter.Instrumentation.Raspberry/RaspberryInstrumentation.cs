@@ -1,0 +1,158 @@
+namespace PrometheusExporter.Instrumentation.Raspberry;
+
+using PrometheusExporter.Abstractions;
+
+using RaspberryDotNet.SystemInfo;
+
+internal sealed class RaspberryInstrumentation : IDisposable
+{
+    private readonly string host;
+
+    private readonly TimeSpan updateDuration;
+
+    private readonly Vcio vcio;
+
+    private readonly List<Action> updateEntries = [];
+
+    private DateTime lastUpdate;
+
+    public RaspberryInstrumentation(
+        RaspberryOptions options,
+        IInstrumentationEnvironment environment,
+        IMetricManager manager)
+    {
+        host = environment.Host;
+        updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
+
+        vcio = new Vcio();
+        vcio.Open();
+
+        SetupTemperatureMetric(manager);
+        SetupFrequencyMetric(manager);
+        SetupVoltageMetric(manager);
+        SetupThrottledMetric(manager);
+
+        manager.AddBeforeCollectCallback(Update);
+    }
+
+    public void Dispose()
+    {
+        vcio.Dispose();
+    }
+
+    //--------------------------------------------------------------------------------
+    // Event
+    //--------------------------------------------------------------------------------
+
+    private void Update()
+    {
+        var now = DateTime.Now;
+        if ((now - lastUpdate) < updateDuration)
+        {
+            return;
+        }
+
+        foreach (var action in updateEntries)
+        {
+            action();
+        }
+
+        lastUpdate = now;
+    }
+
+    //--------------------------------------------------------------------------------
+    // Helper
+    //--------------------------------------------------------------------------------
+
+    private KeyValuePair<string, object?>[] MakeTags(params KeyValuePair<string, object?>[] options)
+    {
+        if (options.Length == 0)
+        {
+            return [new("host", host)];
+        }
+
+        var tags = new List<KeyValuePair<string, object?>>([new("host", host)]);
+        tags.AddRange(options);
+        return [.. tags];
+    }
+
+    private static Action MakeEntry(Func<double> measurement, IGauge gauge)
+    {
+        return () => gauge.Value = measurement();
+    }
+
+    //--------------------------------------------------------------------------------
+    // Temperature
+    //--------------------------------------------------------------------------------
+
+    private void SetupTemperatureMetric(IMetricManager manager)
+    {
+        var metric = manager.CreateGauge("system_vcio_temperature");
+        updateEntries.Add(MakeEntry(() => vcio.ReadTemperature(), metric.CreateGauge(MakeTags())));
+    }
+
+    //--------------------------------------------------------------------------------
+    // Frequency
+    //--------------------------------------------------------------------------------
+
+    private void SetupFrequencyMetric(IMetricManager manager)
+    {
+        var metric = manager.CreateGauge("system_vcio_frequency");
+
+        foreach (var clock in Enum.GetValues<ClockType>())
+        {
+#pragma warning disable CA1308
+            var name = clock.ToString().ToLowerInvariant();
+#pragma warning restore CA1308
+            updateEntries.Add(MakeEntry(() =>
+            {
+                var frequency = vcio.ReadFrequency(clock, measured: true);
+                if (Double.IsNaN(frequency))
+                {
+                    frequency = vcio.ReadFrequency(clock, measured: false);
+                }
+                return frequency;
+            }, metric.CreateGauge(MakeTags([new("name", name)]))));
+        }
+    }
+
+    //--------------------------------------------------------------------------------
+    // Voltage
+    //--------------------------------------------------------------------------------
+
+    private void SetupVoltageMetric(IMetricManager manager)
+    {
+        var metric = manager.CreateGauge("system_vcio_voltage");
+
+        foreach (var voltage in Enum.GetValues<VoltageType>())
+        {
+#pragma warning disable CA1308
+            var name = voltage.ToString().ToLowerInvariant();
+#pragma warning restore CA1308
+            updateEntries.Add(MakeEntry(() => vcio.ReadVoltage(voltage), metric.CreateGauge(MakeTags([new("name", name)]))));
+        }
+    }
+
+    //--------------------------------------------------------------------------------
+    // Throttled
+    //--------------------------------------------------------------------------------
+
+    private void SetupThrottledMetric(IMetricManager manager)
+    {
+        var metric = manager.CreateGauge("system_vcio_throttled");
+
+        var gaugeUnderVoltage = metric.CreateGauge(MakeTags([new("name", "under_voltage")]));
+        var gaugeFrequencyCapped = metric.CreateGauge(MakeTags([new("name", "freq_cap")]));
+        var gaugeCurrentlyThrottled = metric.CreateGauge(MakeTags([new("name", "throttled")]));
+        var gaugeSoftTemperatureLimitActive = metric.CreateGauge(MakeTags([new("name", "temp_limit")]));
+
+        updateEntries.Add(() =>
+        {
+            var throttled = vcio.ReadThrottled();
+            gaugeUnderVoltage.Value = (throttled & ThrottledFlags.UnderVoltageDetected) != 0 ? 1 : 0;
+            gaugeFrequencyCapped.Value = (throttled & ThrottledFlags.ArmFrequencyCapped) != 0 ? 1 : 0;
+            gaugeCurrentlyThrottled.Value = (throttled & ThrottledFlags.CurrentlyThrottled) != 0 ? 1 : 0;
+            gaugeSoftTemperatureLimitActive.Value = (throttled & ThrottledFlags.SoftTemperatureLimitActive) != 0 ? 1 : 0;
+        });
+    }
+}

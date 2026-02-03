@@ -10,7 +10,7 @@ internal sealed class MacInstrumentation
 
     private readonly TimeSpan updateDuration;
 
-    private readonly List<Entry> entries = [];
+    private readonly List<Action> entries = [];
 
     private DateTime lastUpdate;
 
@@ -39,9 +39,9 @@ internal sealed class MacInstrumentation
             return;
         }
 
-        foreach (var entry in entries)
+        foreach (var action in entries)
         {
-            entry.Update();
+            action();
         }
 
         lastUpdate = now;
@@ -53,6 +53,11 @@ internal sealed class MacInstrumentation
 
     private KeyValuePair<string, object?>[] MakeTags() => [new("host", host)];
 
+    private static Action MakeEntry(Func<double> measurement, IGauge gauge)
+    {
+        return () => gauge.Value = measurement();
+    }
+
     //--------------------------------------------------------------------------------
     // Uptime
     //--------------------------------------------------------------------------------
@@ -63,7 +68,7 @@ internal sealed class MacInstrumentation
         var uptimeInfo = PlatformProvider.GetUptime();
 
         var metric = manager.CreateGauge("system_uptime");
-        entries.Add(new Entry(ReadValue, metric.CreateGauge(MakeTags())));
+        entries.Add(MakeEntry(ReadValue, metric.CreateGauge(MakeTags())));
         return;
 
         double ReadValue()
@@ -71,28 +76,6 @@ internal sealed class MacInstrumentation
             uptimeInfo.Update();
             var uptime = uptimeInfo.Uptime;
             return uptime.TotalSeconds;
-        }
-    }
-
-    //--------------------------------------------------------------------------------
-    // Entry
-    //--------------------------------------------------------------------------------
-
-    private sealed class Entry
-    {
-        private readonly Func<double> measurement;
-
-        private readonly IGauge gauge;
-
-        public Entry(Func<double> measurement, IGauge gauge)
-        {
-            this.measurement = measurement;
-            this.gauge = gauge;
-        }
-
-        public void Update()
-        {
-            gauge.Value = measurement();
         }
     }
 }

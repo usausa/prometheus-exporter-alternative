@@ -12,6 +12,8 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
     private readonly Vcio vcio;
 
+    private readonly GpioMap gpio;
+
     private readonly List<Action> updateEntries = [];
 
     private DateTime lastUpdate;
@@ -25,12 +27,22 @@ internal sealed class RaspberryInstrumentation : IDisposable
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
         vcio = new Vcio();
-        vcio.Open();
+        gpio = new GpioMap();
 
-        SetupTemperatureMetric(manager);
-        SetupFrequencyMetric(manager);
-        SetupVoltageMetric(manager);
-        SetupThrottledMetric(manager);
+        if (options.Vcio)
+        {
+            vcio.Open();
+            SetupVcioTemperatureMetric(manager);
+            SetupVcioFrequencyMetric(manager);
+            SetupVcioVoltageMetric(manager);
+            SetupVcioThrottledMetric(manager);
+        }
+
+        if (options.Gpio)
+        {
+            gpio.Open();
+            SetupGpioLevelMetric(manager);
+        }
 
         manager.AddBeforeCollectCallback(Update);
     }
@@ -38,6 +50,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     public void Dispose()
     {
         vcio.Dispose();
+        gpio.Dispose();
     }
 
     //--------------------------------------------------------------------------------
@@ -85,7 +98,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Temperature
     //--------------------------------------------------------------------------------
 
-    private void SetupTemperatureMetric(IMetricManager manager)
+    private void SetupVcioTemperatureMetric(IMetricManager manager)
     {
         var metric = manager.CreateGauge("hardware_vcio_temperature");
         updateEntries.Add(MakeEntry(() => vcio.ReadTemperature(), metric.CreateGauge(MakeTags())));
@@ -95,7 +108,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Frequency
     //--------------------------------------------------------------------------------
 
-    private void SetupFrequencyMetric(IMetricManager manager)
+    private void SetupVcioFrequencyMetric(IMetricManager manager)
     {
         var metric = manager.CreateGauge("hardware_vcio_frequency");
 
@@ -120,7 +133,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Voltage
     //--------------------------------------------------------------------------------
 
-    private void SetupVoltageMetric(IMetricManager manager)
+    private void SetupVcioVoltageMetric(IMetricManager manager)
     {
         var metric = manager.CreateGauge("hardware_vcio_voltage");
 
@@ -137,7 +150,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Throttled
     //--------------------------------------------------------------------------------
 
-    private void SetupThrottledMetric(IMetricManager manager)
+    private void SetupVcioThrottledMetric(IMetricManager manager)
     {
         var metric = manager.CreateGauge("hardware_vcio_throttled");
 
@@ -153,6 +166,31 @@ internal sealed class RaspberryInstrumentation : IDisposable
             gaugeFrequencyCapped.Value = (throttled & ThrottledFlags.ArmFrequencyCapped) != 0 ? 1 : 0;
             gaugeCurrentlyThrottled.Value = (throttled & ThrottledFlags.CurrentlyThrottled) != 0 ? 1 : 0;
             gaugeSoftTemperatureLimitActive.Value = (throttled & ThrottledFlags.SoftTemperatureLimitActive) != 0 ? 1 : 0;
+        });
+    }
+
+    //--------------------------------------------------------------------------------
+    // Throttled
+    //--------------------------------------------------------------------------------
+
+    private void SetupGpioLevelMetric(IMetricManager manager)
+    {
+        var metric = manager.CreateGauge("hardware_gpio_level");
+
+        var gauges = new Dictionary<int, IGauge>();
+
+        updateEntries.Add(() =>
+        {
+            foreach (var pin in gpio.ReadHeaderGpioPins())
+            {
+                if (!gauges.TryGetValue(pin.PhysicalPin, out var gauge))
+                {
+                    gauge = metric.CreateGauge(MakeTags([new("name", pin.PhysicalPin)]));
+                    gauges[pin.PhysicalPin] = gauge;
+                }
+
+                gauge.Value = pin.Level;
+            }
         });
     }
 }

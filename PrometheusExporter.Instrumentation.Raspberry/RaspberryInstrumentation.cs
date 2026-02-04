@@ -87,7 +87,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
     private void SetupTemperatureMetric(IMetricManager manager)
     {
-        var metric = manager.CreateGauge("system_vcio_temperature");
+        var metric = manager.CreateGauge("hardware_vcio_temperature");
         updateEntries.Add(MakeEntry(() => vcio.ReadTemperature(), metric.CreateGauge(MakeTags())));
     }
 
@@ -97,7 +97,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
     private void SetupFrequencyMetric(IMetricManager manager)
     {
-        var metric = manager.CreateGauge("system_vcio_frequency");
+        var metric = manager.CreateGauge("hardware_vcio_frequency");
 
         foreach (var clock in Enum.GetValues<ClockType>())
         {
@@ -122,7 +122,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
     private void SetupVoltageMetric(IMetricManager manager)
     {
-        var metric = manager.CreateGauge("system_vcio_voltage");
+        var metric = manager.CreateGauge("hardware_vcio_voltage");
 
         foreach (var voltage in Enum.GetValues<VoltageType>())
         {
@@ -139,7 +139,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
     private void SetupThrottledMetric(IMetricManager manager)
     {
-        var metric = manager.CreateGauge("system_vcio_throttled");
+        var metric = manager.CreateGauge("hardware_vcio_throttled");
 
         var gaugeUnderVoltage = metric.CreateGauge(MakeTags([new("name", "under_voltage")]));
         var gaugeFrequencyCapped = metric.CreateGauge(MakeTags([new("name", "freq_cap")]));

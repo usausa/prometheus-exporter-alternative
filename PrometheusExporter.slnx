@@ -65,7 +65,7 @@
     </Project>
   </Folder>
   <Folder Name="/Instrumentation/MultiPlatform/">
-    <Project Path="PrometheusExporter.Instrumentation.SmartControl/PrometheusExporter.Instrumentation.SmartControl.csproj" Id="075bcc6a-4b40-46ee-a16b-f70ac821deb0">
+    <Project Path="PrometheusExporter.Instrumentation.SmartControl/PrometheusExporter.Instrumentation.SmartControl.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
     </Project>
@@ -77,9 +77,11 @@
       <Build Solution="DebugMac|*" Project="false" />
       <Build Solution="Debug|*" Project="false" />
     </Project>
-    <Project Path="PrometheusExporter.Instrumentation.Raspberry/PrometheusExporter.Instrumentation.Raspberry.csproj" Id="b06ff2c4-2740-4555-937c-b8a86f0613e4">
+    <Project Path="PrometheusExporter.Instrumentation.Raspberry/PrometheusExporter.Instrumentation.Raspberry.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugMac|*" Project="false" />
+      <Build Solution="Debug|*" Project="false" />
     </Project>
   </Folder>
   <Folder Name="/Instrumentation/PlatformMac/">

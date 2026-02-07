@@ -1,14 +1,12 @@
 namespace PrometheusExporter.Instrumentation.DiskInfo;
 
-#if WINDOWS
+using System.Runtime.Versioning;
+
 using HardwareInfo.Disk;
-#endif
-#if !WINDOWS
-using LinuxDotNet.Disk;
-#endif
 
 using PrometheusExporter.Abstractions;
 
+[SupportedOSPlatform("windows")]
 internal sealed class DiskInfoInstrumentation : IDisposable
 {
     private readonly TimeSpan updateDuration;
@@ -36,30 +34,19 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
         foreach (var disk in disks)
         {
-#if WINDOWS
-            var name = String.Concat(disk.GetDrives().Select(static x => x.Name.TrimEnd(':')));
-#endif
-#if !WINDOWS
-            var name = Path.GetFileName(disk.DeviceName);
-#endif
-
-            var sector = sectorMetric.CreateGauge(MakeTags(environment.Host, disk.Index, disk.Model, name));
-#if WINDOWS
+            var drive = String.Concat(disk.GetDrives().Select(static x => x.Name.TrimEnd(':')));
+            var sector = sectorMetric.CreateGauge(MakeTags(environment.Host, disk.Index, disk.Model, drive));
             sector.Value = disk.BytesPerSector;
-#endif
-#if !WINDOWS
-            sector.Value = disk.LogicalBlockSize;
-#endif
 
             if (disk.SmartType == SmartType.Nvme)
             {
                 var smart = (ISmartNvme)disk.Smart;
-                nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, environment.Host, disk, name), smart));
+                nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, environment.Host, disk, drive), smart));
             }
             else if (disk.SmartType == SmartType.Generic)
             {
                 var smart = (ISmartGeneric)disk.Smart;
-                genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, environment.Host, disk, name), smart));
+                genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, environment.Host, disk, drive), smart));
             }
         }
 
@@ -103,24 +90,15 @@ internal sealed class DiskInfoInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-#if WINDOWS
-    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name) =>
-        [new("host", host), new("index", index), new("model", model), new("drive", name)];
+    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string drive) =>
+        [new("host", host), new("index", index), new("model", model), new("drive", drive)];
 
-    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name, string id) =>
-        [new("host", host), new("index", index), new("model", model), new("drive", name), new("smart_id", id)];
-#endif
-#if !WINDOWS
-    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name) =>
-        [new("host", host), new("index", index), new("model", model), new("device", name)];
+    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string drive, string id) =>
+        [new("host", host), new("index", index), new("model", model), new("drive", drive), new("smart_id", id)];
 
-    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name, string id) =>
-        [new("host", host), new("index", index), new("model", model), new("device", name), new("smart_id", id)];
-#endif
-
-    private static IGauge[] MakeNvmeGauges(IMetric metric, ISmartNvme smart, string host, IDiskInfo disk, string name)
+    private static IGauge[] MakeNvmeGauges(IMetric metric, ISmartNvme smart, string host, IDiskInfo disk, string drive)
     {
-        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, name, id));
+        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, drive, id));
 
         var gauges = new IGauge[17 + smart.TemperatureSensors.Length];
         gauges[0] = Factory("available_spare");

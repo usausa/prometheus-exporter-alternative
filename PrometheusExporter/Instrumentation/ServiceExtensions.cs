@@ -1,6 +1,7 @@
 namespace PrometheusExporter.Instrumentation;
 
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 
 using PrometheusExporter.Abstractions;
@@ -40,10 +41,7 @@ internal static class ServiceExtensions
 #pragma warning disable CA1031
             try
             {
-                var dllPath = Path.Combine(AppContext.BaseDirectory, assemblyName + ".dll");
-                var assembly = File.Exists(dllPath)
-                    ? Assembly.LoadFrom(dllPath)
-                    : AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(assemblyName));
+                var assembly = LoadAssembly(assemblyName);
                 foreach (var loaderType in assembly.GetTypes()
                              .Where(static x => typeof(IInstrumentationLoader).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false }))
                 {
@@ -59,5 +57,64 @@ internal static class ServiceExtensions
         }
 
         return services;
+    }
+
+    private static Assembly LoadAssembly(string assemblyName)
+    {
+        var dllPath = Path.Combine(AppContext.BaseDirectory, assemblyName + ".dll");
+        if (File.Exists(dllPath))
+        {
+            return AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
+        }
+
+        var suffix = ResolvePlatformSuffix();
+        if (!String.IsNullOrEmpty(suffix))
+        {
+            dllPath = Path.Combine(AppContext.BaseDirectory, assemblyName + suffix + ".dll");
+            if (File.Exists(dllPath))
+            {
+                return AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
+            }
+        }
+
+        try
+        {
+            return AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(assemblyName));
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or FileLoadException)
+        {
+            // Ignore
+        }
+
+        if (!String.IsNullOrEmpty(suffix))
+        {
+            try
+            {
+                return AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(assemblyName + suffix));
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or FileLoadException)
+            {
+                // Ignore
+            }
+        }
+
+        throw new FileNotFoundException($"Assembly not found. name=[{assemblyName}]");
+    }
+
+    private static string ResolvePlatformSuffix()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return ".Windows";
+        }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return ".Linux";
+        }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return ".Mac";
+        }
+        return string.Empty;
     }
 }

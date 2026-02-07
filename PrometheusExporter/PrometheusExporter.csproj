@@ -38,14 +38,14 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo.Windows\PrometheusExporter.Instrumentation.DiskInfo.Windows.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HardwareMonitor\PrometheusExporter.Instrumentation.HardwareMonitor.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HyperV\PrometheusExporter.Instrumentation.HyperV.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.PerformanceCounter\PrometheusExporter.Instrumentation.PerformanceCounter.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(BuildPlatform)' == 'linux'">
-    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo.Linux\PrometheusExporter.Instrumentation.DiskInfo.Linux.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Linux\PrometheusExporter.Instrumentation.Linux.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Raspberry\PrometheusExporter.Instrumentation.Raspberry.csproj" />
   </ItemGroup>

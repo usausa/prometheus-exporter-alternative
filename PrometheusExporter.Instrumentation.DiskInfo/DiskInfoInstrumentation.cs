@@ -1,9 +1,9 @@
 namespace PrometheusExporter.Instrumentation.DiskInfo;
 
-#if BUILD_PLATFORM_WINDOWS
+#if WINDOWS
 using HardwareInfo.Disk;
 #endif
-#if BUILD_PLATFORM_LINUX
+#if !WINDOWS
 using LinuxDotNet.Disk;
 #endif
 
@@ -36,18 +36,18 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
         foreach (var disk in disks)
         {
-#if BUILD_PLATFORM_WINDOWS
+#if WINDOWS
             var name = String.Concat(disk.GetDrives().Select(static x => x.Name.TrimEnd(':')));
 #endif
-#if BUILD_PLATFORM_LINUX
+#if !WINDOWS
             var name = Path.GetFileName(disk.DeviceName);
 #endif
 
             var sector = sectorMetric.CreateGauge(MakeTags(environment.Host, disk.Index, disk.Model, name));
-#if BUILD_PLATFORM_WINDOWS
+#if WINDOWS
             sector.Value = disk.BytesPerSector;
 #endif
-#if BUILD_PLATFORM_LINUX
+#if !WINDOWS
             sector.Value = disk.LogicalBlockSize;
 #endif
 
@@ -103,14 +103,14 @@ internal sealed class DiskInfoInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-#if BUILD_PLATFORM_WINDOWS
+#if WINDOWS
     private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name) =>
         [new("host", host), new("index", index), new("model", model), new("drive", name)];
 
     private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name, string id) =>
         [new("host", host), new("index", index), new("model", model), new("drive", name), new("smart_id", id)];
 #endif
-#if BUILD_PLATFORM_LINUX
+#if !WINDOWS
     private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name) =>
         [new("host", host), new("index", index), new("model", model), new("device", name)];
 

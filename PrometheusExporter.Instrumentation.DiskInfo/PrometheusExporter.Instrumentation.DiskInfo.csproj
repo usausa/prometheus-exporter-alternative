@@ -9,13 +9,12 @@
     <ProjectReference Include="..\PrometheusExporter.Abstractions\PrometheusExporter.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
+  <ItemGroup Condition="$(TargetFramework.Contains('windows'))">
     <PackageReference Include="HardwareInfo.Disk" Version="1.6.0" />
   </ItemGroup>
-  <ItemGroup Condition="'$(BuildPlatform)' == 'linux'">
+  <ItemGroup Condition="!$(TargetFramework.Contains('windows'))">
     <PackageReference Include="LinuxDotNet.Disk" Version="1.4.0" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
   </ItemGroup>

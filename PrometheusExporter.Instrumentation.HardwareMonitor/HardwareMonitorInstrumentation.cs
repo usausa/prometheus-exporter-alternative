@@ -334,9 +334,9 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         if (dataSensors.Count > 0)
         {
             var metric = manager.CreateGauge("hardware_memory_used");
-            var physical = dataSensors.First(static x => x.Name == "Memory Used");
+            var physical = dataSensors.First(static x => x.Name == "Memory Used" && x.Hardware.Name == "Total Memory");
             entries.Add(new Entry(physical, ToValue, metric.CreateGauge(MakeTags(physical, "physical"))));
-            var @virtual = dataSensors.First(static x => x.Name == "Virtual Memory Used");
+            var @virtual = dataSensors.First(static x => x.Name == "Memory Used" && x.Hardware.Name == "Virtual Memory");
             entries.Add(new Entry(@virtual, ToValue, metric.CreateGauge(MakeTags(@virtual, "virtual"))));
         }
 
@@ -344,9 +344,9 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         if (dataSensors.Count > 0)
         {
             var metric = manager.CreateGauge("hardware_memory_available");
-            var physical = dataSensors.First(static x => x.Name == "Memory Available");
+            var physical = dataSensors.First(static x => x.Name == "Memory Available" && x.Hardware.Name == "Total Memory");
             entries.Add(new Entry(physical, ToValue, metric.CreateGauge(MakeTags(physical, "physical"))));
-            var @virtual = dataSensors.First(static x => x.Name == "Virtual Memory Available");
+            var @virtual = dataSensors.First(static x => x.Name == "Memory Available" && x.Hardware.Name == "Virtual Memory");
             entries.Add(new Entry(@virtual, ToValue, metric.CreateGauge(MakeTags(@virtual, "virtual"))));
         }
 
@@ -354,9 +354,9 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         if (loadSensors.Count > 0)
         {
             var metric = manager.CreateGauge("hardware_memory_load");
-            var physical = loadSensors.First(static x => x.Name == "Memory");
+            var physical = loadSensors.First(static x => x.Name == "Memory" && x.Hardware.Name == "Total Memory");
             entries.Add(new Entry(physical, ToValue, metric.CreateGauge(MakeTags(physical, "physical"))));
-            var @virtual = loadSensors.First(static x => x.Name == "Virtual Memory");
+            var @virtual = loadSensors.First(static x => x.Name == "Memory" && x.Hardware.Name == "Virtual Memory");
             entries.Add(new Entry(@virtual, ToValue, metric.CreateGauge(MakeTags(@virtual, "virtual"))));
         }
     }

@@ -64,12 +64,6 @@
       <Build Solution="DebugMac|*" Project="false" />
     </Project>
   </Folder>
-  <Folder Name="/Instrumentation/MultiPlatform/">
-    <Project Path="PrometheusExporter.Instrumentation.SmartControl/PrometheusExporter.Instrumentation.SmartControl.csproj">
-      <BuildType Solution="DebugLinux|*" Project="Debug" />
-      <BuildType Solution="DebugMac|*" Project="Debug" />
-    </Project>
-  </Folder>
   <Folder Name="/Instrumentation/PlatformLinux/">
     <Project Path="PrometheusExporter.Instrumentation.Linux/PrometheusExporter.Instrumentation.Linux.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />

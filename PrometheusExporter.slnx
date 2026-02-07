@@ -64,6 +64,12 @@
       <Build Solution="DebugMac|*" Project="false" />
     </Project>
   </Folder>
+  <Folder Name="/Instrumentation/PlatformCross/">
+    <Project Path="PrometheusExporter.Instrumentation.DiskInfo/PrometheusExporter.Instrumentation.DiskInfo.csproj">
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugMac|*" Project="false" />
+    </Project>
+  </Folder>
   <Folder Name="/Instrumentation/PlatformLinux/">
     <Project Path="PrometheusExporter.Instrumentation.Linux/PrometheusExporter.Instrumentation.Linux.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
@@ -87,12 +93,6 @@
     </Project>
   </Folder>
   <Folder Name="/Instrumentation/PlatformWindows/">
-    <Project Path="PrometheusExporter.Instrumentation.DiskInfo/PrometheusExporter.Instrumentation.DiskInfo.csproj">
-      <BuildType Solution="DebugLinux|*" Project="Debug" />
-      <BuildType Solution="DebugMac|*" Project="Debug" />
-      <Build Solution="DebugLinux|*" Project="false" />
-      <Build Solution="DebugMac|*" Project="false" />
-    </Project>
     <Project Path="PrometheusExporter.Instrumentation.HardwareMonitor/PrometheusExporter.Instrumentation.HardwareMonitor.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />

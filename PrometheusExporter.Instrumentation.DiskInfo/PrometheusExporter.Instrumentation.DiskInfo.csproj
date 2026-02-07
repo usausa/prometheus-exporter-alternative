@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0-windows</TargetFrameworks>
+    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
@@ -9,8 +9,15 @@
     <ProjectReference Include="..\PrometheusExporter.Abstractions\PrometheusExporter.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <PackageReference Include="HardwareInfo.Disk" Version="1.6.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(BuildPlatform)' == 'linux'">
+    <PackageReference Include="HardwareInfo.Disk" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LinuxDotNet.Disk" Version="1.4.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
   </ItemGroup>
 

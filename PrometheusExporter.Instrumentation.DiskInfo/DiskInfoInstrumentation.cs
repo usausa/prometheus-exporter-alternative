@@ -1,6 +1,11 @@
 namespace PrometheusExporter.Instrumentation.DiskInfo;
 
+#if BUILD_PLATFORM_WINDOWS
 using HardwareInfo.Disk;
+#endif
+#if BUILD_PLATFORM_LINUX
+using LinuxDotNet.Disk;
+#endif
 
 using PrometheusExporter.Abstractions;
 
@@ -31,19 +36,30 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
         foreach (var disk in disks)
         {
-            var drive = MakeDriveValue(disk);
-            var sector = sectorMetric.CreateGauge(MakeTags(environment.Host, disk.Index, disk.Model, drive));
+#if BUILD_PLATFORM_WINDOWS
+            var name = String.Concat(disk.GetDrives().Select(static x => x.Name.TrimEnd(':')));
+#endif
+#if BUILD_PLATFORM_LINUX
+            var name = Path.GetFileName(disk.DeviceName);
+#endif
+
+            var sector = sectorMetric.CreateGauge(MakeTags(environment.Host, disk.Index, disk.Model, name));
+#if BUILD_PLATFORM_WINDOWS
             sector.Value = disk.BytesPerSector;
+#endif
+#if BUILD_PLATFORM_LINUX
+            sector.Value = disk.LogicalBlockSize;
+#endif
 
             if (disk.SmartType == SmartType.Nvme)
             {
                 var smart = (ISmartNvme)disk.Smart;
-                nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, environment.Host, disk, drive), smart));
+                nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, environment.Host, disk, name), smart));
             }
             else if (disk.SmartType == SmartType.Generic)
             {
                 var smart = (ISmartGeneric)disk.Smart;
-                genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, environment.Host, disk, drive), smart));
+                genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, environment.Host, disk, name), smart));
             }
         }
 
@@ -87,18 +103,24 @@ internal sealed class DiskInfoInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-    private static string MakeDriveValue(IDiskInfo disk) =>
-        String.Concat(disk.GetDrives().Select(static x => x.Name.TrimEnd(':')));
+#if BUILD_PLATFORM_WINDOWS
+    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name) =>
+        [new("host", host), new("index", index), new("model", model), new("drive", name)];
 
-    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string drive) =>
-        [new("host", host), new("index", index), new("model", model), new("drive", drive)];
+    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name, string id) =>
+        [new("host", host), new("index", index), new("model", model), new("drive", name), new("smart_id", id)];
+#endif
+#if BUILD_PLATFORM_LINUX
+    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name) =>
+        [new("host", host), new("index", index), new("model", model), new("device", name)];
 
-    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string drive, string id) =>
-        [new("host", host), new("index", index), new("model", model), new("drive", drive), new("smart_id", id)];
+    private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string name, string id) =>
+        [new("host", host), new("index", index), new("model", model), new("device", name), new("smart_id", id)];
+#endif
 
-    private static IGauge[] MakeNvmeGauges(IMetric metric, ISmartNvme smart, string host, IDiskInfo disk, string drive)
+    private static IGauge[] MakeNvmeGauges(IMetric metric, ISmartNvme smart, string host, IDiskInfo disk, string name)
     {
-        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, drive, id));
+        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, name, id));
 
         var gauges = new IGauge[17 + smart.TemperatureSensors.Length];
         gauges[0] = Factory("available_spare");
@@ -126,9 +148,9 @@ internal sealed class DiskInfoInstrumentation : IDisposable
         return gauges;
     }
 
-    private static IGauge?[] MakeGenericGauges(IMetric metric, ISmartGeneric smart, string host, IDiskInfo disk, string drive)
+    private static IGauge?[] MakeGenericGauges(IMetric metric, ISmartGeneric smart, string host, IDiskInfo disk, string name)
     {
-        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, drive, id));
+        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, name, id));
 
         var gauges = new IGauge?[256];
         foreach (var smartId in smart.GetSupportedIds())

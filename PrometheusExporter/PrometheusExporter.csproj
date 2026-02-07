@@ -7,23 +7,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
     <UserSecretsId>a43540ca-94ec-411c-8add-55fa9b5eb5b4</UserSecretsId>
-    <Configurations>Debug;Release;DebugLinux;DebugMac</Configurations>
-  </PropertyGroup>
-
-  <!-- Debug compatible setting -->
-  <PropertyGroup Condition="'$(Configuration)' == 'DebugLinux' or '$(Configuration)' == 'DebugMac'">
-    <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
-  </PropertyGroup>
-
-  <!-- Build platform setting -->
-  <PropertyGroup>
-    <BuildPlatform></BuildPlatform>
-    <BuildPlatform Condition="$(TargetFramework.Contains('windows'))">windows</BuildPlatform>
-    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugLinux')">linux</BuildPlatform>
-    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugMac')">mac</BuildPlatform>
   </PropertyGroup>
 
   <ItemGroup>
@@ -62,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(BuildPlatform)' == 'linux'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo\PrometheusExporter.Instrumentation.DiskInfo.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Linux\PrometheusExporter.Instrumentation.Linux.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Raspberry\PrometheusExporter.Instrumentation.Raspberry.csproj" />
   </ItemGroup>

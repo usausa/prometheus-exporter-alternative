@@ -29,6 +29,37 @@
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Configurations>Debug;Release;DebugLinux;DebugMac</Configurations>
+  </PropertyGroup>
+
+  <!-- Debug compatible setting -->
+  <PropertyGroup Condition="'$(Configuration)' == 'DebugLinux' or '$(Configuration)' == 'DebugMac'">
+    <Optimize>false</Optimize>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <!-- Build platform setting -->
+  <PropertyGroup>
+    <BuildPlatform></BuildPlatform>
+    <BuildPlatform Condition="$(TargetFramework.Contains('windows'))">windows</BuildPlatform>
+    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugLinux')">linux</BuildPlatform>
+    <BuildPlatform Condition="!$(TargetFramework.Contains('windows')) and ('$(Configuration)' == 'DebugMac')">mac</BuildPlatform>
+  </PropertyGroup>
+
+  <!-- Define constants setting -->
+  <PropertyGroup Condition="'$(BuildPlatform)' == 'windows'">
+    <DefineConstants>$(DefineConstants);BUILD_PLATFORM_WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(BuildPlatform)' == 'linux'">
+    <DefineConstants>$(DefineConstants);BUILD_PLATFORM_LINUX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(BuildPlatform)' == 'mac'">
+    <DefineConstants>$(DefineConstants);BUILD_PLATFORM_MAC</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>

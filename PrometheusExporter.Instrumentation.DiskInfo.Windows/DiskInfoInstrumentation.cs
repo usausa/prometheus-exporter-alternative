@@ -1,12 +1,10 @@
 namespace PrometheusExporter.Instrumentation.DiskInfo;
 
-using System.Runtime.Versioning;
-
 using HardwareInfo.Disk;
 
 using PrometheusExporter.Abstractions;
 
-[SupportedOSPlatform("windows")]
+#pragma warning disable CA1416
 internal sealed class DiskInfoInstrumentation : IDisposable
 {
     private readonly TimeSpan updateDuration;
@@ -229,3 +227,4 @@ internal sealed class DiskInfoInstrumentation : IDisposable
         }
     }
 }
+#pragma warning restore CA1416

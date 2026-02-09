@@ -23,6 +23,11 @@
       <BuildType Solution="DebugMac|*" Project="Debug" />
     </Project>
   </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="PrometheusExporter.Infrastructure.Linux.BlueZ/PrometheusExporter.Infrastructure.Linux.BlueZ.csproj" Id="1aef8fe0-586a-41ef-8f7c-3c05c8db4946">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+    </Project>
+  </Folder>
   <Folder Name="/Instrumentation/" />
   <Folder Name="/Instrumentation/Environment/">
     <Project Path="PrometheusExporter.Instrumentation.Ping/PrometheusExporter.Instrumentation.Ping.csproj">
@@ -66,6 +71,7 @@
   </Folder>
   <Folder Name="/Instrumentation/PlatformLinux/">
     <Project Path="PrometheusExporter.Instrumentation.DiskInfo.Linux/PrometheusExporter.Instrumentation.DiskInfo.Linux.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
       <Build Solution="DebugMac|*" Project="false" />
     </Project>

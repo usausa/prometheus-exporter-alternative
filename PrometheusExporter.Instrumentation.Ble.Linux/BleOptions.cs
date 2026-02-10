@@ -12,7 +12,7 @@ internal sealed class BleOptions
 {
     public int SignalThreshold { get; set; } = -127;
 
-    public int TimeThreshold { get; set; } = 60_000;
+    public int TimeThreshold { get; set; } = 180_000;
 
     public bool KnownOnly { get; set; }
 

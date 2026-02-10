@@ -2,9 +2,9 @@ namespace PrometheusExporter.Instrumentation.Ble;
 
 using PrometheusExporter.Abstractions;
 
-//using Windows.Devices.Bluetooth.Advertisement;
+using PrometheusExporter.Infrastructure.Linux.BlueZ;
 
-internal sealed class BleInstrumentation : IDisposable
+internal sealed class BleInstrumentation : IAsyncDisposable
 {
     private readonly string host;
 
@@ -14,7 +14,7 @@ internal sealed class BleInstrumentation : IDisposable
 
     private readonly bool knownOnly;
 
-    private readonly Dictionary<ulong, DeviceEntry> knownDevices;
+    private readonly Dictionary<string, DeviceEntry> knownDevices;
 
     private readonly IMetric metric;
 
@@ -22,7 +22,7 @@ internal sealed class BleInstrumentation : IDisposable
 
     private readonly List<Device> devices = [];
 
-    //private readonly BluetoothLEAdvertisementWatcher watcher;
+    private readonly BleScanSession session;
 
     public BleInstrumentation(
         BleOptions options,
@@ -33,64 +33,63 @@ internal sealed class BleInstrumentation : IDisposable
         signalThreshold = options.SignalThreshold;
         timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
         knownOnly = options.KnownOnly;
-        knownDevices = options.KnownDevice.ToDictionary(static x => NormalizeAddress(x.Address));
+        knownDevices = options.KnownDevice.ToDictionary(static x => x.Address);
 
         metric = manager.CreateGauge("ble_rssi");
 
         manager.AddBeforeCollectCallback(Update);
 
-        //watcher = new BluetoothLEAdvertisementWatcher
-        //{
-        //    ScanningMode = BluetoothLEScanningMode.Active
-        //};
-        //watcher.Received += OnWatcherReceived;
-        //watcher.Start();
+#pragma warning disable CA2012
+        session = BleScanSession.CreateAsync().GetAwaiter().GetResult();
+#pragma warning restore CA2012
+        session.DeviceEvent += OnDeviceEvent;
+        _ = session.StartAsync();
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
-        //watcher.Stop();
+        return session.DisposeAsync();
     }
 
     //--------------------------------------------------------------------------------
     // Event
     //--------------------------------------------------------------------------------
 
-    //private void OnWatcherReceived(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
-    //{
-    //    if (args.RawSignalStrengthInDBm <= signalThreshold)
-    //    {
-    //        return;
-    //    }
+    private void OnDeviceEvent(BleScanEvent args)
+    {
+        if ((args.Address is null) || (args.Rssi is null) || (args.Rssi.Value < signalThreshold))
+        {
+            return;
+        }
 
-    //    lock (sync)
-    //    {
-    //        var device = default(Device);
-    //        foreach (var d in devices)
-    //        {
-    //            if (d.Address == args.BluetoothAddress)
-    //            {
-    //                device = d;
-    //                break;
-    //            }
-    //        }
+        lock (sync)
+        {
+            var device = default(Device);
+            foreach (var d in devices)
+            {
+                if (d.Address == args.Address)
+                {
+                    device = d;
+                    break;
+                }
+            }
 
-    //        if (device is null)
-    //        {
-    //            var entry = knownDevices.GetValueOrDefault(args.BluetoothAddress);
-    //            if (knownOnly && (entry is null))
-    //            {
-    //                return;
-    //            }
+            if (device is null)
+            {
+                var entry = knownDevices.GetValueOrDefault(args.Address);
+                if (knownOnly && (entry is null))
+                {
+                    return;
+                }
 
-    //            device = new Device(args.BluetoothAddress, metric.CreateGauge(MakeTags(args.BluetoothAddress, entry)));
-    //            devices.Add(device);
-    //        }
+                device = new Device(args.Address, metric.CreateGauge(MakeTags(args.Address, args.Alias, entry)));
+                devices.Add(device);
+            }
 
-    //        device.Rssi.Value = args.RawSignalStrengthInDBm;
-    //        device.LastUpdate = DateTime.Now;
-    //    }
-    //}
+            device.Rssi.Value = args.Rssi.Value;
+            device.LastUpdate = DateTime.Now;
+        }
+    }
 
     private void Update()
     {
@@ -113,13 +112,10 @@ internal sealed class BleInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-    private static ulong NormalizeAddress(string address) =>
-        Convert.ToUInt64(address.Replace(":", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal), 16);
-
-    private KeyValuePair<string, object?>[] MakeTags(ulong bluetoothAddress, DeviceEntry? device)
+    private KeyValuePair<string, object?>[] MakeTags(string bluetoothAddress, string? alias, DeviceEntry? device)
     {
-        var address = $"{bluetoothAddress:X12}";
-        var name = device?.Name ?? $"({address})";
+        var address = bluetoothAddress.Replace(":", string.Empty, StringComparison.Ordinal);
+        var name = device?.Name ?? alias ?? $"({address})";
         return [new("host", host), new("address", address), new("name", name)];
     }
 
@@ -129,13 +125,13 @@ internal sealed class BleInstrumentation : IDisposable
 
     private sealed class Device
     {
-        public ulong Address { get; }
+        public string Address { get; }
 
         public DateTime LastUpdate { get; set; }
 
         public IGauge Rssi { get; }
 
-        public Device(ulong address, IGauge rssi)
+        public Device(string address, IGauge rssi)
         {
             Address = address;
             Rssi = rssi;

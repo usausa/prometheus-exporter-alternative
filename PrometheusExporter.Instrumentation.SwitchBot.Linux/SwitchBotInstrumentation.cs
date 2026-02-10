@@ -99,14 +99,14 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
                     device.Rssi.Value = args.Rssi.Value;
                 }
 
-                if ((args.ManufacturerData is null) || args.ManufacturerData.TryGetValue(0x0969, out var buffer))
+                if ((args.ManufacturerData is null) || !args.ManufacturerData.TryGetValue(0x0969, out var buffer))
                 {
                     return;
                 }
 
                 if (device is MeterDevice meter)
                 {
-                    if (buffer?.Length >= 11)
+                    if (buffer.Length >= 11)
                     {
                         meter.Temperature.Value = (((double)(buffer[8] & 0x0f) / 10) + (buffer[9] & 0x7f)) * ((buffer[9] & 0x80) > 0 ? 1 : -1);
                         meter.Humidity.Value = buffer[10] & 0x7f;
@@ -115,7 +115,7 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
                 }
                 else if (device is PlugMiniDevice plug)
                 {
-                    if (buffer?.Length >= 12)
+                    if (buffer.Length >= 12)
                     {
                         plug.Power.Value = (double)(((buffer[10] & 0b00111111) << 8) + (buffer[11] & 0b01111111)) / 10;
                     }

@@ -87,12 +87,12 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
                     device.Rssi.Value = args.Rssi.Value;
                 }
 
-                if ((args.ManufacturerData is null) || args.ManufacturerData.TryGetValue(0x0B60, out var buffer))
+                if ((args.ManufacturerData is null) || !args.ManufacturerData.TryGetValue(0x0B60, out var buffer))
                 {
                     return;
                 }
 
-                if (buffer?.Length >= 8)
+                if (buffer.Length >= 8)
                 {
                     device.Voltage.Value = (double)((buffer[2] << 8) + buffer[1]) / 10;
                     device.Current.Value = (double)((buffer[4] << 8) + buffer[3]) / 1000;

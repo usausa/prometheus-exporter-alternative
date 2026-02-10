@@ -33,7 +33,7 @@ internal sealed class BleInstrumentation : IDisposable
         signalThreshold = options.SignalThreshold;
         timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
         knownOnly = options.KnownOnly;
-        knownDevices = options.KnownDevice.ToDictionary(static x => NormalizeAddress(x.Address));
+        knownDevices = options.KnownDevice.ToDictionary(static x => Convert.ToUInt64(x.Address.Replace(":", string.Empty, StringComparison.Ordinal), 16));
 
         metric = manager.CreateGauge("ble_rssi");
 
@@ -113,13 +113,10 @@ internal sealed class BleInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-    private static ulong NormalizeAddress(string address) =>
-        Convert.ToUInt64(address.Replace(":", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal), 16);
-
     private KeyValuePair<string, object?>[] MakeTags(ulong bluetoothAddress, DeviceEntry? device)
     {
         var address = $"{bluetoothAddress:X12}";
-        var name = device?.Name ?? $"({address})";
+        var name = device?.Name ?? address;
         return [new("host", host), new("address", address), new("name", name)];
     }
 

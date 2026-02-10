@@ -1,27 +1,20 @@
 namespace PrometheusExporter.Instrumentation.BTWattch2;
 
-//using System.Runtime.InteropServices.WindowsRuntime;
-
 using PrometheusExporter.Abstractions;
+using PrometheusExporter.Infrastructure.Linux.BlueZ;
 
-//using Windows.Devices.Bluetooth.Advertisement;
-
-internal sealed class BTWattch2Instrumentation : IDisposable
+internal sealed class BTWattch2Instrumentation : IAsyncDisposable
 {
-    private readonly TimeSpan timeThreshold;
-
     private readonly Lock sync = new();
 
     private readonly Device[] devices;
 
-    //private readonly BluetoothLEAdvertisementWatcher watcher;
+    private readonly BleScanSession session;
 
     public BTWattch2Instrumentation(
         BTWattch2Options options,
         IMetricManager manager)
     {
-        timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
-
         var rssiMetric = manager.CreateGauge("sensor_rssi");
         var powerMetric = manager.CreateGauge("sensor_power");
         var currentMetric = manager.CreateGauge("sensor_current");
@@ -32,7 +25,7 @@ internal sealed class BTWattch2Instrumentation : IDisposable
             {
                 var tags = MakeTags(x);
                 return new Device(
-                    NormalizeAddress(x.Address),
+                    x.Address,
                     rssiMetric.CreateGauge(tags),
                     powerMetric.CreateGauge(tags),
                     currentMetric.CreateGauge(tags),
@@ -40,74 +33,71 @@ internal sealed class BTWattch2Instrumentation : IDisposable
             })
             .ToArray();
 
-        manager.AddBeforeCollectCallback(Update);
-
-        //watcher = new BluetoothLEAdvertisementWatcher
-        //{
-        //    ScanningMode = BluetoothLEScanningMode.Active
-        //};
-        //watcher.Received += OnWatcherReceived;
-        //watcher.Start();
+#pragma warning disable CA2012
+        session = BleScanSession.CreateAsync().GetAwaiter().GetResult();
+#pragma warning restore CA2012
+        session.DeviceEvent += OnDeviceEvent;
+        _ = session.StartAsync();
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
-        //watcher.Stop();
+        return session.DisposeAsync();
     }
 
     //--------------------------------------------------------------------------------
     // Event
     //--------------------------------------------------------------------------------
 
-    //private void OnWatcherReceived(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
-    //{
-    //    foreach (var md in args.Advertisement.ManufacturerData.Where(static x => x.CompanyId == 0x0B60))
-    //    {
-    //        lock (sync)
-    //        {
-    //            var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
-    //            if (device is null)
-    //            {
-    //                return;
-    //            }
-
-    //            device.LastUpdate = DateTime.Now;
-    //            device.Rssi.Value = args.RawSignalStrengthInDBm;
-
-    //            if (md.Data.Length >= 8)
-    //            {
-    //                var buffer = md.Data.ToArray();
-    //                device.Voltage.Value = (double)((buffer[2] << 8) + buffer[1]) / 10;
-    //                device.Current.Value = (double)((buffer[4] << 8) + buffer[3]) / 1000;
-    //                device.Power.Value = (double)((buffer[7] << 16) + (buffer[6] << 8) + buffer[5]) / 1000;
-    //            }
-    //        }
-    //    }
-    //}
-
-    private void Update()
+    private void OnDeviceEvent(BleScanEvent args)
     {
-        lock (sync)
+        if (args.Type == BleScanEventType.Lost)
         {
-            var now = DateTime.Now;
-            foreach (var device in devices)
+            lock (sync)
             {
-                if ((now - device.LastUpdate) > timeThreshold)
+                foreach (var device in devices)
                 {
-                    device.Clear();
+                    if (device.Path == args.DevicePath)
+                    {
+                        device.Clear();
+                        break;
+                    }
                 }
             }
+        }
+        else
+        {
+            lock (sync)
+            {
+            }
+            //    foreach (var md in args.Advertisement.ManufacturerData.Where(static x => x.CompanyId == 0x0B60))
+            //    {
+            //        lock (sync)
+            //        {
+            //            var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
+            //            if (device is null)
+            //            {
+            //                return;
+            //            }
+
+            //            device.LastUpdate = DateTime.Now;
+            //            device.Rssi.Value = args.RawSignalStrengthInDBm;
+
+            //            if (md.Data.Length >= 8)
+            //            {
+            //                var buffer = md.Data.ToArray();
+            //                device.Voltage.Value = (double)((buffer[2] << 8) + buffer[1]) / 10;
+            //                device.Current.Value = (double)((buffer[4] << 8) + buffer[3]) / 1000;
+            //                device.Power.Value = (double)((buffer[7] << 16) + (buffer[6] << 8) + buffer[5]) / 1000;
+            //            }
+            //        }
+            //    }
         }
     }
 
     //--------------------------------------------------------------------------------
     // Helper
     //--------------------------------------------------------------------------------
-
-    private static ulong NormalizeAddress(string address) =>
-        Convert.ToUInt64(
-            address.Replace(":", string.Empty, StringComparison.Ordinal)
-                .Replace("-", string.Empty, StringComparison.Ordinal), 16);
 
     private static KeyValuePair<string, object?>[] MakeTags(DeviceEntry entry) =>
         [new("model", "btwatch2"), new("address", entry.Address), new("name", entry.Name)];
@@ -118,7 +108,7 @@ internal sealed class BTWattch2Instrumentation : IDisposable
 
     private sealed class Device
     {
-        public ulong Address { get; }
+        public string Path { get; }
 
         public IGauge Rssi { get; }
 
@@ -128,11 +118,9 @@ internal sealed class BTWattch2Instrumentation : IDisposable
 
         public IGauge Voltage { get; }
 
-        public DateTime LastUpdate { get; set; }
-
-        public Device(ulong address, IGauge rssi, IGauge power, IGauge current, IGauge voltage)
+        public Device(string path, IGauge rssi, IGauge power, IGauge current, IGauge voltage)
         {
-            Address = address;
+            Path = path;
             Rssi = rssi;
             Power = power;
             Current = current;

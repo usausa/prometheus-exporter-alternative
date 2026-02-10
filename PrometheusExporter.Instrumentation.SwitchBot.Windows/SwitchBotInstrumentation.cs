@@ -31,10 +31,10 @@ internal sealed class SwitchBotInstrumentation : IDisposable
         var list = new List<Device>();
         foreach (var entry in options.Device)
         {
-            var address = NormalizeAddress(entry.Address);
+            var address = Convert.ToUInt64(entry.Address.Replace(":", string.Empty, StringComparison.Ordinal), 16);
             if (entry.Type == DeviceType.Meter)
             {
-                var tags = MakeTags(address, entry.Name);
+                var tags = MakeTags(entry.Address, entry.Name);
                 list.Add(new MeterDevice(
                     address,
                     rssiMetric.CreateGauge(tags),
@@ -44,7 +44,7 @@ internal sealed class SwitchBotInstrumentation : IDisposable
             }
             else if (entry.Type == DeviceType.PlugMini)
             {
-                var tags = MakeTags(address, entry.Name);
+                var tags = MakeTags(entry.Address, entry.Name);
                 list.Add(new PlugMiniDevice(
                     address,
                     rssiMetric.CreateGauge(tags),
@@ -128,11 +128,8 @@ internal sealed class SwitchBotInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-    private static ulong NormalizeAddress(string address) =>
-        Convert.ToUInt64(address.Replace(":", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal), 16);
-
-    private static KeyValuePair<string, object?>[] MakeTags(ulong address, string name) =>
-        [new("model", "switchbot"), new("address", $"{address:X12}"), new("name", name)];
+    private static KeyValuePair<string, object?>[] MakeTags(string address, string name) =>
+        [new("model", "switchbot"), new("address", address), new("name", name)];
 
     //--------------------------------------------------------------------------------
     // Device

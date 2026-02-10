@@ -52,9 +52,9 @@ internal sealed class BleInstrumentation : IAsyncDisposable
 
     private void OnDeviceEvent(BleScanEvent args)
     {
-        lock (sync)
+        if (args.Type == BleScanEventType.Lost)
         {
-            if (args.Type == BleScanEventType.Lost)
+            lock (sync)
             {
                 for (var i = devices.Count - 1; i >= 0; i--)
                 {
@@ -67,13 +67,16 @@ internal sealed class BleInstrumentation : IAsyncDisposable
                     }
                 }
             }
-            else
+        }
+        else
+        {
+            if ((args.Rssi is null) || (args.Rssi.Value < signalThreshold))
             {
-                if ((args.Rssi is null) || (args.Rssi.Value < signalThreshold))
-                {
-                    return;
-                }
+                return;
+            }
 
+            lock (sync)
+            {
                 var device = default(Device);
                 foreach (var d in devices)
                 {
@@ -86,7 +89,7 @@ internal sealed class BleInstrumentation : IAsyncDisposable
 
                 if (device is null)
                 {
-                    var entry = knownDevices.GetValueOrDefault(args.DevicePath);
+                    var entry = (args.Address is not null) ? knownDevices.GetValueOrDefault(args.Address) : null;
                     if (knownOnly && (entry is null))
                     {
                         return;
@@ -105,10 +108,9 @@ internal sealed class BleInstrumentation : IAsyncDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-    private KeyValuePair<string, object?>[] MakeTags(string bluetoothAddress, string? alias, DeviceEntry? device)
+    private KeyValuePair<string, object?>[] MakeTags(string address, string? alias, DeviceEntry? device)
     {
-        var address = bluetoothAddress.Replace(":", string.Empty, StringComparison.Ordinal);
-        var name = device?.Name ?? alias ?? $"({address})";
+        var name = device?.Name ?? alias ?? $"{address}";
         return [new("host", host), new("address", address), new("name", name)];
     }
 

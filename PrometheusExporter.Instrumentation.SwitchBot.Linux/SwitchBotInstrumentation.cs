@@ -1,27 +1,20 @@
 namespace PrometheusExporter.Instrumentation.SwitchBot;
 
-//using System.Runtime.InteropServices.WindowsRuntime;
-
 using PrometheusExporter.Abstractions;
+using PrometheusExporter.Infrastructure.Linux.BlueZ;
 
-//using Windows.Devices.Bluetooth.Advertisement;
-
-internal sealed class SwitchBotInstrumentation : IDisposable
+internal sealed class SwitchBotInstrumentation : IAsyncDisposable
 {
-    private readonly TimeSpan timeThreshold;
-
     private readonly Lock sync = new();
 
     private readonly Device[] devices;
 
-    //private readonly BluetoothLEAdvertisementWatcher watcher;
+    private readonly BleScanSession session;
 
     public SwitchBotInstrumentation(
         SwitchBotOptions options,
         IMetricManager manager)
     {
-        timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
-
         var rssiMetric = manager.CreateGauge("sensor_rssi");
         var temperatureMetric = manager.CreateGauge("sensor_temperature");
         var humidityMetric = manager.CreateGauge("sensor_humidity");
@@ -31,12 +24,11 @@ internal sealed class SwitchBotInstrumentation : IDisposable
         var list = new List<Device>();
         foreach (var entry in options.Device)
         {
-            var address = NormalizeAddress(entry.Address);
             if (entry.Type == DeviceType.Meter)
             {
-                var tags = MakeTags(address, entry.Name);
+                var tags = MakeTags(entry.Address, entry.Name);
                 list.Add(new MeterDevice(
-                    address,
+                    entry.Address,
                     rssiMetric.CreateGauge(tags),
                     temperatureMetric.CreateGauge(tags),
                     humidityMetric.CreateGauge(tags),
@@ -44,83 +36,83 @@ internal sealed class SwitchBotInstrumentation : IDisposable
             }
             else if (entry.Type == DeviceType.PlugMini)
             {
-                var tags = MakeTags(address, entry.Name);
+                var tags = MakeTags(entry.Address, entry.Name);
                 list.Add(new PlugMiniDevice(
-                    address,
+                    entry.Address,
                     rssiMetric.CreateGauge(tags),
                     powerMetric.CreateGauge(tags)));
             }
         }
         devices = list.ToArray();
 
-        manager.AddBeforeCollectCallback(Update);
-
-        //watcher = new BluetoothLEAdvertisementWatcher
-        //{
-        //    ScanningMode = BluetoothLEScanningMode.Active
-        //};
-        //watcher.Received += OnWatcherReceived;
-        //watcher.Start();
+#pragma warning disable CA2012
+        session = BleScanSession.CreateAsync().GetAwaiter().GetResult();
+#pragma warning restore CA2012
+        session.DeviceEvent += OnDeviceEvent;
+        _ = session.StartAsync();
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
-        //watcher.Stop();
+        return session.DisposeAsync();
     }
 
     //--------------------------------------------------------------------------------
     // Event
     //--------------------------------------------------------------------------------
 
-    //private void OnWatcherReceived(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
-    //{
-    //    foreach (var md in args.Advertisement.ManufacturerData.Where(static x => x.CompanyId == 0x0969))
-    //    {
-    //        lock (sync)
-    //        {
-    //            var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
-    //            if (device is null)
-    //            {
-    //                return;
-    //            }
-
-    //            device.LastUpdate = DateTime.Now;
-    //            device.Rssi.Value = args.RawSignalStrengthInDBm;
-
-    //            if (device is MeterDevice meter)
-    //            {
-    //                if (md.Data.Length >= 11)
-    //                {
-    //                    var buffer = md.Data.ToArray();
-    //                    meter.Temperature.Value = (((double)(buffer[8] & 0x0f) / 10) + (buffer[9] & 0x7f)) * ((buffer[9] & 0x80) > 0 ? 1 : -1);
-    //                    meter.Humidity.Value = buffer[10] & 0x7f;
-    //                    meter.Co2.Value = buffer.Length >= 16 ? (buffer[13] << 8) + buffer[14] : double.NaN;
-    //                }
-    //            }
-    //            else if (device is PlugMiniDevice plug)
-    //            {
-    //                if (md.Data.Length >= 12)
-    //                {
-    //                    var buffer = md.Data.ToArray();
-    //                    plug.Power.Value = (double)(((buffer[10] & 0b00111111) << 8) + (buffer[11] & 0b01111111)) / 10;
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
-    private void Update()
+    private void OnDeviceEvent(BleScanEvent args)
     {
-        lock (sync)
+        if (args.Type == BleScanEventType.Lost)
         {
-            var now = DateTime.Now;
-            foreach (var device in devices)
+            lock (sync)
             {
-                if ((now - device.LastUpdate) > timeThreshold)
+                foreach (var device in devices)
                 {
-                    device.Clear();
+                    if (device.Path == args.DevicePath)
+                    {
+                        device.Clear();
+                        break;
+                    }
                 }
             }
+        }
+        else
+        {
+            lock (sync)
+            {
+            }
+            //    foreach (var md in args.Advertisement.ManufacturerData.Where(static x => x.CompanyId == 0x0969))
+            //    {
+            //            var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
+            //            if (device is null)
+            //            {
+            //                return;
+            //            }
+
+            //            device.LastUpdate = DateTime.Now;
+            //            device.Rssi.Value = args.RawSignalStrengthInDBm;
+
+            //            if (device is MeterDevice meter)
+            //            {
+            //                if (md.Data.Length >= 11)
+            //                {
+            //                    var buffer = md.Data.ToArray();
+            //                    meter.Temperature.Value = (((double)(buffer[8] & 0x0f) / 10) + (buffer[9] & 0x7f)) * ((buffer[9] & 0x80) > 0 ? 1 : -1);
+            //                    meter.Humidity.Value = buffer[10] & 0x7f;
+            //                    meter.Co2.Value = buffer.Length >= 16 ? (buffer[13] << 8) + buffer[14] : double.NaN;
+            //                }
+            //            }
+            //            else if (device is PlugMiniDevice plug)
+            //            {
+            //                if (md.Data.Length >= 12)
+            //                {
+            //                    var buffer = md.Data.ToArray();
+            //                    plug.Power.Value = (double)(((buffer[10] & 0b00111111) << 8) + (buffer[11] & 0b01111111)) / 10;
+            //                }
+            //            }
+            //        }
+            //    }
         }
     }
 
@@ -128,11 +120,8 @@ internal sealed class SwitchBotInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
-    private static ulong NormalizeAddress(string address) =>
-        Convert.ToUInt64(address.Replace(":", string.Empty, StringComparison.Ordinal).Replace("-", string.Empty, StringComparison.Ordinal), 16);
-
-    private static KeyValuePair<string, object?>[] MakeTags(ulong address, string name) =>
-        [new("model", "switchbot"), new("address", $"{address:X12}"), new("name", name)];
+    private static KeyValuePair<string, object?>[] MakeTags(string address, string name) =>
+        [new("model", "switchbot"), new("address", address), new("name", name)];
 
     //--------------------------------------------------------------------------------
     // Device
@@ -140,15 +129,13 @@ internal sealed class SwitchBotInstrumentation : IDisposable
 
     private abstract class Device
     {
-        public ulong Address { get; }
+        public string Path { get; }
 
         public IGauge Rssi { get; }
 
-        public DateTime LastUpdate { get; set; }
-
-        protected Device(ulong address, IGauge rssi)
+        protected Device(string path, IGauge rssi)
         {
-            Address = address;
+            Path = path;
             Rssi = rssi;
         }
 
@@ -163,8 +150,8 @@ internal sealed class SwitchBotInstrumentation : IDisposable
 
         public IGauge Co2 { get; }
 
-        public MeterDevice(ulong address, IGauge rssi, IGauge temperature, IGauge humidity, IGauge co2)
-            : base(address, rssi)
+        public MeterDevice(string path, IGauge rssi, IGauge temperature, IGauge humidity, IGauge co2)
+            : base(path, rssi)
         {
             Temperature = temperature;
             Humidity = humidity;
@@ -184,8 +171,8 @@ internal sealed class SwitchBotInstrumentation : IDisposable
     {
         public IGauge Power { get; }
 
-        public PlugMiniDevice(ulong address, IGauge rssi, IGauge power)
-            : base(address, rssi)
+        public PlugMiniDevice(string path, IGauge rssi, IGauge power)
+            : base(path, rssi)
         {
             Power = power;
         }

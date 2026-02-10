@@ -10,8 +10,6 @@ internal sealed class DeviceEntry
 #pragma warning disable CA1819
 internal sealed class BTWattch2Options
 {
-    public int TimeThreshold { get; set; } = 180_000;
-
     public DeviceEntry[] Device { get; set; } = default!;
 }
 #pragma warning restore CA1819

@@ -24,8 +24,9 @@
     </Project>
   </Folder>
   <Folder Name="/Infrastructure/">
-    <Project Path="PrometheusExporter.Infrastructure.Linux.BlueZ/PrometheusExporter.Infrastructure.Linux.BlueZ.csproj" Id="1aef8fe0-586a-41ef-8f7c-3c05c8db4946">
+    <Project Path="PrometheusExporter.Infrastructure.Linux.BlueZ/PrometheusExporter.Infrastructure.Linux.BlueZ.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <Build Solution="DebugMac|*" Project="false" />
     </Project>
   </Folder>
   <Folder Name="/Instrumentation/" />
@@ -43,7 +44,27 @@
       <BuildType Solution="DebugMac|*" Project="Debug" />
     </Project>
   </Folder>
-  <Folder Name="/Instrumentation/EnvironmenWindows/">
+  <Folder Name="/Instrumentation/EnvironmentLinux/">
+    <Project Path="PrometheusExporter.Instrumentation.Ble.Linux/PrometheusExporter.Instrumentation.Ble.Linux.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugMac|*" Project="false" />
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="PrometheusExporter.Instrumentation.BTWattch2.Linux/PrometheusExporter.Instrumentation.BTWattch2.Linux.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugMac|*" Project="false" />
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="PrometheusExporter.Instrumentation.SwitchBot.Linux/PrometheusExporter.Instrumentation.SwitchBot.Linux.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugMac|*" Project="false" />
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Instrumentation/EnvironmentWindows/">
     <Project Path="PrometheusExporter.Instrumentation.Ble.Windows/PrometheusExporter.Instrumentation.Ble.Windows.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
@@ -74,6 +95,7 @@
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
       <Build Solution="DebugMac|*" Project="false" />
+      <Build Solution="Debug|*" Project="false" />
     </Project>
     <Project Path="PrometheusExporter.Instrumentation.Linux/PrometheusExporter.Instrumentation.Linux.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
@@ -123,6 +145,6 @@
     </Project>
   </Folder>
   <Folder Name="/Service/">
-    <Project Path="PrometheusExporter/PrometheusExporter.csproj" />
+    <Project Path="PrometheusExporter/PrometheusExporter.csproj" DefaultStartup="true" />
   </Folder>
 </Solution>

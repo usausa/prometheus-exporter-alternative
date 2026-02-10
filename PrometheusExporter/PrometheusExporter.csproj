@@ -45,6 +45,12 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(BuildPlatform)' == 'linux'">
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ble.Linux\PrometheusExporter.Instrumentation.Ble.Linux.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.BTWattch2.Linux\PrometheusExporter.Instrumentation.BTWattch2.Linux.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.SwitchBot.Linux\PrometheusExporter.Instrumentation.SwitchBot.Linux.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(BuildPlatform)' == 'linux'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo.Linux\PrometheusExporter.Instrumentation.DiskInfo.Linux.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Linux\PrometheusExporter.Instrumentation.Linux.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Raspberry\PrometheusExporter.Instrumentation.Raspberry.csproj" />

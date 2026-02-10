@@ -60,6 +60,7 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
                     if (device.Path == args.DevicePath)
                     {
                         device.Clear();
+                        device.Path = null;
                         break;
                     }
                 }
@@ -69,29 +70,35 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
         {
             lock (sync)
             {
+                var device = devices.FirstOrDefault(x => x.Path == args.DevicePath);
+                if ((device is null) && (args.Address is not null))
+                {
+                    device = devices.FirstOrDefault(x => x.Address == args.Address);
+                    device?.Path = args.DevicePath;
+                }
+
+                if (device is null)
+                {
+                    return;
+                }
+
+                if (args.Rssi.HasValue)
+                {
+                    device.Rssi.Value = args.Rssi.Value;
+                }
+
+                if ((args.ManufacturerData is null) || args.ManufacturerData.TryGetValue(0x0B60, out var buffer))
+                {
+                    return;
+                }
+
+                if (buffer?.Length >= 8)
+                {
+                    device.Voltage.Value = (double)((buffer[2] << 8) + buffer[1]) / 10;
+                    device.Current.Value = (double)((buffer[4] << 8) + buffer[3]) / 1000;
+                    device.Power.Value = (double)((buffer[7] << 16) + (buffer[6] << 8) + buffer[5]) / 1000;
+                }
             }
-            //    foreach (var md in args.Advertisement.ManufacturerData.Where(static x => x.CompanyId == 0x0B60))
-            //    {
-            //        lock (sync)
-            //        {
-            //            var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
-            //            if (device is null)
-            //            {
-            //                return;
-            //            }
-
-            //            device.LastUpdate = DateTime.Now;
-            //            device.Rssi.Value = args.RawSignalStrengthInDBm;
-
-            //            if (md.Data.Length >= 8)
-            //            {
-            //                var buffer = md.Data.ToArray();
-            //                device.Voltage.Value = (double)((buffer[2] << 8) + buffer[1]) / 10;
-            //                device.Current.Value = (double)((buffer[4] << 8) + buffer[3]) / 1000;
-            //                device.Power.Value = (double)((buffer[7] << 16) + (buffer[6] << 8) + buffer[5]) / 1000;
-            //            }
-            //        }
-            //    }
         }
     }
 
@@ -108,7 +115,9 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
 
     private sealed class Device
     {
-        public string Path { get; }
+        public string? Path { get; set; }
+
+        public string Address { get; }
 
         public IGauge Rssi { get; }
 
@@ -118,9 +127,9 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
 
         public IGauge Voltage { get; }
 
-        public Device(string path, IGauge rssi, IGauge power, IGauge current, IGauge voltage)
+        public Device(string address, IGauge rssi, IGauge power, IGauge current, IGauge voltage)
         {
-            Path = path;
+            Address = address;
             Rssi = rssi;
             Power = power;
             Current = current;

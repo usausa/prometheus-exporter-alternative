@@ -72,6 +72,7 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
                     if (device.Path == args.DevicePath)
                     {
                         device.Clear();
+                        device.Path = null;
                         break;
                     }
                 }
@@ -81,38 +82,45 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
         {
             lock (sync)
             {
+                var device = devices.FirstOrDefault(x => x.Path == args.DevicePath);
+                if ((device is null) && (args.Address is not null))
+                {
+                    device = devices.FirstOrDefault(x => x.Address == args.Address);
+                    device?.Path = args.DevicePath;
+                }
+
+                if (device is null)
+                {
+                    return;
+                }
+
+                if (args.Rssi.HasValue)
+                {
+                    device.Rssi.Value = args.Rssi.Value;
+                }
+
+                if ((args.ManufacturerData is null) || args.ManufacturerData.TryGetValue(0x0969, out var buffer))
+                {
+                    return;
+                }
+
+                if (device is MeterDevice meter)
+                {
+                    if (buffer?.Length >= 11)
+                    {
+                        meter.Temperature.Value = (((double)(buffer[8] & 0x0f) / 10) + (buffer[9] & 0x7f)) * ((buffer[9] & 0x80) > 0 ? 1 : -1);
+                        meter.Humidity.Value = buffer[10] & 0x7f;
+                        meter.Co2.Value = buffer.Length >= 16 ? (buffer[13] << 8) + buffer[14] : double.NaN;
+                    }
+                }
+                else if (device is PlugMiniDevice plug)
+                {
+                    if (buffer?.Length >= 12)
+                    {
+                        plug.Power.Value = (double)(((buffer[10] & 0b00111111) << 8) + (buffer[11] & 0b01111111)) / 10;
+                    }
+                }
             }
-            //    foreach (var md in args.Advertisement.ManufacturerData.Where(static x => x.CompanyId == 0x0969))
-            //    {
-            //            var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
-            //            if (device is null)
-            //            {
-            //                return;
-            //            }
-
-            //            device.LastUpdate = DateTime.Now;
-            //            device.Rssi.Value = args.RawSignalStrengthInDBm;
-
-            //            if (device is MeterDevice meter)
-            //            {
-            //                if (md.Data.Length >= 11)
-            //                {
-            //                    var buffer = md.Data.ToArray();
-            //                    meter.Temperature.Value = (((double)(buffer[8] & 0x0f) / 10) + (buffer[9] & 0x7f)) * ((buffer[9] & 0x80) > 0 ? 1 : -1);
-            //                    meter.Humidity.Value = buffer[10] & 0x7f;
-            //                    meter.Co2.Value = buffer.Length >= 16 ? (buffer[13] << 8) + buffer[14] : double.NaN;
-            //                }
-            //            }
-            //            else if (device is PlugMiniDevice plug)
-            //            {
-            //                if (md.Data.Length >= 12)
-            //                {
-            //                    var buffer = md.Data.ToArray();
-            //                    plug.Power.Value = (double)(((buffer[10] & 0b00111111) << 8) + (buffer[11] & 0b01111111)) / 10;
-            //                }
-            //            }
-            //        }
-            //    }
         }
     }
 
@@ -129,13 +137,15 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
 
     private abstract class Device
     {
-        public string Path { get; }
+        public string? Path { get; set; }
+
+        public string Address { get; }
 
         public IGauge Rssi { get; }
 
-        protected Device(string path, IGauge rssi)
+        protected Device(string address, IGauge rssi)
         {
-            Path = path;
+            Address = address;
             Rssi = rssi;
         }
 
@@ -150,8 +160,8 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
 
         public IGauge Co2 { get; }
 
-        public MeterDevice(string path, IGauge rssi, IGauge temperature, IGauge humidity, IGauge co2)
-            : base(path, rssi)
+        public MeterDevice(string address, IGauge rssi, IGauge temperature, IGauge humidity, IGauge co2)
+            : base(address, rssi)
         {
             Temperature = temperature;
             Humidity = humidity;
@@ -171,8 +181,8 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
     {
         public IGauge Power { get; }
 
-        public PlugMiniDevice(string path, IGauge rssi, IGauge power)
-            : base(path, rssi)
+        public PlugMiniDevice(string address, IGauge rssi, IGauge power)
+            : base(address, rssi)
         {
             Power = power;
         }

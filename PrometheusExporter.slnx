@@ -44,19 +44,19 @@
     </Project>
   </Folder>
   <Folder Name="/Instrumentation/EnvironmenWindows/">
-    <Project Path="PrometheusExporter.Instrumentation.Ble/PrometheusExporter.Instrumentation.Ble.csproj">
+    <Project Path="PrometheusExporter.Instrumentation.Ble.Windows/PrometheusExporter.Instrumentation.Ble.Windows.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
       <Build Solution="DebugLinux|*" Project="false" />
       <Build Solution="DebugMac|*" Project="false" />
     </Project>
-    <Project Path="PrometheusExporter.Instrumentation.BTWattch2/PrometheusExporter.Instrumentation.BTWattch2.csproj">
+    <Project Path="PrometheusExporter.Instrumentation.BTWattch2.Windows/PrometheusExporter.Instrumentation.BTWattch2.Windows.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
       <Build Solution="DebugLinux|*" Project="false" />
       <Build Solution="DebugMac|*" Project="false" />
     </Project>
-    <Project Path="PrometheusExporter.Instrumentation.SwitchBot/PrometheusExporter.Instrumentation.SwitchBot.csproj">
+    <Project Path="PrometheusExporter.Instrumentation.SwitchBot.Windows/PrometheusExporter.Instrumentation.SwitchBot.Windows.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
       <Build Solution="DebugLinux|*" Project="false" />

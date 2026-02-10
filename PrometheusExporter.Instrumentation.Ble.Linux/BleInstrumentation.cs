@@ -10,8 +10,6 @@ internal sealed class BleInstrumentation : IAsyncDisposable
 
     private readonly int signalThreshold;
 
-    private readonly TimeSpan timeThreshold;
-
     private readonly bool knownOnly;
 
     private readonly Dictionary<string, DeviceEntry> knownDevices;
@@ -31,13 +29,10 @@ internal sealed class BleInstrumentation : IAsyncDisposable
     {
         host = environment.Host;
         signalThreshold = options.SignalThreshold;
-        timeThreshold = TimeSpan.FromMilliseconds(options.TimeThreshold);
         knownOnly = options.KnownOnly;
         knownDevices = options.KnownDevice.ToDictionary(static x => x.Address);
 
         metric = manager.CreateGauge("ble_rssi");
-
-        manager.AddBeforeCollectCallback(Update);
 
 #pragma warning disable CA2012
         session = BleScanSession.CreateAsync().GetAwaiter().GetResult();
@@ -57,53 +52,51 @@ internal sealed class BleInstrumentation : IAsyncDisposable
 
     private void OnDeviceEvent(BleScanEvent args)
     {
-        if ((args.Address is null) || (args.Rssi is null) || (args.Rssi.Value < signalThreshold))
-        {
-            return;
-        }
-
         lock (sync)
         {
-            var device = default(Device);
-            foreach (var d in devices)
+            if (args.Type == BleScanEventType.Lost)
             {
-                if (d.Address == args.Address)
+                for (var i = devices.Count - 1; i >= 0; i--)
                 {
-                    device = d;
-                    break;
+                    var device = devices[i];
+                    if (device.Path == args.DevicePath)
+                    {
+                        devices.RemoveAt(i);
+                        device.Remove();
+                        break;
+                    }
                 }
             }
-
-            if (device is null)
+            else
             {
-                var entry = knownDevices.GetValueOrDefault(args.Address);
-                if (knownOnly && (entry is null))
+                if ((args.Rssi is null) || (args.Rssi.Value < signalThreshold))
                 {
                     return;
                 }
 
-                device = new Device(args.Address, metric.CreateGauge(MakeTags(args.Address, args.Alias, entry)));
-                devices.Add(device);
-            }
-
-            device.Rssi.Value = args.Rssi.Value;
-            device.LastUpdate = DateTime.Now;
-        }
-    }
-
-    private void Update()
-    {
-        lock (sync)
-        {
-            var now = DateTime.Now;
-            for (var i = devices.Count - 1; i >= 0; i--)
-            {
-                var device = devices[i];
-                if ((now - device.LastUpdate) > timeThreshold)
+                var device = default(Device);
+                foreach (var d in devices)
                 {
-                    devices.RemoveAt(i);
-                    device.Remove();
+                    if (d.Path == args.DevicePath)
+                    {
+                        device = d;
+                        break;
+                    }
                 }
+
+                if (device is null)
+                {
+                    var entry = knownDevices.GetValueOrDefault(args.DevicePath);
+                    if (knownOnly && (entry is null))
+                    {
+                        return;
+                    }
+
+                    device = new Device(args.DevicePath, metric.CreateGauge(MakeTags(args.Address!, args.Alias, entry)));
+                    devices.Add(device);
+                }
+
+                device.Rssi.Value = args.Rssi.Value;
             }
         }
     }
@@ -125,15 +118,13 @@ internal sealed class BleInstrumentation : IAsyncDisposable
 
     private sealed class Device
     {
-        public string Address { get; }
-
-        public DateTime LastUpdate { get; set; }
+        public string Path { get; }
 
         public IGauge Rssi { get; }
 
-        public Device(string address, IGauge rssi)
+        public Device(string path, IGauge rssi)
         {
-            Address = address;
+            Path = path;
             Rssi = rssi;
         }
 

@@ -134,6 +134,97 @@ hyperv_vm_memory_usage
 hyperv_vm_uptime
 ```
 
+## Linux
+
+```
+system_uptime
+system_interrupt_total
+system_context_switch_total
+system_forks_total
+system_scheduler_task
+system_softirq_total
+system_cpu_time_total
+system_load_average
+system_memory_mem gauge
+system_memory_buffers gauge
+system_memory_cached gauge
+system_memory_swap_cached gauge
+system_memory_lru gauge
+system_memory_unevictable gauge
+system_memory_mlocked gauge
+system_memory_swap gauge
+system_memory_dirty gauge
+system_memory_writeback gauge
+system_memory_anon_pages gauge
+system_memory_mapped gauge
+system_memory_shmem gauge
+system_memory_k_reclaimable gauge
+system_memory_slab gauge
+system_memory_kernel_stack gauge
+system_memory_page_tables gauge
+system_memory_commit_limit gauge
+system_memory_committed_as gauge
+system_memory_hardware_corrupted gauge
+system_virtual_page_total counter
+system_virtual_swap_total counter
+system_virtual_page_faults_total counter
+system_virtual_steal_total counter
+system_virtual_scan_total counter
+system_virtual_oom_kill_total counter
+system_partition_used
+system_partition_total
+system_partition_free
+system_disk_completed_total
+system_disk_merged_total
+system_disk_sectors_total
+system_disk_time_total
+system_disk_ios_in_progress
+system_disk_io_time_total
+system_disk_weight_io_time_total
+system_fd_allocated
+system_fd_used
+system_network_bytes_total
+system_network_packets_total
+system_network_errors_total
+system_network_dropped_total
+system_network_fifo_total
+system_network_compressed_total
+system_network_frame_total
+system_network_multicast_total
+system_network_collisions_total
+system_network_carrier_total
+system_tcp_statics
+system_process_count
+system_thread_count
+hardware_cpu_frequency
+hardware_cpu_power
+hardware_battery_capacity
+hardware_battery_voltage
+hardware_battery_current
+hardware_battery_charge
+hardware_battery_charge_full
+hardware_ac_online
+hardware_monitor
+```
+
+### Link
+
+* [LinuxDotNet](https://github.com/usausa/linux-dotnet)
+
+## Raspberry Pi
+
+```
+hardware_vcio_temperature
+hardware_vcio_frequency
+hardware_vcio_voltage
+hardware_vcio_throttled
+hardware_gpio_level
+```
+
+### Link
+
+* [RaspberryDotNet](https://github.com/usausa/raspberrypi-dotnet)
+
 ## Ping
 
 ```

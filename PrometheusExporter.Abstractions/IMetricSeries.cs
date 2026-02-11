@@ -1,6 +1,6 @@
 namespace PrometheusExporter.Abstractions;
 
-public interface IGauge
+public interface IMetricSeries
 {
     double Value { get; set; }
 

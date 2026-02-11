@@ -2,7 +2,7 @@ namespace PrometheusExporter.Metrics;
 
 using PrometheusExporter.Abstractions;
 
-internal sealed class Gauge : IGauge
+internal sealed class MetricSeries : IMetricSeries
 {
     private readonly Metric parent;
 
@@ -16,7 +16,7 @@ internal sealed class Gauge : IGauge
 
     public Tag[] Tags { get; }
 
-    public Gauge(Metric parent, string? sortKey, Tag[] tags)
+    public MetricSeries(Metric parent, string? sortKey, Tag[] tags)
     {
         this.parent = parent;
         SortKey = sortKey;

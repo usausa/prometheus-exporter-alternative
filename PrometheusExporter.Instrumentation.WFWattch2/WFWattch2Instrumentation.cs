@@ -68,13 +68,13 @@ internal sealed class WFWattch2Instrumentation : IDisposable
 
     private sealed class Device : IDisposable
     {
-        private readonly IGauge power;
-        private readonly IGauge current;
-        private readonly IGauge voltage;
+        private readonly IMetricSeries power;
+        private readonly IMetricSeries current;
+        private readonly IMetricSeries voltage;
 
         private readonly WattchClient client;
 
-        public Device(IGauge power, IGauge current, IGauge voltage, IPAddress address)
+        public Device(IMetricSeries power, IMetricSeries current, IMetricSeries voltage, IPAddress address)
         {
             this.power = power;
             this.current = current;

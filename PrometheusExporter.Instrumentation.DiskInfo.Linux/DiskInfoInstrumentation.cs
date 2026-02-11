@@ -38,12 +38,12 @@ internal sealed class DiskInfoInstrumentation : IDisposable
             if (disk.SmartType == SmartType.Nvme)
             {
                 var smart = (ISmartNvme)disk.Smart;
-                nvmeDisks.Add(new NvmeDisk(MakeNvmeGauges(nvmeMetric, smart, environment.Host, disk, device), smart));
+                nvmeDisks.Add(new NvmeDisk(MakeNvmeMetrics(nvmeMetric, smart, environment.Host, disk, device), smart));
             }
             else if (disk.SmartType == SmartType.Generic)
             {
                 var smart = (ISmartGeneric)disk.Smart;
-                genericDisks.Add(new GenericDisk(MakeGenericGauges(genericMetric, smart, environment.Host, disk, device), smart));
+                genericDisks.Add(new GenericDisk(MakeGenericMetrics(genericMetric, smart, environment.Host, disk, device), smart));
             }
         }
 
@@ -93,48 +93,48 @@ internal sealed class DiskInfoInstrumentation : IDisposable
     private static KeyValuePair<string, object?>[] MakeTags(string host, uint index, string model, string device, string id) =>
         [new("host", host), new("index", index), new("model", model), new("device", device), new("smart_id", id)];
 
-    private static IGauge[] MakeNvmeGauges(IMetric metric, ISmartNvme smart, string host, IDiskInfo disk, string device)
+    private static IMetricSeries[] MakeNvmeMetrics(IMetric metric, ISmartNvme smart, string host, IDiskInfo disk, string device)
     {
-        IGauge Factory(string id) => metric.Create(MakeTags(host, disk.Index, disk.Model, device, id));
+        IMetricSeries Factory(string id) => metric.Create(MakeTags(host, disk.Index, disk.Model, device, id));
 
-        var gauges = new IGauge[17 + smart.TemperatureSensors.Length];
-        gauges[0] = Factory("available_spare");
-        gauges[1] = Factory("available_spare_threshold");
-        gauges[2] = Factory("controller_busy_time");
-        gauges[3] = Factory("critical_composite_temperature_time");
-        gauges[4] = Factory("critical_warning");
-        gauges[5] = Factory("data_unit_read");
-        gauges[6] = Factory("data_unit_written");
-        gauges[7] = Factory("error_info_log_entries");
-        gauges[8] = Factory("host_read_commands");
-        gauges[9] = Factory("host_write_commands");
-        gauges[10] = Factory("media_errors");
-        gauges[11] = Factory("percentage_used");
-        gauges[12] = Factory("power_cycles");
-        gauges[13] = Factory("power_on_hours");
-        gauges[14] = Factory("temperature");
-        gauges[15] = Factory("unsafe_shutdowns");
-        gauges[16] = Factory("warning_composite_temperature_time");
+        var entries = new IMetricSeries[17 + smart.TemperatureSensors.Length];
+        entries[0] = Factory("available_spare");
+        entries[1] = Factory("available_spare_threshold");
+        entries[2] = Factory("controller_busy_time");
+        entries[3] = Factory("critical_composite_temperature_time");
+        entries[4] = Factory("critical_warning");
+        entries[5] = Factory("data_unit_read");
+        entries[6] = Factory("data_unit_written");
+        entries[7] = Factory("error_info_log_entries");
+        entries[8] = Factory("host_read_commands");
+        entries[9] = Factory("host_write_commands");
+        entries[10] = Factory("media_errors");
+        entries[11] = Factory("percentage_used");
+        entries[12] = Factory("power_cycles");
+        entries[13] = Factory("power_on_hours");
+        entries[14] = Factory("temperature");
+        entries[15] = Factory("unsafe_shutdowns");
+        entries[16] = Factory("warning_composite_temperature_time");
         for (var i = 0; i < smart.TemperatureSensors.Length; i++)
         {
-            gauges[17 + i] = Factory($"temperature_sensor{i}");
+            entries[17 + i] = Factory($"temperature_sensor{i}");
         }
 
-        return gauges;
+        return entries;
     }
 
-    private static IGauge?[] MakeGenericGauges(IMetric metric, ISmartGeneric smart, string host, IDiskInfo disk, string device)
+    private static IMetricSeries?[] MakeGenericMetrics(IMetric metric, ISmartGeneric smart, string host, IDiskInfo disk, string device)
     {
-        IGauge Factory(string id) => metric.Create(MakeTags(host, disk.Index, disk.Model, device, id));
+        IMetricSeries Factory(string id) => metric.Create(MakeTags(host, disk.Index, disk.Model, device, id));
 
-        var gauges = new IGauge?[256];
+        var entries = new IMetricSeries?[256];
         foreach (var smartId in smart.GetSupportedIds())
         {
             var id = (byte)smartId;
-            gauges[id] = Factory($"{id:X2}");
+            entries[id] = Factory($"{id:X2}");
         }
 
-        return gauges;
+        return entries;
     }
 
     //--------------------------------------------------------------------------------
@@ -143,13 +143,13 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
     private sealed class NvmeDisk
     {
-        private readonly IGauge[] gauges;
+        private readonly IMetricSeries[] entries;
 
         private readonly ISmartNvme smart;
 
-        public NvmeDisk(IGauge[] gauges, ISmartNvme smart)
+        public NvmeDisk(IMetricSeries[] entries, ISmartNvme smart)
         {
-            this.gauges = gauges;
+            this.entries = entries;
             this.smart = smart;
         }
 
@@ -157,32 +157,32 @@ internal sealed class DiskInfoInstrumentation : IDisposable
         {
             if (smart.Update())
             {
-                gauges[0].Value = smart.AvailableSpare;
-                gauges[1].Value = smart.AvailableSpareThreshold;
-                gauges[2].Value = smart.ControllerBusyTime;
-                gauges[3].Value = smart.CriticalCompositeTemperatureTime;
-                gauges[4].Value = smart.CriticalWarning;
-                gauges[5].Value = smart.DataUnitRead;
-                gauges[6].Value = smart.DataUnitWritten;
-                gauges[7].Value = smart.ErrorInfoLogEntries;
-                gauges[8].Value = smart.HostReadCommands;
-                gauges[9].Value = smart.HostWriteCommands;
-                gauges[10].Value = smart.MediaErrors;
-                gauges[11].Value = smart.PercentageUsed;
-                gauges[12].Value = smart.PowerCycles;
-                gauges[13].Value = smart.PowerOnHours;
-                gauges[14].Value = smart.Temperature;
-                gauges[15].Value = smart.UnsafeShutdowns;
-                gauges[16].Value = smart.WarningCompositeTemperatureTime;
+                entries[0].Value = smart.AvailableSpare;
+                entries[1].Value = smart.AvailableSpareThreshold;
+                entries[2].Value = smart.ControllerBusyTime;
+                entries[3].Value = smart.CriticalCompositeTemperatureTime;
+                entries[4].Value = smart.CriticalWarning;
+                entries[5].Value = smart.DataUnitRead;
+                entries[6].Value = smart.DataUnitWritten;
+                entries[7].Value = smart.ErrorInfoLogEntries;
+                entries[8].Value = smart.HostReadCommands;
+                entries[9].Value = smart.HostWriteCommands;
+                entries[10].Value = smart.MediaErrors;
+                entries[11].Value = smart.PercentageUsed;
+                entries[12].Value = smart.PowerCycles;
+                entries[13].Value = smart.PowerOnHours;
+                entries[14].Value = smart.Temperature;
+                entries[15].Value = smart.UnsafeShutdowns;
+                entries[16].Value = smart.WarningCompositeTemperatureTime;
                 for (var i = 0; i < smart.TemperatureSensors.Length; i++)
                 {
                     var value = smart.TemperatureSensors[i];
-                    gauges[17 + i].Value = value >= 0 ? value : double.NaN;
+                    entries[17 + i].Value = value >= 0 ? value : double.NaN;
                 }
             }
             else
             {
-                foreach (var gauge in gauges)
+                foreach (var gauge in entries)
                 {
                     gauge.Value = double.NaN;
                 }
@@ -192,13 +192,13 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
     private sealed class GenericDisk
     {
-        private readonly IGauge?[] gauges;
+        private readonly IMetricSeries?[] entries;
 
         private readonly ISmartGeneric smart;
 
-        public GenericDisk(IGauge?[] gauges, ISmartGeneric smart)
+        public GenericDisk(IMetricSeries?[] entries, ISmartGeneric smart)
         {
-            this.gauges = gauges;
+            this.entries = entries;
             this.smart = smart;
         }
 
@@ -208,7 +208,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
             {
                 foreach (var id in smart.GetSupportedIds())
                 {
-                    var gauge = gauges[(byte)id];
+                    var gauge = entries[(byte)id];
                     if (gauge is not null)
                     {
                         var attr = smart.GetAttribute(id);
@@ -218,7 +218,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
             }
             else
             {
-                foreach (var gauge in gauges)
+                foreach (var gauge in entries)
                 {
                     gauge?.Value = double.NaN;
                 }

@@ -111,13 +111,13 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
 
     private sealed class Counter : IDisposable
     {
-        private readonly IGauge gauge;
+        private readonly IMetricSeries series;
 
         private readonly PerformanceCounter counter;
 
-        public Counter(IGauge gauge, PerformanceCounter counter)
+        public Counter(IMetricSeries series, PerformanceCounter counter)
         {
-            this.gauge = gauge;
+            this.series = series;
             this.counter = counter;
         }
 
@@ -128,7 +128,7 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
 
         public void Update()
         {
-            gauge.Value = counter.NextValue();
+            series.Value = counter.NextValue();
         }
     }
 }

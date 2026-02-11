@@ -130,9 +130,9 @@ internal sealed class BleInstrumentation : IDisposable
 
         public DateTime LastUpdate { get; set; }
 
-        public IGauge Rssi { get; }
+        public IMetricSeries Rssi { get; }
 
-        public Device(ulong address, IGauge rssi)
+        public Device(ulong address, IMetricSeries rssi)
         {
             Address = address;
             Rssi = rssi;

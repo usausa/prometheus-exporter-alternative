@@ -132,9 +132,9 @@ internal sealed class LinuxInstrumentation
     private static bool IsTarget(IEnumerable<string> targets, string name) =>
         targets.Any(x => (x == "*") || (x == name));
 
-    private static Action MakeEntry(Func<double> measurement, IGauge gauge)
+    private static Action MakeEntry(Func<double> measurement, IMetricSeries series)
     {
-        return () => gauge.Value = measurement();
+        return () => series.Value = measurement();
     }
 
     //--------------------------------------------------------------------------------

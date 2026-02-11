@@ -587,9 +587,9 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
 
         private readonly Func<ISensor, double> measurement;
 
-        private readonly IGauge gauge;
+        private readonly IMetricSeries gauge;
 
-        public Entry(ISensor sensor, Func<ISensor, double> measurement, IGauge gauge)
+        public Entry(ISensor sensor, Func<ISensor, double> measurement, IMetricSeries gauge)
         {
             this.sensor = sensor;
             this.measurement = measurement;

@@ -141,9 +141,9 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
 
         public string Address { get; }
 
-        public IGauge Rssi { get; }
+        public IMetricSeries Rssi { get; }
 
-        protected Device(string address, IGauge rssi)
+        protected Device(string address, IMetricSeries rssi)
         {
             Address = address;
             Rssi = rssi;
@@ -154,13 +154,13 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
 
     private sealed class MeterDevice : Device
     {
-        public IGauge Temperature { get; }
+        public IMetricSeries Temperature { get; }
 
-        public IGauge Humidity { get; }
+        public IMetricSeries Humidity { get; }
 
-        public IGauge Co2 { get; }
+        public IMetricSeries Co2 { get; }
 
-        public MeterDevice(string address, IGauge rssi, IGauge temperature, IGauge humidity, IGauge co2)
+        public MeterDevice(string address, IMetricSeries rssi, IMetricSeries temperature, IMetricSeries humidity, IMetricSeries co2)
             : base(address, rssi)
         {
             Temperature = temperature;
@@ -179,9 +179,9 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
 
     private sealed class PlugMiniDevice : Device
     {
-        public IGauge Power { get; }
+        public IMetricSeries Power { get; }
 
-        public PlugMiniDevice(string address, IGauge rssi, IGauge power)
+        public PlugMiniDevice(string address, IMetricSeries rssi, IMetricSeries power)
             : base(address, rssi)
         {
             Power = power;

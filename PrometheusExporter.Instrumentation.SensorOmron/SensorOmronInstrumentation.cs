@@ -79,30 +79,30 @@ internal sealed class SensorOmronInstrumentation : IDisposable
 
     private sealed class Sensor : IDisposable
     {
-        private readonly IGauge temperature;
-        private readonly IGauge humidity;
-        private readonly IGauge light;
-        private readonly IGauge pressure;
-        private readonly IGauge noise;
-        private readonly IGauge discomfort;
-        private readonly IGauge heat;
-        private readonly IGauge etvoc;
-        private readonly IGauge eco2;
-        private readonly IGauge seismic;
+        private readonly IMetricSeries temperature;
+        private readonly IMetricSeries humidity;
+        private readonly IMetricSeries light;
+        private readonly IMetricSeries pressure;
+        private readonly IMetricSeries noise;
+        private readonly IMetricSeries discomfort;
+        private readonly IMetricSeries heat;
+        private readonly IMetricSeries etvoc;
+        private readonly IMetricSeries eco2;
+        private readonly IMetricSeries seismic;
 
         private readonly RbtSensorSerial sensor;
 
         public Sensor(
-            IGauge temperature,
-            IGauge humidity,
-            IGauge light,
-            IGauge pressure,
-            IGauge noise,
-            IGauge discomfort,
-            IGauge heat,
-            IGauge etvoc,
-            IGauge eco2,
-            IGauge seismic,
+            IMetricSeries temperature,
+            IMetricSeries humidity,
+            IMetricSeries light,
+            IMetricSeries pressure,
+            IMetricSeries noise,
+            IMetricSeries discomfort,
+            IMetricSeries heat,
+            IMetricSeries etvoc,
+            IMetricSeries eco2,
+            IMetricSeries seismic,
             string port)
         {
             this.temperature = temperature;

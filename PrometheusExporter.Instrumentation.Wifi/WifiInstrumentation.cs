@@ -154,9 +154,9 @@ internal sealed class WifiInstrumentation
 
         public string Ssid { get; }
 
-        public IGauge Rssi { get; }
+        public IMetricSeries Rssi { get; }
 
-        public AccessPoint(string bssid, string ssid, IGauge rssi)
+        public AccessPoint(string bssid, string ssid, IMetricSeries rssi)
         {
             Bssid = bssid;
             Ssid = ssid;

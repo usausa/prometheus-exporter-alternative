@@ -119,15 +119,15 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
 
         public string Address { get; }
 
-        public IGauge Rssi { get; }
+        public IMetricSeries Rssi { get; }
 
-        public IGauge Power { get; }
+        public IMetricSeries Power { get; }
 
-        public IGauge Current { get; }
+        public IMetricSeries Current { get; }
 
-        public IGauge Voltage { get; }
+        public IMetricSeries Voltage { get; }
 
-        public Device(string address, IGauge rssi, IGauge power, IGauge current, IGauge voltage)
+        public Device(string address, IMetricSeries rssi, IMetricSeries power, IMetricSeries current, IMetricSeries voltage)
         {
             Address = address;
             Rssi = rssi;

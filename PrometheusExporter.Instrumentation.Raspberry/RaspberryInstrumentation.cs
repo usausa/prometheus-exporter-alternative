@@ -89,9 +89,9 @@ internal sealed class RaspberryInstrumentation : IDisposable
         return [.. tags];
     }
 
-    private static Action MakeEntry(Func<double> measurement, IGauge gauge)
+    private static Action MakeEntry(Func<double> measurement, IMetricSeries series)
     {
-        return () => gauge.Value = measurement();
+        return () => series.Value = measurement();
     }
 
     //--------------------------------------------------------------------------------
@@ -177,7 +177,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     {
         var metric = manager.CreateGauge("hardware_gpio_level");
 
-        var gauges = new Dictionary<int, IGauge>();
+        var gauges = new Dictionary<int, IMetricSeries>();
 
         updateEntries.Add(() =>
         {

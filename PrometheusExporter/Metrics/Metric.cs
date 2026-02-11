@@ -15,7 +15,7 @@ internal sealed class Metric : IMetric
 
     private readonly Lock sync = new();
 
-    private readonly List<Gauge> entries = [];
+    private readonly List<MetricSeries> entries = [];
 
     public Metric(string type, string name, string? sort)
     {
@@ -67,13 +67,13 @@ internal sealed class Metric : IMetric
         }
     }
 
-    public IGauge Create(params KeyValuePair<string, object?>[] tags)
+    public IMetricSeries Create(params KeyValuePair<string, object?>[] tags)
     {
         lock (sync)
         {
             var stringTags = Helper.ConvertTags(tags);
             var sortKey = sort is not null ? stringTags.FirstOrDefault(x => x.Key == sort)?.Value : null;
-            var gauge = new Gauge(this, sortKey, stringTags);
+            var gauge = new MetricSeries(this, sortKey, stringTags);
             entries.Add(gauge);
 
             if (sort is not null)
@@ -85,7 +85,7 @@ internal sealed class Metric : IMetric
         }
     }
 
-    internal void Unregister(Gauge entry)
+    internal void Unregister(MetricSeries entry)
     {
         lock (sync)
         {
@@ -93,11 +93,11 @@ internal sealed class Metric : IMetric
         }
     }
 
-    private sealed class TagComparer : IComparer<Gauge>
+    private sealed class TagComparer : IComparer<MetricSeries>
     {
         public static TagComparer Instance { get; } = new();
 
-        public int Compare(Gauge? x, Gauge? y)
+        public int Compare(MetricSeries? x, MetricSeries? y)
         {
             var key1 = x!.SortKey;
             var key2 = y!.SortKey;

@@ -74,7 +74,7 @@ internal sealed class PingInstrumentation : IDisposable
 
     private sealed class Target : IDisposable
     {
-        private readonly IGauge time;
+        private readonly IMetricSeries series;
 
         private readonly Ping ping = new();
 
@@ -82,9 +82,9 @@ internal sealed class PingInstrumentation : IDisposable
 
         private readonly IPAddress address;
 
-        public Target(IGauge time, int timeout, IPAddress address)
+        public Target(IMetricSeries series, int timeout, IPAddress address)
         {
-            this.time = time;
+            this.series = series;
             this.timeout = timeout;
             this.address = address;
         }
@@ -100,11 +100,11 @@ internal sealed class PingInstrumentation : IDisposable
             try
             {
                 var result = await ping.SendPingAsync(address, timeout).ConfigureAwait(false);
-                time.Value = result.Status == IPStatus.Success ? result.RoundtripTime : double.NaN;
+                series.Value = result.Status == IPStatus.Success ? result.RoundtripTime : double.NaN;
             }
             catch
             {
-                time.Value = double.NaN;
+                series.Value = double.NaN;
             }
         }
 #pragma warning restore CA1031

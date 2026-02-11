@@ -122,9 +122,9 @@ internal sealed class BleInstrumentation : IAsyncDisposable
     {
         public string Path { get; }
 
-        public IGauge Rssi { get; }
+        public IMetricSeries Rssi { get; }
 
-        public Device(string path, IGauge rssi)
+        public Device(string path, IMetricSeries rssi)
         {
             Path = path;
             Rssi = rssi;

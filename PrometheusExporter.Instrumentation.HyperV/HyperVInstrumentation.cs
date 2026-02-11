@@ -13,7 +13,7 @@ internal sealed class HyperVInstrumentation
 
     private readonly Regex? filter;
 
-    private readonly IGauge countGauge;
+    private readonly IMetricSeries countSeries;
 
     private readonly IMetric informationMetric;
 
@@ -40,7 +40,7 @@ internal sealed class HyperVInstrumentation
             ? new Regex(options.IgnoreExpression, RegexOptions.Compiled)
             : null;
 
-        countGauge = manager.CreateGauge("hyperv_vm_count").Create([new("host", environment.Host)]);
+        countSeries = manager.CreateGauge("hyperv_vm_count").Create([new("host", environment.Host)]);
         informationMetric = manager.CreateGauge("hyperv_vm_information", "name");
         stateMetric = manager.CreateGauge("hyperv_vm_state", "name");
         processorLoadMetric = manager.CreateGauge("hyperv_vm_processor_load", "name");
@@ -131,7 +131,7 @@ internal sealed class HyperVInstrumentation
             }
         }
 
-        countGauge.Value = virtualMachines.Count;
+        countSeries.Value = virtualMachines.Count;
 
         // Post update
         for (var i = virtualMachines.Count - 1; i >= 0; i--)
@@ -171,17 +171,17 @@ internal sealed class HyperVInstrumentation
 
         public string Version { get; }
 
-        public IGauge Information { get; }
+        public IMetricSeries Information { get; }
 
-        public IGauge State { get; }
+        public IMetricSeries State { get; }
 
-        public IGauge ProcessorLoad { get; }
+        public IMetricSeries ProcessorLoad { get; }
 
-        public IGauge MemoryUsage { get; }
+        public IMetricSeries MemoryUsage { get; }
 
-        public IGauge Uptime { get; }
+        public IMetricSeries Uptime { get; }
 
-        public VirtualMachine(string guid, string name, string version, IGauge information, IGauge state, IGauge processorLoad, IGauge memoryUsage, IGauge uptime)
+        public VirtualMachine(string guid, string name, string version, IMetricSeries information, IMetricSeries state, IMetricSeries processorLoad, IMetricSeries memoryUsage, IMetricSeries uptime)
         {
             Guid = guid;
             Name = name;

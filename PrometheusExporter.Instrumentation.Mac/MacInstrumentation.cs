@@ -53,9 +53,9 @@ internal sealed class MacInstrumentation
 
     private KeyValuePair<string, object?>[] MakeTags() => [new("host", host)];
 
-    private static Action MakeEntry(Func<double> measurement, IGauge gauge)
+    private static Action MakeEntry(Func<double> measurement, IMetricSeries series)
     {
-        return () => gauge.Value = measurement();
+        return () => series.Value = measurement();
     }
 
     //--------------------------------------------------------------------------------

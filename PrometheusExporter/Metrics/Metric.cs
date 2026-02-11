@@ -67,7 +67,7 @@ internal sealed class Metric : IMetric
         }
     }
 
-    public IGauge CreateGauge(params KeyValuePair<string, object?>[] tags)
+    public IGauge Create(params KeyValuePair<string, object?>[] tags)
     {
         lock (sync)
         {

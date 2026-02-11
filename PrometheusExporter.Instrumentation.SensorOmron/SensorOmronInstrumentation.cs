@@ -30,16 +30,16 @@ internal sealed class SensorOmronInstrumentation : IDisposable
             {
                 var tags = MakeTags(x);
                 return new Sensor(
-                    temperatureMetric.CreateGauge(tags),
-                    humidityMetric.CreateGauge(tags),
-                    lightMetric.CreateGauge(tags),
-                    pressureMetric.CreateGauge(tags),
-                    noiseMetric.CreateGauge(tags),
-                    discomfortMetric.CreateGauge(tags),
-                    heatMetric.CreateGauge(tags),
-                    etvocMetric.CreateGauge(tags),
-                    eco2Metric.CreateGauge(tags),
-                    seismicMetric.CreateGauge(tags),
+                    temperatureMetric.Create(tags),
+                    humidityMetric.Create(tags),
+                    lightMetric.Create(tags),
+                    pressureMetric.Create(tags),
+                    noiseMetric.Create(tags),
+                    discomfortMetric.Create(tags),
+                    heatMetric.Create(tags),
+                    etvocMetric.Create(tags),
+                    eco2Metric.Create(tags),
+                    seismicMetric.Create(tags),
                     x.Port);
             })
             .ToArray();

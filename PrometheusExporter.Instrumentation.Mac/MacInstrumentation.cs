@@ -68,7 +68,7 @@ internal sealed class MacInstrumentation
         var uptimeInfo = PlatformProvider.GetUptime();
 
         var metric = manager.CreateGauge("system_uptime");
-        entries.Add(MakeEntry(ReadValue, metric.CreateGauge(MakeTags())));
+        entries.Add(MakeEntry(ReadValue, metric.Create(MakeTags())));
         return;
 
         double ReadValue()

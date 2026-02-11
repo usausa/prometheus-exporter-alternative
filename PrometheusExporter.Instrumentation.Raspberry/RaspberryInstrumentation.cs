@@ -101,7 +101,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     private void SetupVcioTemperatureMetric(IMetricManager manager)
     {
         var metric = manager.CreateGauge("hardware_vcio_temperature");
-        updateEntries.Add(MakeEntry(() => vcio.ReadTemperature(), metric.CreateGauge(MakeTags())));
+        updateEntries.Add(MakeEntry(() => vcio.ReadTemperature(), metric.Create(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
                     frequency = vcio.ReadFrequency(clock, measured: false);
                 }
                 return frequency;
-            }, metric.CreateGauge(MakeTags([new("name", name)]))));
+            }, metric.Create(MakeTags([new("name", name)]))));
         }
     }
 
@@ -142,7 +142,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
 #pragma warning disable CA1308
             var name = voltage.ToString().ToLowerInvariant();
 #pragma warning restore CA1308
-            updateEntries.Add(MakeEntry(() => vcio.ReadVoltage(voltage), metric.CreateGauge(MakeTags([new("name", name)]))));
+            updateEntries.Add(MakeEntry(() => vcio.ReadVoltage(voltage), metric.Create(MakeTags([new("name", name)]))));
         }
     }
 
@@ -154,10 +154,10 @@ internal sealed class RaspberryInstrumentation : IDisposable
     {
         var metric = manager.CreateGauge("hardware_vcio_throttled");
 
-        var gaugeUnderVoltage = metric.CreateGauge(MakeTags([new("name", "under_voltage")]));
-        var gaugeFrequencyCapped = metric.CreateGauge(MakeTags([new("name", "freq_cap")]));
-        var gaugeCurrentlyThrottled = metric.CreateGauge(MakeTags([new("name", "throttled")]));
-        var gaugeSoftTemperatureLimitActive = metric.CreateGauge(MakeTags([new("name", "temp_limit")]));
+        var gaugeUnderVoltage = metric.Create(MakeTags([new("name", "under_voltage")]));
+        var gaugeFrequencyCapped = metric.Create(MakeTags([new("name", "freq_cap")]));
+        var gaugeCurrentlyThrottled = metric.Create(MakeTags([new("name", "throttled")]));
+        var gaugeSoftTemperatureLimitActive = metric.Create(MakeTags([new("name", "temp_limit")]));
 
         updateEntries.Add(() =>
         {
@@ -185,7 +185,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
             {
                 if (!gauges.TryGetValue(pin.PhysicalPin, out var gauge))
                 {
-                    gauge = metric.CreateGauge(MakeTags([new("name", pin.PhysicalPin)]));
+                    gauge = metric.Create(MakeTags([new("name", pin.PhysicalPin)]));
                     gauges[pin.PhysicalPin] = gauge;
                 }
 

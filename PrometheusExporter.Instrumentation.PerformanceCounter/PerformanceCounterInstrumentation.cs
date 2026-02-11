@@ -39,7 +39,7 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
                     tags.Add(new("name", counter.InstanceName));
                 }
 
-                var gauge = metric.CreateGauge([.. tags]);
+                var gauge = metric.Create([.. tags]);
 
                 counters.Add(new Counter(gauge, counter));
             }

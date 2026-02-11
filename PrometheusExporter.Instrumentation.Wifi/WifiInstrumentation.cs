@@ -94,7 +94,7 @@ internal sealed class WifiInstrumentation
 
                 if (ap is null)
                 {
-                    ap = new AccessPoint(bssid, ssid, metric.CreateGauge(MakeTags(network)));
+                    ap = new AccessPoint(bssid, ssid, metric.Create(MakeTags(network)));
                     accessPoints.Add(ap);
                 }
 

@@ -22,7 +22,7 @@ internal sealed class PingInstrumentation : IDisposable
 
         targets = options.Target
             .Select(x => new Target(
-                timeMetric.CreateGauge(MakeTags(environment.Host, x)),
+                timeMetric.Create(MakeTags(environment.Host, x)),
                 options.Timeout,
                 Dns.GetHostAddresses(x.Address)[0]))
             .ToArray();

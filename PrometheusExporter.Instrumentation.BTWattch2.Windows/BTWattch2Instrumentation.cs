@@ -33,10 +33,10 @@ internal sealed class BTWattch2Instrumentation : IDisposable
                 var tags = MakeTags(x);
                 return new Device(
                     NormalizeAddress(x.Address),
-                    rssiMetric.CreateGauge(tags),
-                    powerMetric.CreateGauge(tags),
-                    currentMetric.CreateGauge(tags),
-                    voltageMetric.CreateGauge(tags));
+                    rssiMetric.Create(tags),
+                    powerMetric.Create(tags),
+                    currentMetric.Create(tags),
+                    voltageMetric.Create(tags));
             })
             .ToArray();
 

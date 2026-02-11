@@ -83,7 +83,7 @@ internal sealed class BleInstrumentation : IDisposable
                     return;
                 }
 
-                device = new Device(args.BluetoothAddress, metric.CreateGauge(MakeTags(args.BluetoothAddress, entry)));
+                device = new Device(args.BluetoothAddress, metric.Create(MakeTags(args.BluetoothAddress, entry)));
                 devices.Add(device);
             }
 

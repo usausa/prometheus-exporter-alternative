@@ -40,7 +40,7 @@ internal sealed class HyperVInstrumentation
             ? new Regex(options.IgnoreExpression, RegexOptions.Compiled)
             : null;
 
-        countGauge = manager.CreateGauge("hyperv_vm_count").CreateGauge([new("host", environment.Host)]);
+        countGauge = manager.CreateGauge("hyperv_vm_count").Create([new("host", environment.Host)]);
         informationMetric = manager.CreateGauge("hyperv_vm_information", "name");
         stateMetric = manager.CreateGauge("hyperv_vm_state", "name");
         processorLoadMetric = manager.CreateGauge("hyperv_vm_processor_load", "name");
@@ -104,11 +104,11 @@ internal sealed class HyperVInstrumentation
                     guid,
                     name,
                     version,
-                    informationMetric.CreateGauge(informationTags),
-                    stateMetric.CreateGauge(valueTags),
-                    processorLoadMetric.CreateGauge(valueTags),
-                    memoryUsageMetric.CreateGauge(valueTags),
-                    uptimeMetric.CreateGauge(valueTags));
+                    informationMetric.Create(informationTags),
+                    stateMetric.Create(valueTags),
+                    processorLoadMetric.Create(valueTags),
+                    memoryUsageMetric.Create(valueTags),
+                    uptimeMetric.Create(valueTags));
                 virtualMachines.Add(vm);
                 vm.Information.Value = 1;
             }

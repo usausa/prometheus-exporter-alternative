@@ -26,9 +26,9 @@ internal sealed class WFWattch2Instrumentation : IDisposable
             {
                 var tags = MakeTags(x);
                 return new Device(
-                    powerMetric.CreateGauge(tags),
-                    currentMetric.CreateGauge(tags),
-                    voltageMetric.CreateGauge(tags),
+                    powerMetric.Create(tags),
+                    currentMetric.Create(tags),
+                    voltageMetric.Create(tags),
                     IPAddress.Parse(x.Address));
             })
             .ToArray();

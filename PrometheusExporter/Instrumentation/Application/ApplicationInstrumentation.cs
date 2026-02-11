@@ -14,7 +14,7 @@ internal sealed class ApplicationInstrumentation
     {
         // Information
         var informationMetric = manager.CreateGauge("exporter_information");
-        informationMetric.CreateGauge(
+        informationMetric.Create(
             new("host", environment.Host),
             new("version", typeof(Program).Assembly.GetName().Version),
             new("platform", ResolvePlatformString()),
@@ -22,7 +22,7 @@ internal sealed class ApplicationInstrumentation
 
         // Uptime
         var uptimeMetric = manager.CreateGauge("exporter_uptime");
-        var uptime = uptimeMetric.CreateGauge([new("host", environment.Host)]);
+        var uptime = uptimeMetric.Create([new("host", environment.Host)]);
         manager.AddBeforeCollectCallback(() =>
         {
             uptime.Value = (long)(DateTime.Now - Process.GetCurrentProcess().StartTime).TotalSeconds;
@@ -32,7 +32,7 @@ internal sealed class ApplicationInstrumentation
         var instrumentationMetric = manager.CreateGauge("exporter_instrumentation");
         foreach (var registration in provider.Registrations)
         {
-            var gauge = instrumentationMetric.CreateGauge(new("host", environment.Host), new("name", registration.Name));
+            var gauge = instrumentationMetric.Create(new("host", environment.Host), new("name", registration.Name));
             gauge.Value = 1;
         }
     }

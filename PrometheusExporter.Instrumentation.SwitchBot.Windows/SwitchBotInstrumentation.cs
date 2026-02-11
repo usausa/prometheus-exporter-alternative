@@ -37,18 +37,18 @@ internal sealed class SwitchBotInstrumentation : IDisposable
                 var tags = MakeTags(entry.Address, entry.Name);
                 list.Add(new MeterDevice(
                     address,
-                    rssiMetric.CreateGauge(tags),
-                    temperatureMetric.CreateGauge(tags),
-                    humidityMetric.CreateGauge(tags),
-                    co2Metric.CreateGauge(tags)));
+                    rssiMetric.Create(tags),
+                    temperatureMetric.Create(tags),
+                    humidityMetric.Create(tags),
+                    co2Metric.Create(tags)));
             }
             else if (entry.Type == DeviceType.PlugMini)
             {
                 var tags = MakeTags(entry.Address, entry.Name);
                 list.Add(new PlugMiniDevice(
                     address,
-                    rssiMetric.CreateGauge(tags),
-                    powerMetric.CreateGauge(tags)));
+                    rssiMetric.Create(tags),
+                    powerMetric.Create(tags)));
             }
         }
         devices = list.ToArray();

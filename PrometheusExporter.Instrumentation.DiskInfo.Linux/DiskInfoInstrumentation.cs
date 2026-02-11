@@ -32,7 +32,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
         foreach (var disk in disks)
         {
             var device = Path.GetFileName(disk.DeviceName);
-            var sector = sectorMetric.CreateGauge(MakeTags(environment.Host, disk.Index, disk.Model, device));
+            var sector = sectorMetric.Create(MakeTags(environment.Host, disk.Index, disk.Model, device));
             sector.Value = disk.LogicalBlockSize;
 
             if (disk.SmartType == SmartType.Nvme)
@@ -95,7 +95,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
     private static IGauge[] MakeNvmeGauges(IMetric metric, ISmartNvme smart, string host, IDiskInfo disk, string device)
     {
-        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, device, id));
+        IGauge Factory(string id) => metric.Create(MakeTags(host, disk.Index, disk.Model, device, id));
 
         var gauges = new IGauge[17 + smart.TemperatureSensors.Length];
         gauges[0] = Factory("available_spare");
@@ -125,7 +125,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
     private static IGauge?[] MakeGenericGauges(IMetric metric, ISmartGeneric smart, string host, IDiskInfo disk, string device)
     {
-        IGauge Factory(string id) => metric.CreateGauge(MakeTags(host, disk.Index, disk.Model, device, id));
+        IGauge Factory(string id) => metric.Create(MakeTags(host, disk.Index, disk.Model, device, id));
 
         var gauges = new IGauge?[256];
         foreach (var smartId in smart.GetSupportedIds())

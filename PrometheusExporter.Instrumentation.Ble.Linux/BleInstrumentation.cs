@@ -95,7 +95,7 @@ internal sealed class BleInstrumentation : IAsyncDisposable
                         return;
                     }
 
-                    device = new Device(args.DevicePath, metric.CreateGauge(MakeTags(args.Address!, args.Alias, entry)));
+                    device = new Device(args.DevicePath, metric.Create(MakeTags(args.Address!, args.Alias, entry)));
                     devices.Add(device);
                 }
 

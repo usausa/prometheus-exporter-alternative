@@ -26,10 +26,10 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
                 var tags = MakeTags(x);
                 return new Device(
                     x.Address,
-                    rssiMetric.CreateGauge(tags),
-                    powerMetric.CreateGauge(tags),
-                    currentMetric.CreateGauge(tags),
-                    voltageMetric.CreateGauge(tags));
+                    rssiMetric.Create(tags),
+                    powerMetric.Create(tags),
+                    currentMetric.Create(tags),
+                    voltageMetric.Create(tags));
             })
             .ToArray();
 

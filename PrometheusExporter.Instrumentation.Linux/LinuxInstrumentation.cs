@@ -426,7 +426,7 @@ internal sealed class LinuxInstrumentation
             {
                 Mount = x,
                 Usage = PlatformProvider.GetFileSystemUsage(x.MountPoint),
-                Tags = MakeTags([new("name", x.DeviceName), new("mount", x.MountPoint), new("fs", x.FileSystem)])
+                Tags = MakeTags(new("name", x.DeviceName), new("mount", x.MountPoint), new("fs", x.FileSystem))
             })
             .ToArray();
 

@@ -14,7 +14,7 @@ internal sealed class LinuxOptions
 
     public string[] VirtualMemory { get; set; } = ["*"];
 
-    public bool Partition { get; set; } = true;
+    public bool Mount { get; set; } = true;
 
     public bool DiskStatics { get; set; } = true;
 

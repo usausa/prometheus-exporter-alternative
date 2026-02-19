@@ -44,9 +44,9 @@ internal sealed class LinuxInstrumentation
         {
             SetupVirtualMemoryMetric(manager, options.VirtualMemory);
         }
-        if (options.Partition)
+        if (options.Mount)
         {
-            SetupPartitionMetric(manager);
+            SetupMountMetric(manager);
         }
         if (options.DiskStatics)
         {
@@ -149,19 +149,19 @@ internal sealed class LinuxInstrumentation
         prepareEntries.Add(() => uptimeInfo.Update());
 
         var metric = manager.CreateGauge("system_uptime");
-        updateEntries.Add(MakeEntry(() => uptimeInfo.Uptime.TotalSeconds, metric.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(() => uptimeInfo.Elapsed.TotalSeconds, metric.Create(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
-    // Statics
+    // System
     //--------------------------------------------------------------------------------
 
     private void SetupStaticsMetric(IMetricManager manager)
     {
-        var statics = PlatformProvider.GetStatics();
+        var stat = PlatformProvider.GetSystemStat();
 
         var totalPrevious = new PreviousCpuTotal();
-        var corePrevious = new PreviousCpuTotal[statics.CpuCores.Count];
+        var corePrevious = new PreviousCpuTotal[stat.CpuCores.Count];
         for (var i = 0; i < corePrevious.Length; i++)
         {
             corePrevious[i] = new PreviousCpuTotal();
@@ -169,13 +169,13 @@ internal sealed class LinuxInstrumentation
 
         prepareEntries.Add(() =>
         {
-            UpdatePrevious(totalPrevious, statics.CpuTotal);
+            UpdatePrevious(totalPrevious, stat.CpuTotal);
             for (var i = 0; i < corePrevious.Length; i++)
             {
-                UpdatePrevious(corePrevious[i], statics.CpuCores[i]);
+                UpdatePrevious(corePrevious[i], stat.CpuCores[i]);
             }
 
-            statics.Update();
+            stat.Update();
         });
 
         var metricInterrupt = manager.CreateCounter("system_interrupt_total");
@@ -184,32 +184,32 @@ internal sealed class LinuxInstrumentation
         var metricScheduler = manager.CreateGauge("system_scheduler_task");
         var metricSoftIrq = manager.CreateCounter("system_softirq_total");
 
-        updateEntries.Add(MakeEntry(() => statics.Interrupt, metricInterrupt.Create(MakeTags())));
-        updateEntries.Add(MakeEntry(() => statics.ContextSwitch, metricContextSwitch.Create(MakeTags())));
-        updateEntries.Add(MakeEntry(() => statics.Forks, metricForks.Create(MakeTags())));
-        updateEntries.Add(MakeEntry(() => statics.RunnableTasks, metricScheduler.Create(MakeTags([new("state", "runnable")]))));
-        updateEntries.Add(MakeEntry(() => statics.BlockedTasks, metricScheduler.Create(MakeTags([new("state", "blocked")]))));
-        updateEntries.Add(MakeEntry(() => statics.SoftIrq, metricSoftIrq.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(() => stat.Interrupt, metricInterrupt.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(() => stat.ContextSwitch, metricContextSwitch.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(() => stat.Forks, metricForks.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(() => stat.RunnableTasks, metricScheduler.Create(MakeTags([new("state", "runnable")]))));
+        updateEntries.Add(MakeEntry(() => stat.BlockedTasks, metricScheduler.Create(MakeTags([new("state", "blocked")]))));
+        updateEntries.Add(MakeEntry(() => stat.SoftIrq, metricSoftIrq.Create(MakeTags())));
 
         var metricCpuTimeTotal = manager.CreateCounter("system_cpu_time_total");
 
-        foreach (var cpu in statics.CpuCores)
+        foreach (var cpu in stat.CpuCores)
         {
             SetupCpuTimeEntry(cpu);
         }
-        SetupCpuTimeEntry(statics.CpuTotal);
+        SetupCpuTimeEntry(stat.CpuTotal);
 
         var metricCpuLoad = manager.CreateGauge("system_cpu_load");
 
         for (var i = 0; i < corePrevious.Length; i++)
         {
-            SetupCpuLoadEntry(corePrevious[i], statics.CpuCores[i]);
+            SetupCpuLoadEntry(corePrevious[i], stat.CpuCores[i]);
         }
-        SetupCpuLoadEntry(totalPrevious, statics.CpuTotal);
+        SetupCpuLoadEntry(totalPrevious, stat.CpuTotal);
 
         return;
 
-        static void UpdatePrevious(PreviousCpuTotal previous, CpuStatics cpu)
+        static void UpdatePrevious(PreviousCpuTotal previous, CpuStat cpu)
         {
             var nonIdle = CalcCpuNonIdle(cpu);
             var idle = CalcCpuIdle(cpu);
@@ -217,7 +217,7 @@ internal sealed class LinuxInstrumentation
             previous.Total = idle + nonIdle;
         }
 
-        void SetupCpuTimeEntry(CpuStatics cpu)
+        void SetupCpuTimeEntry(CpuStat cpu)
         {
             // ReSharper disable StringLiteralTypo
             updateEntries.Add(MakeEntry(() => cpu.User, metricCpuTimeTotal.Create(MakeTags(new("name", cpu.Name), new("mode", "user")))));
@@ -233,7 +233,7 @@ internal sealed class LinuxInstrumentation
             // ReSharper restore StringLiteralTypo
         }
 
-        void SetupCpuLoadEntry(PreviousCpuTotal previous, CpuStatics cpu)
+        void SetupCpuLoadEntry(PreviousCpuTotal previous, CpuStat cpu)
         {
             updateEntries.Add(MakeEntry(() =>
             {
@@ -247,12 +247,12 @@ internal sealed class LinuxInstrumentation
             }, metricCpuLoad.Create(MakeTags([new("name", cpu.Name)]))));
         }
 
-        static long CalcCpuIdle(CpuStatics cpu)
+        static long CalcCpuIdle(CpuStat cpu)
         {
             return cpu.Idle + cpu.IoWait;
         }
 
-        static long CalcCpuNonIdle(CpuStatics cpu)
+        static long CalcCpuNonIdle(CpuStat cpu)
         {
             return cpu.User + cpu.Nice + cpu.System + cpu.Irq + cpu.SoftIrq + cpu.Steal;
         }
@@ -287,7 +287,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupMemoryMetric(IMetricManager manager, string[] targets)
     {
-        var memory = PlatformProvider.GetMemory();
+        var memory = PlatformProvider.GetMemoryStat();
 
         prepareEntries.Add(() => memory.Update());
 
@@ -363,7 +363,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupVirtualMemoryMetric(IMetricManager manager, string[] targets)
     {
-        var vm = PlatformProvider.GetVirtualMemory();
+        var vm = PlatformProvider.GetVirtualMemoryStat();
 
         prepareEntries.Add(() => vm.Update());
 
@@ -414,30 +414,75 @@ internal sealed class LinuxInstrumentation
     }
 
     //--------------------------------------------------------------------------------
-    // Partition
+    // Mount
     //--------------------------------------------------------------------------------
 
-    private void SetupPartitionMetric(IMetricManager manager)
+    private void SetupMountMetric(IMetricManager manager)
     {
         var partitions = PlatformProvider.GetPartitions();
-        var drives = partitions.Select(static x => new DriveInfo(x.MountPoints[0])).ToList();
+        var mounts = partitions
+            .SelectMany(static x => x.GetMounts())
+            .Select(x => new
+            {
+                Mount = x,
+                Usage = PlatformProvider.GetFileSystemUsage(x.MountPoint),
+                Tags = MakeTags([new("name", x.DeviceName), new("mount", x.MountPoint), new("fs", x.FileSystem)])
+            })
+            .ToArray();
 
-        var metricUsed = manager.CreateGauge("system_partition_used");
-        foreach (var drive in drives)
+        prepareEntries.Add(() =>
         {
-            updateEntries.Add(MakeEntry(() => (double)(drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize * 100, metricUsed.Create([new("name", drive.Name)])));
+            foreach (var item in mounts)
+            {
+                item.Usage.Update();
+            }
+        });
+
+        var metricSizeUsed = manager.CreateGauge("system_partition_size_used");
+        foreach (var item in mounts)
+        {
+            updateEntries.Add(MakeEntry(() => CalcUsed(item.Usage), metricSizeUsed.Create(item.Tags)));
         }
 
-        var metricTotal = manager.CreateGauge("system_partition_total");
-        foreach (var drive in drives)
+        var metricSizeTotal = manager.CreateGauge("system_partition_size_total");
+        foreach (var item in mounts)
         {
-            updateEntries.Add(MakeEntry(() => drive.TotalSize, metricTotal.Create([new("name", drive.Name)])));
+            updateEntries.Add(MakeEntry(() => item.Usage.TotalSize, metricSizeTotal.Create(item.Tags)));
         }
 
-        var metricFree = manager.CreateGauge("system_partition_free");
-        foreach (var drive in drives)
+        var metricSizeFree = manager.CreateGauge("system_partition_size_free");
+        foreach (var item in mounts)
         {
-            updateEntries.Add(MakeEntry(() => drive.TotalFreeSpace, metricFree.Create([new("name", drive.Name)])));
+            updateEntries.Add(MakeEntry(() => item.Usage.FreeSize, metricSizeFree.Create(item.Tags)));
+        }
+
+        var metricAvailableFree = manager.CreateGauge("system_partition_size_available");
+        foreach (var item in mounts)
+        {
+            updateEntries.Add(MakeEntry(() => item.Usage.AvailableSize, metricAvailableFree.Create(item.Tags)));
+        }
+
+        var metricFilesTotal = manager.CreateGauge("system_partition_files_total");
+        foreach (var item in mounts)
+        {
+            updateEntries.Add(MakeEntry(() => item.Usage.TotalFiles, metricFilesTotal.Create(item.Tags)));
+        }
+
+        var metricFilesFree = manager.CreateGauge("system_partition_files_free");
+        foreach (var item in mounts)
+        {
+            updateEntries.Add(MakeEntry(() => item.Usage.FreeFiles, metricFilesFree.Create(item.Tags)));
+        }
+
+        return;
+
+        static double CalcUsed(FileSystemUsage usage)
+        {
+            var used = usage.TotalSize - usage.FreeSize;
+            var total = used + usage.AvailableSize;
+            return total > 0
+                ? (double)used / total * 100
+                : 0;
         }
     }
 
@@ -447,7 +492,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupDiskStaticsMetric(IMetricManager manager)
     {
-        var disk = PlatformProvider.GetDiskStatics();
+        var disk = PlatformProvider.GetDiskStat();
 
         prepareEntries.Add(() => disk.Update());
 
@@ -483,7 +528,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupFileDescriptorMetric(IMetricManager manager)
     {
-        var fd = PlatformProvider.GetFileDescriptor();
+        var fd = PlatformProvider.GetFileHandleStat();
 
         prepareEntries.Add(() => fd.Update());
 
@@ -495,12 +540,12 @@ internal sealed class LinuxInstrumentation
     }
 
     //--------------------------------------------------------------------------------
-    // NetworkStatic
+    // NetworkStat
     //--------------------------------------------------------------------------------
 
     private void SetupNetworkStaticMetric(IMetricManager manager)
     {
-        var network = PlatformProvider.GetNetworkStatic();
+        var network = PlatformProvider.GetNetworkStat();
 
         prepareEntries.Add(() => network.Update());
 
@@ -547,7 +592,7 @@ internal sealed class LinuxInstrumentation
 
         if (useTcp4)
         {
-            var tcp = PlatformProvider.GetTcp();
+            var tcp = PlatformProvider.GetTcpStat();
 
             prepareEntries.Add(() => tcp.Update());
 
@@ -556,26 +601,26 @@ internal sealed class LinuxInstrumentation
 
         if (useTcp6)
         {
-            var tcp6 = PlatformProvider.GetTcp6();
+            var tcp6 = PlatformProvider.GetTcp6Stat();
 
             prepareEntries.Add(() => tcp6.Update());
 
             SetupTcpStaticEntries(tcp6, 6);
         }
 
-        void SetupTcpStaticEntries(TcpInfo info, int version)
+        void SetupTcpStaticEntries(TcpStat stat, int version)
         {
-            updateEntries.Add(MakeEntry(() => info.Established, metric.Create(MakeTags(new("version", version), new("state", "established")))));
-            updateEntries.Add(MakeEntry(() => info.SynSent, metric.Create(MakeTags(new("version", version), new("state", "syn_sent")))));
-            updateEntries.Add(MakeEntry(() => info.SynRecv, metric.Create(MakeTags(new("version", version), new("state", "syn_recv")))));
-            updateEntries.Add(MakeEntry(() => info.FinWait1, metric.Create(MakeTags(new("version", version), new("state", "fin_wait1")))));
-            updateEntries.Add(MakeEntry(() => info.FinWait2, metric.Create(MakeTags(new("version", version), new("state", "fin_wait2")))));
-            updateEntries.Add(MakeEntry(() => info.TimeWait, metric.Create(MakeTags(new("version", version), new("state", "time_wait")))));
-            updateEntries.Add(MakeEntry(() => info.Close, metric.Create(MakeTags(new("version", version), new("state", "close")))));
-            updateEntries.Add(MakeEntry(() => info.CloseWait, metric.Create(MakeTags(new("version", version), new("state", "close_wait")))));
-            updateEntries.Add(MakeEntry(() => info.LastAck, metric.Create(MakeTags(new("version", version), new("state", "last_ack")))));
-            updateEntries.Add(MakeEntry(() => info.Listen, metric.Create(MakeTags(new("version", version), new("state", "listen")))));
-            updateEntries.Add(MakeEntry(() => info.Closing, metric.Create(MakeTags(new("version", version), new("state", "closing")))));
+            updateEntries.Add(MakeEntry(() => stat.Established, metric.Create(MakeTags(new("version", version), new("state", "established")))));
+            updateEntries.Add(MakeEntry(() => stat.SynSent, metric.Create(MakeTags(new("version", version), new("state", "syn_sent")))));
+            updateEntries.Add(MakeEntry(() => stat.SynRecv, metric.Create(MakeTags(new("version", version), new("state", "syn_recv")))));
+            updateEntries.Add(MakeEntry(() => stat.FinWait1, metric.Create(MakeTags(new("version", version), new("state", "fin_wait1")))));
+            updateEntries.Add(MakeEntry(() => stat.FinWait2, metric.Create(MakeTags(new("version", version), new("state", "fin_wait2")))));
+            updateEntries.Add(MakeEntry(() => stat.TimeWait, metric.Create(MakeTags(new("version", version), new("state", "time_wait")))));
+            updateEntries.Add(MakeEntry(() => stat.Close, metric.Create(MakeTags(new("version", version), new("state", "close")))));
+            updateEntries.Add(MakeEntry(() => stat.CloseWait, metric.Create(MakeTags(new("version", version), new("state", "close_wait")))));
+            updateEntries.Add(MakeEntry(() => stat.LastAck, metric.Create(MakeTags(new("version", version), new("state", "last_ack")))));
+            updateEntries.Add(MakeEntry(() => stat.Listen, metric.Create(MakeTags(new("version", version), new("state", "listen")))));
+            updateEntries.Add(MakeEntry(() => stat.Closing, metric.Create(MakeTags(new("version", version), new("state", "closing")))));
         }
     }
 
@@ -602,7 +647,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupCpuMetric(IMetricManager manager)
     {
-        var cpu = PlatformProvider.GetCpu();
+        var cpu = PlatformProvider.GetCpuDevice();
 
         prepareEntries.Add(() => cpu.Update());
 
@@ -628,7 +673,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupBatteryMetric(IMetricManager manager)
     {
-        var battery = PlatformProvider.GetBattery();
+        var battery = PlatformProvider.GetBatteryDevice();
         if (!battery.Supported)
         {
             return;
@@ -653,12 +698,12 @@ internal sealed class LinuxInstrumentation
     }
 
     //--------------------------------------------------------------------------------
-    // MainsAdapter
+    // Mains
     //--------------------------------------------------------------------------------
 
     private void SetupMainsAdapterMetric(IMetricManager manager)
     {
-        var adapter = PlatformProvider.GetMainsAdapter();
+        var adapter = PlatformProvider.GetMainsDevice();
         if (!adapter.Supported)
         {
             return;

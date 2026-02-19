@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Tmds.DBus" Version="0.90.2" />
+    <PackageReference Include="Tmds.DBus" Version="0.90.3" />
   </ItemGroup>
 
 </Project>

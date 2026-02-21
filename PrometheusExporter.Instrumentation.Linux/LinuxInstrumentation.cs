@@ -28,9 +28,9 @@ internal sealed class LinuxInstrumentation
         {
             SetupUptimeMetric(manager);
         }
-        if (options.Statics)
+        if (options.SystemStat)
         {
-            SetupStaticsMetric(manager);
+            SetupSystemStatMetric(manager);
         }
         if (options.LoadAverage)
         {
@@ -48,21 +48,25 @@ internal sealed class LinuxInstrumentation
         {
             SetupMountMetric(manager);
         }
-        if (options.DiskStatics)
+        if (options.DiskStat)
         {
-            SetupDiskStaticsMetric(manager);
+            SetupDiskStatMetric(manager);
         }
         if (options.FileDescriptor)
         {
             SetupFileDescriptorMetric(manager);
         }
-        if (options.NetworkStatic)
+        if (options.NetworkStat)
         {
-            SetupNetworkStaticMetric(manager);
+            SetupNetworkStatMetric(manager);
         }
-        if (options.TcpStatic || options.Tcp6Static)
+        if (options.TcpStat || options.Tcp6Stat)
         {
-            SetupTcpStaticMetric(manager, options.TcpStatic, options.Tcp6Static);
+            SetupTcpStaticMetric(manager, options.TcpStat, options.Tcp6Stat);
+        }
+        if (options.WirelessStat)
+        {
+            SetupWirelessStatMetric(manager);
         }
         if (options.ProcessSummary)
         {
@@ -76,9 +80,9 @@ internal sealed class LinuxInstrumentation
         {
             SetupBatteryMetric(manager);
         }
-        if (options.MainsAdapter)
+        if (options.Mains)
         {
-            SetupMainsAdapterMetric(manager);
+            SetupMainsMetric(manager);
         }
         if (options.HardwareMonitor)
         {
@@ -156,7 +160,7 @@ internal sealed class LinuxInstrumentation
     // System
     //--------------------------------------------------------------------------------
 
-    private void SetupStaticsMetric(IMetricManager manager)
+    private void SetupSystemStatMetric(IMetricManager manager)
     {
         var stat = PlatformProvider.GetSystemStat();
 
@@ -490,7 +494,7 @@ internal sealed class LinuxInstrumentation
     // DiskStatics
     //--------------------------------------------------------------------------------
 
-    private void SetupDiskStaticsMetric(IMetricManager manager)
+    private void SetupDiskStatMetric(IMetricManager manager)
     {
         var disk = PlatformProvider.GetDiskStat();
 
@@ -543,7 +547,7 @@ internal sealed class LinuxInstrumentation
     // NetworkStat
     //--------------------------------------------------------------------------------
 
-    private void SetupNetworkStaticMetric(IMetricManager manager)
+    private void SetupNetworkStatMetric(IMetricManager manager)
     {
         var network = PlatformProvider.GetNetworkStat();
 
@@ -625,6 +629,38 @@ internal sealed class LinuxInstrumentation
     }
 
     //--------------------------------------------------------------------------------
+    // Wireless
+    //--------------------------------------------------------------------------------
+
+    private void SetupWirelessStatMetric(IMetricManager manager)
+    {
+        var wireless = PlatformProvider.GetWirelessStat();
+
+        prepareEntries.Add(() => wireless.Update());
+
+        var metricLinqQuality = manager.CreateGauge("system_wireless_linq_quality");
+        var metricSignalLevel = manager.CreateGauge("system_wireless_signal_level");
+        var metricNoiseLevel = manager.CreateGauge("system_wireless_noise_level");
+        var metricDiscardPacket = manager.CreateCounter("system_wireless_discard_packet_total");
+        var metricMissedBeacon = manager.CreateCounter("system_wireless_missed_beacon_total");
+
+        foreach (var wif in wireless.Interfaces)
+        {
+            // ReSharper disable StringLiteralTypo
+            updateEntries.Add(MakeEntry(() => wif.LinkQuality, metricLinqQuality.Create(MakeTags([new("name", wif.Interface)]))));
+            updateEntries.Add(MakeEntry(() => wif.SignalLevel, metricSignalLevel.Create(MakeTags([new("name", wif.Interface)]))));
+            updateEntries.Add(MakeEntry(() => wif.NoiseLevel, metricNoiseLevel.Create(MakeTags([new("name", wif.Interface)]))));
+            updateEntries.Add(MakeEntry(() => wif.DiscardedNetworkId, metricDiscardPacket.Create(MakeTags(new("name", wif.Interface), new("packet", "nwid")))));
+            updateEntries.Add(MakeEntry(() => wif.DiscardedCrypt, metricDiscardPacket.Create(MakeTags(new("name", wif.Interface), new("packet", "crypt")))));
+            updateEntries.Add(MakeEntry(() => wif.DiscardedFragment, metricDiscardPacket.Create(MakeTags(new("name", wif.Interface), new("packet", "frag")))));
+            updateEntries.Add(MakeEntry(() => wif.DiscardedRetry, metricDiscardPacket.Create(MakeTags(new("name", wif.Interface), new("packet", "retry")))));
+            updateEntries.Add(MakeEntry(() => wif.DiscardedMisc, metricDiscardPacket.Create(MakeTags(new("name", wif.Interface), new("packet", "misc")))));
+            updateEntries.Add(MakeEntry(() => wif.MissedBeacon, metricMissedBeacon.Create(MakeTags([new("name", wif.Interface)]))));
+            // ReSharper restore StringLiteralTypo
+        }
+    }
+
+    //--------------------------------------------------------------------------------
     // ProcessSummary
     //--------------------------------------------------------------------------------
 
@@ -701,7 +737,7 @@ internal sealed class LinuxInstrumentation
     // Mains
     //--------------------------------------------------------------------------------
 
-    private void SetupMainsAdapterMetric(IMetricManager manager)
+    private void SetupMainsMetric(IMetricManager manager)
     {
         var adapter = PlatformProvider.GetMainsDevice();
         if (!adapter.Supported)

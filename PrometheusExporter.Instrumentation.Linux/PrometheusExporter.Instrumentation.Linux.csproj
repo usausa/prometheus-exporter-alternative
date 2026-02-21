@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LinuxDotNet.SystemInfo" Version="1.6.0" />
+    <PackageReference Include="LinuxDotNet.SystemInfo" Version="1.7.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
   </ItemGroup>
 

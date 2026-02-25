@@ -37,6 +37,7 @@
     <Rule Id="CA1716" Action="Hidden" />
     <Rule Id="CA1724" Action="Hidden" />
     <Rule Id="CA1861" Action="Hidden" />
+    <Rule Id="CA1873" Action="Hidden" />
   </Rules>
   <Rules AnalyzerId="Smart.Analyzers.JapaneseComment" RuleNamespace="Smart.Analyzers.JapaneseComment">
   </Rules>

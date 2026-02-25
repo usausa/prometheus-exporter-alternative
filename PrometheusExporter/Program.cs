@@ -48,8 +48,6 @@ var host = builder.Build();
 var log = host.Services.GetRequiredService<ILogger<Program>>();
 log.InfoServiceStart();
 log.InfoServiceSettingsRuntime(RuntimeInformation.OSDescription, RuntimeInformation.FrameworkDescription, RuntimeInformation.RuntimeIdentifier);
-#pragma warning disable CA1873
 log.InfoServiceSettingsEnvironment(typeof(Program).Assembly.GetName().Version, Environment.CurrentDirectory);
-#pragma warning restore CA1873
 
 host.Run();

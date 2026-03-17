@@ -10,7 +10,9 @@ internal sealed class MacInstrumentation
 
     private readonly TimeSpan updateDuration;
 
-    private readonly List<Action> entries = [];
+    private readonly List<Action> prepareEntries = [];
+
+    private readonly List<Action> updateEntries = [];
 
     private DateTime lastUpdate;
 
@@ -39,7 +41,12 @@ internal sealed class MacInstrumentation
             return;
         }
 
-        foreach (var action in entries)
+        foreach (var action in prepareEntries)
+        {
+            action();
+        }
+
+        foreach (var action in updateEntries)
         {
             action();
         }
@@ -67,15 +74,9 @@ internal sealed class MacInstrumentation
         // Uptime
         var uptimeInfo = PlatformProvider.GetUptime();
 
-        var metric = manager.CreateGauge("system_uptime");
-        entries.Add(MakeEntry(ReadValue, metric.Create(MakeTags())));
-        return;
+        prepareEntries.Add(() => uptimeInfo.Update());
 
-        double ReadValue()
-        {
-            uptimeInfo.Update();
-            var uptime = uptimeInfo.Uptime;
-            return uptime.TotalSeconds;
-        }
+        var metric = manager.CreateGauge("system_uptime");
+        updateEntries.Add(MakeEntry(() => uptimeInfo.Elapsed.TotalSeconds, metric.Create(MakeTags())));
     }
 }

@@ -28,9 +28,9 @@ internal sealed class LinuxInstrumentation
         {
             SetupUptimeMetric(manager);
         }
-        if (options.SystemStat)
+        if (options.System)
         {
-            SetupSystemStatMetric(manager);
+            SetupSystemMetric(manager);
         }
         if (options.LoadAverage)
         {
@@ -48,25 +48,25 @@ internal sealed class LinuxInstrumentation
         {
             SetupMountMetric(manager);
         }
-        if (options.DiskStat)
+        if (options.Disk)
         {
-            SetupDiskStatMetric(manager);
+            SetupDiskMetric(manager);
         }
         if (options.FileDescriptor)
         {
             SetupFileDescriptorMetric(manager);
         }
-        if (options.NetworkStat)
+        if (options.Network)
         {
-            SetupNetworkStatMetric(manager);
+            SetupNetworkMetric(manager);
         }
-        if (options.TcpStat || options.Tcp6Stat)
+        if (options.Tcp || options.Tcp6)
         {
-            SetupTcpStaticMetric(manager, options.TcpStat, options.Tcp6Stat);
+            SetupTcpMetric(manager, options.Tcp, options.Tcp6);
         }
-        if (options.WirelessStat)
+        if (options.Wireless)
         {
-            SetupWirelessStatMetric(manager);
+            SetupWirelessMetric(manager);
         }
         if (options.ProcessSummary)
         {
@@ -160,7 +160,7 @@ internal sealed class LinuxInstrumentation
     // System
     //--------------------------------------------------------------------------------
 
-    private void SetupSystemStatMetric(IMetricManager manager)
+    private void SetupSystemMetric(IMetricManager manager)
     {
         var stat = PlatformProvider.GetSystemStat();
 
@@ -494,7 +494,7 @@ internal sealed class LinuxInstrumentation
     // DiskStatics
     //--------------------------------------------------------------------------------
 
-    private void SetupDiskStatMetric(IMetricManager manager)
+    private void SetupDiskMetric(IMetricManager manager)
     {
         var disk = PlatformProvider.GetDiskStat();
 
@@ -547,7 +547,7 @@ internal sealed class LinuxInstrumentation
     // NetworkStat
     //--------------------------------------------------------------------------------
 
-    private void SetupNetworkStatMetric(IMetricManager manager)
+    private void SetupNetworkMetric(IMetricManager manager)
     {
         var network = PlatformProvider.GetNetworkStat();
 
@@ -590,7 +590,7 @@ internal sealed class LinuxInstrumentation
     // Tcp/Tcp6
     //--------------------------------------------------------------------------------
 
-    private void SetupTcpStaticMetric(IMetricManager manager, bool useTcp4, bool useTcp6)
+    private void SetupTcpMetric(IMetricManager manager, bool useTcp4, bool useTcp6)
     {
         var metric = manager.CreateGauge("system_tcp_statics");
 
@@ -632,7 +632,7 @@ internal sealed class LinuxInstrumentation
     // Wireless
     //--------------------------------------------------------------------------------
 
-    private void SetupWirelessStatMetric(IMetricManager manager)
+    private void SetupWirelessMetric(IMetricManager manager)
     {
         var wireless = PlatformProvider.GetWirelessStat();
 

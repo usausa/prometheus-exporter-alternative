@@ -6,7 +6,7 @@ internal sealed class LinuxOptions
 
     public bool Uptime { get; set; } = true;
 
-    public bool SystemStat { get; set; } = true;
+    public bool System { get; set; } = true;
 
     public bool LoadAverage { get; set; } = true;
 
@@ -16,17 +16,17 @@ internal sealed class LinuxOptions
 
     public bool Mount { get; set; } = true;
 
-    public bool DiskStat { get; set; } = true;
+    public bool Disk { get; set; } = true;
 
     public bool FileDescriptor { get; set; } = true;
 
-    public bool NetworkStat { get; set; } = true;
+    public bool Network { get; set; } = true;
 
-    public bool TcpStat { get; set; } = true;
+    public bool Tcp { get; set; } = true;
 
-    public bool Tcp6Stat { get; set; } = true;
+    public bool Tcp6 { get; set; } = true;
 
-    public bool WirelessStat { get; set; } = true;
+    public bool Wireless { get; set; } = true;
 
     public bool ProcessSummary { get; set; } = true;
 

@@ -11,7 +11,11 @@
 
   <ItemGroup>
     <PackageReference Include="DeviceLib.SensorOmron" Version="1.5.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.6.0" />
   </ItemGroup>
 
 </Project>

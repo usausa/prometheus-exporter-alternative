@@ -2,9 +2,9 @@ namespace PrometheusExporter.Instrumentation;
 
 internal sealed class RegistrationManager : IRegistrationManager
 {
-    private readonly List<Registration> registrations = new();
+    private readonly List<Registration> registrations = [];
 
-    private readonly List<RegistrationError> errors = new();
+    private readonly List<RegistrationError> errors = [];
 
     public IReadOnlyList<Registration> Registrations => registrations;
 

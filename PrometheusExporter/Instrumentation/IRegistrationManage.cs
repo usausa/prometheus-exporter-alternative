@@ -2,7 +2,7 @@ namespace PrometheusExporter.Instrumentation;
 
 internal interface IRegistrationManager
 {
-    public IReadOnlyList<Registration> Registrations { get; }
+    IReadOnlyList<Registration> Registrations { get; }
 
-    public IReadOnlyList<RegistrationError> Errors { get; }
+    IReadOnlyList<RegistrationError> Errors { get; }
 }

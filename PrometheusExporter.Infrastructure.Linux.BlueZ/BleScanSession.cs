@@ -273,7 +273,7 @@ public sealed class BleScanSession : IAsyncDisposable
 
         if (value is IDictionary<ushort, byte[]> direct)
         {
-            return new Dictionary<ushort, byte[]>(direct);
+            return new(direct);
         }
 
         if (value is IDictionary<ushort, object> objectDictionary)

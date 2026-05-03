@@ -101,7 +101,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     private void SetupVcioTemperatureMetric(IMetricManager manager)
     {
         var metric = manager.CreateGauge("hardware_vcio_temperature");
-        updateEntries.Add(MakeEntry(() => vcio.ReadTemperature(), metric.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(vcio.ReadTemperature, metric.Create(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------

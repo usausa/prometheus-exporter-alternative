@@ -11,8 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HardwareInfo.Disk" Version="1.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
+    <PackageReference Include="HardwareInfo.Disk" Version="1.8.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.6.0" />
   </ItemGroup>
 
 </Project>

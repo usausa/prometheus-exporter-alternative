@@ -6,7 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Tmds.DBus" Version="0.92.0" />
+    <PackageReference Include="Tmds.DBus" Version="0.93.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.6.0" />
   </ItemGroup>
 
 </Project>

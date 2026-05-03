@@ -10,8 +10,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MacDotNet.SystemInfo" Version="1.2.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
+    <PackageReference Include="MacDotNet.SystemInfo" Version="1.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.6.0" />
   </ItemGroup>
 
 </Project>

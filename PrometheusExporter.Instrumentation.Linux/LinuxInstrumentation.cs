@@ -251,12 +251,12 @@ internal sealed class LinuxInstrumentation
             }, metricCpuLoad.Create(MakeTags([new("name", cpu.Name)]))));
         }
 
-        static long CalcCpuIdle(CpuStat cpu)
+        static ulong CalcCpuIdle(CpuStat cpu)
         {
             return cpu.Idle + cpu.IoWait;
         }
 
-        static long CalcCpuNonIdle(CpuStat cpu)
+        static ulong CalcCpuNonIdle(CpuStat cpu)
         {
             return cpu.User + cpu.Nice + cpu.System + cpu.Irq + cpu.SoftIrq + cpu.Steal;
         }
@@ -264,9 +264,9 @@ internal sealed class LinuxInstrumentation
 
     private sealed class PreviousCpuTotal
     {
-        public long NonIdle { get; set; }
+        public ulong NonIdle { get; set; }
 
-        public long Total { get; set; }
+        public ulong Total { get; set; }
     }
 
     //--------------------------------------------------------------------------------
@@ -685,7 +685,7 @@ internal sealed class LinuxInstrumentation
     {
         var cpu = PlatformProvider.GetCpuDevice();
 
-        prepareEntries.Add(() => cpu.Update());
+        prepareEntries.Add(cpu.Update);
 
         var metricFrequency = manager.CreateGauge("hardware_cpu_frequency");
         foreach (var core in cpu.Cores)

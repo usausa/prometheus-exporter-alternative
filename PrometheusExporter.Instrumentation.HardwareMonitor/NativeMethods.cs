@@ -2,10 +2,10 @@ namespace PrometheusExporter.Instrumentation.HardwareMonitor;
 
 using System.Runtime.InteropServices;
 
-internal static class NativeMethods
+internal static partial class NativeMethods
 {
-    [DllImport("kernel32.dll")]
+    [LibraryImport("kernel32.dll")]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool GetPhysicallyInstalledSystemMemory(out long totalMemoryInKilobytes);
+    internal static partial bool GetPhysicallyInstalledSystemMemory(out long totalMemoryInKilobytes);
 }

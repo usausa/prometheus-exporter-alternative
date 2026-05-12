@@ -12,6 +12,15 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Version>2.0.0-beta1</Version>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -23,12 +32,6 @@
     <PackageProjectUrl>https://github.com/usausa/prometheus-exporter-alternative</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <AnalysisMode>All</AnalysisMode>
-    <AnalysisLevel>latest</AnalysisLevel>
-  </PropertyGroup>
-
   <PropertyGroup>
     <Configurations>Debug;Release;DebugLinux;DebugMac</Configurations>
   </PropertyGroup>

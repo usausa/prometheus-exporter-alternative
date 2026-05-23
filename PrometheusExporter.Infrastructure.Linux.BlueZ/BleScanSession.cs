@@ -273,7 +273,9 @@ public sealed class BleScanSession : IAsyncDisposable
 
         if (value is IDictionary<ushort, byte[]> direct)
         {
+#pragma warning disable IDE0028
             return new(direct);
+#pragma warning restore IDE0028
         }
 
         if (value is IDictionary<ushort, object> objectDictionary)

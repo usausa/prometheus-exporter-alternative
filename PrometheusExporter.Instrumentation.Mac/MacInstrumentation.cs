@@ -268,9 +268,9 @@ internal sealed class MacInstrumentation
         updateEntries.Add(MakeEntry(() => memory.PageIn, metricPage.Create(MakeTags([new("type", "in")]))));
         updateEntries.Add(MakeEntry(() => memory.PageOut, metricPage.Create(MakeTags([new("type", "out")]))));
 
-        var metricSwapIO = manager.CreateCounter("system_memory_swap_io_total");
-        updateEntries.Add(MakeEntry(() => memory.SwapIn, metricSwapIO.Create(MakeTags([new("type", "in")]))));
-        updateEntries.Add(MakeEntry(() => memory.SwapOut, metricSwapIO.Create(MakeTags([new("type", "out")]))));
+        var metricSwapIo = manager.CreateCounter("system_memory_swap_io_total");
+        updateEntries.Add(MakeEntry(() => memory.SwapIn, metricSwapIo.Create(MakeTags([new("type", "in")]))));
+        updateEntries.Add(MakeEntry(() => memory.SwapOut, metricSwapIo.Create(MakeTags([new("type", "out")]))));
     }
 
     //--------------------------------------------------------------------------------

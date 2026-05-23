@@ -1,8 +1,8 @@
 namespace PrometheusExporter.Instrumentation.Mac;
 
-using PrometheusExporter.Abstractions;
-
 using MacDotNet.SystemInfo;
+
+using PrometheusExporter.Abstractions;
 
 internal sealed class MacInstrumentation
 {

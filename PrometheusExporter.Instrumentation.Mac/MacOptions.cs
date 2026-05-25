@@ -30,5 +30,7 @@ internal sealed class MacOptions
 
     public bool Power { get; set; } = true;
 
-    public bool HardwareMonitor { get; set; } = true;
+    public string[] HardwareMonitor { get; set; } = ["*"];
+
+    public bool Fan { get; set; } = true;
 }

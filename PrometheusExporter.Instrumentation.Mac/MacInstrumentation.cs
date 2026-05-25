@@ -76,9 +76,9 @@ internal sealed class MacInstrumentation
         {
             SetupPowerMetric(manager);
         }
-        if (options.HardwareMonitor)
+        if (options.HardwareMonitor.Length > 0)
         {
-            SetupHardwareMonitorMetric(manager);
+            SetupHardwareMonitorMetric(manager, options.HardwareMonitor, options.Fan);
         }
 
         manager.AddBeforeCollectCallback(Update);
@@ -125,8 +125,8 @@ internal sealed class MacInstrumentation
         return [.. tags];
     }
 
-    //private static bool IsTarget(IEnumerable<string> targets, string name) =>
-    //    targets.Any(x => (x == "*") || (x == name));
+    private static bool IsTarget(IEnumerable<string> targets, string name) =>
+        targets.Any(x => (x == "*") || (x == name));
 
     private static Action MakeEntry(Func<double> measurement, IMetricSeries series)
     {
@@ -156,24 +156,26 @@ internal sealed class MacInstrumentation
     {
         var cpu = PlatformProvider.GetCpuStat();
 
-        var corePrevious = Array.Empty<PreviousCpuTotal>();
+        var efficiencyCorePrevious = InitPrevious(cpu.EfficiencyCores.Count);
+        var performanceCorePrevious = InitPrevious(cpu.PerformanceCores.Count);
+        var totalPrevious = new PreviousCpuTotal();
+        var efficiencyPrevious = new PreviousCpuTotal();
+        var performancePrevious = new PreviousCpuTotal();
 
         prepareEntries.Add(() =>
         {
-            if (corePrevious.Length < cpu.CpuCores.Count)
+            for (var i = 0; i < cpu.EfficiencyCores.Count; i++)
             {
-                var newPrevious = new PreviousCpuTotal[cpu.CpuCores.Count];
-                for (var i = 0; i < newPrevious.Length; i++)
-                {
-                    newPrevious[i] = corePrevious.Length > i ? corePrevious[i] : new PreviousCpuTotal();
-                }
-                corePrevious = newPrevious;
+                UpdatePrevious(efficiencyCorePrevious[i], cpu.EfficiencyCores[i]);
+            }
+            for (var i = 0; i < cpu.PerformanceCores.Count; i++)
+            {
+                UpdatePrevious(performanceCorePrevious[i], cpu.PerformanceCores[i]);
             }
 
-            for (var i = 0; i < corePrevious.Length && i < cpu.CpuCores.Count; i++)
-            {
-                UpdatePrevious(corePrevious[i], cpu.CpuCores[i]);
-            }
+            UpdatePreviousGroup(totalPrevious, cpu.CpuCores);
+            UpdatePreviousGroup(efficiencyPrevious, cpu.EfficiencyCores);
+            UpdatePreviousGroup(performancePrevious, cpu.PerformanceCores);
 
             cpu.Update();
         });
@@ -181,33 +183,61 @@ internal sealed class MacInstrumentation
         var metricCpuTime = manager.CreateCounter("system_cpu_time_total");
         var metricCpuLoad = manager.CreateGauge("system_cpu_load");
 
-        for (var i = 0; i < cpu.CpuCores.Count; i++)
+        // Per efficiency core
+        for (var i = 0; i < cpu.EfficiencyCores.Count; i++)
         {
-            var core = cpu.CpuCores[i];
-            updateEntries.Add(MakeEntry(() => core.User, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("mode", "user")))));
-            updateEntries.Add(MakeEntry(() => core.System, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("mode", "system")))));
-            updateEntries.Add(MakeEntry(() => core.Idle, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("mode", "idle")))));
-            updateEntries.Add(MakeEntry(() => core.Nice, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("mode", "nice")))));
+            var core = cpu.EfficiencyCores[i];
+            var prev = efficiencyCorePrevious[i];
+            updateEntries.Add(MakeEntry(() => core.User, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "efficiency"), new("mode", "user")))));
+            updateEntries.Add(MakeEntry(() => core.System, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "efficiency"), new("mode", "system")))));
+            updateEntries.Add(MakeEntry(() => core.Idle, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "efficiency"), new("mode", "idle")))));
+            updateEntries.Add(MakeEntry(() => core.Nice, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "efficiency"), new("mode", "nice")))));
+            updateEntries.Add(MakeEntry(() => CalcCoreLoad(core, prev), metricCpuLoad.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "efficiency")))));
+        }
 
-            var coreCapture = core;
-            var prevIndex = i;
-            updateEntries.Add(MakeEntry(() =>
-            {
-                if (prevIndex >= corePrevious.Length)
-                {
-                    return 0;
-                }
+        // Per performance core
+        for (var i = 0; i < cpu.PerformanceCores.Count; i++)
+        {
+            var core = cpu.PerformanceCores[i];
+            var prev = performanceCorePrevious[i];
+            updateEntries.Add(MakeEntry(() => core.User, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "performance"), new("mode", "user")))));
+            updateEntries.Add(MakeEntry(() => core.System, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "performance"), new("mode", "system")))));
+            updateEntries.Add(MakeEntry(() => core.Idle, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "performance"), new("mode", "idle")))));
+            updateEntries.Add(MakeEntry(() => core.Nice, metricCpuTime.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "performance"), new("mode", "nice")))));
+            updateEntries.Add(MakeEntry(() => CalcCoreLoad(core, prev), metricCpuLoad.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", "performance")))));
+        }
 
-                var prev = corePrevious[prevIndex];
-                var nonIdle = (double)(coreCapture.User + coreCapture.System + coreCapture.Nice);
-                var total = nonIdle + coreCapture.Idle;
-                var totalDiff = total - prev.Total;
-                var nonIdleDiff = nonIdle - prev.NonIdle;
-                return totalDiff == 0 ? 0 : nonIdleDiff / totalDiff * 100.0;
-            }, metricCpuLoad.Create(MakeTags([new("name", $"cpu{core.Number}")]))));
+        // Group
+        updateEntries.Add(MakeEntry(() => CalcGroupLoad(cpu.CpuCores, totalPrevious), metricCpuLoad.Create(MakeTags(new("name", "cpu"), new("type", "all")))));
+        if (cpu.EfficiencyCores.Count > 0)
+        {
+            updateEntries.Add(MakeEntry(() => CalcGroupLoad(cpu.EfficiencyCores, efficiencyPrevious), metricCpuLoad.Create(MakeTags(new("name", "cpu"), new("type", "efficiency")))));
+        }
+        if (cpu.PerformanceCores.Count > 0)
+        {
+            updateEntries.Add(MakeEntry(() => CalcGroupLoad(cpu.PerformanceCores, performancePrevious), metricCpuLoad.Create(MakeTags(new("name", "cpu"), new("type", "performance")))));
         }
 
         return;
+
+        static PreviousCpuTotal[] InitPrevious(int count)
+        {
+            var previous = new PreviousCpuTotal[count];
+            for (var i = 0; i < count; i++)
+            {
+                previous[i] = new PreviousCpuTotal();
+            }
+            return previous;
+        }
+
+        static double CalcCoreLoad(CpuCoreStat core, PreviousCpuTotal previous)
+        {
+            var nonIdle = (double)(core.User + core.System + core.Nice);
+            var total = nonIdle + core.Idle;
+            var totalDiff = total - previous.Total;
+            var nonIdleDiff = nonIdle - previous.NonIdle;
+            return totalDiff == 0 ? 0 : nonIdleDiff / totalDiff * 100.0;
+        }
 
         static void UpdatePrevious(PreviousCpuTotal previous, CpuCoreStat core)
         {
@@ -215,6 +245,36 @@ internal sealed class MacInstrumentation
             var idle = (double)core.Idle;
             previous.NonIdle = nonIdle;
             previous.Total = idle + nonIdle;
+        }
+
+        static void UpdatePreviousGroup(PreviousCpuTotal previous, IReadOnlyList<CpuCoreStat> cores)
+        {
+            var nonIdle = 0.0;
+            var idle = 0.0;
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < cores.Count; i++)
+            {
+                nonIdle += cores[i].User + cores[i].System + (double)cores[i].Nice;
+                idle += cores[i].Idle;
+            }
+            previous.NonIdle = nonIdle;
+            previous.Total = idle + nonIdle;
+        }
+
+        static double CalcGroupLoad(IReadOnlyList<CpuCoreStat> cores, PreviousCpuTotal previous)
+        {
+            var nonIdle = 0.0;
+            var idle = 0.0;
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < cores.Count; i++)
+            {
+                nonIdle += cores[i].User + cores[i].System + (double)cores[i].Nice;
+                idle += cores[i].Idle;
+            }
+            var total = idle + nonIdle;
+            var totalDiff = total - previous.Total;
+            var nonIdleDiff = nonIdle - previous.NonIdle;
+            return totalDiff == 0 ? 0 : nonIdleDiff / totalDiff * 100.0;
         }
     }
 
@@ -258,11 +318,7 @@ internal sealed class MacInstrumentation
         updateEntries.Add(MakeEntry(() => memory.InactiveCount * memory.PageSize, metricMem.Create(MakeTags([new("type", "inactive")]))));
 
         var metricLoad = manager.CreateGauge("system_memory_load");
-        updateEntries.Add(MakeEntry(() =>
-        {
-            var used = memory.AppMemoryBytes + memory.WiredBytes;
-            return memory.PhysicalMemory > 0 ? (double)used / memory.PhysicalMemory * 100.0 : 0;
-        }, metricLoad.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(() => CalcMemoryLoad(memory), metricLoad.Create(MakeTags())));
 
         var metricPage = manager.CreateCounter("system_memory_page_total");
         updateEntries.Add(MakeEntry(() => memory.PageIn, metricPage.Create(MakeTags([new("type", "in")]))));
@@ -271,6 +327,14 @@ internal sealed class MacInstrumentation
         var metricSwapIo = manager.CreateCounter("system_memory_swap_io_total");
         updateEntries.Add(MakeEntry(() => memory.SwapIn, metricSwapIo.Create(MakeTags([new("type", "in")]))));
         updateEntries.Add(MakeEntry(() => memory.SwapOut, metricSwapIo.Create(MakeTags([new("type", "out")]))));
+
+        return;
+
+        static double CalcMemoryLoad(MemoryStat memory)
+        {
+            var used = memory.AppMemoryBytes + memory.WiredBytes;
+            return memory.PhysicalMemory > 0 ? (double)used / memory.PhysicalMemory * 100.0 : 0;
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -306,21 +370,25 @@ internal sealed class MacInstrumentation
         var metricFilesTotal = manager.CreateGauge("system_partition_files_total");
         var metricFilesFree = manager.CreateGauge("system_partition_files_free");
 
-        updateEntries.Add(() =>
+        foreach (var entry in fs.Entries)
         {
-            foreach (var entry in fs.Entries)
-            {
-                var tags = MakeTags(new("name", entry.DeviceName), new("mount", entry.MountPoint), new("fs", entry.FileSystem));
-                var used = entry.TotalSize - entry.FreeSize;
-                var total = used + entry.AvailableSize;
-                metricSizeUsed.Create(tags).Value = total > 0 ? (double)used / total * 100.0 : 0;
-                metricSizeTotal.Create(tags).Value = entry.TotalSize;
-                metricSizeFree.Create(tags).Value = entry.FreeSize;
-                metricSizeAvailable.Create(tags).Value = entry.AvailableSize;
-                metricFilesTotal.Create(tags).Value = entry.TotalFiles;
-                metricFilesFree.Create(tags).Value = entry.FreeFiles;
-            }
-        });
+            var tags = MakeTags(new("name", entry.DeviceName), new("mount", entry.MountPoint), new("fs", entry.FileSystem));
+            updateEntries.Add(MakeEntry(() => CalcFsUsage(entry), metricSizeUsed.Create(tags)));
+            updateEntries.Add(MakeEntry(() => entry.TotalSize, metricSizeTotal.Create(tags)));
+            updateEntries.Add(MakeEntry(() => entry.FreeSize, metricSizeFree.Create(tags)));
+            updateEntries.Add(MakeEntry(() => entry.AvailableSize, metricSizeAvailable.Create(tags)));
+            updateEntries.Add(MakeEntry(() => entry.TotalFiles, metricFilesTotal.Create(tags)));
+            updateEntries.Add(MakeEntry(() => entry.FreeFiles, metricFilesFree.Create(tags)));
+        }
+
+        return;
+
+        static double CalcFsUsage(FileSystemEntry e)
+        {
+            var used = e.TotalSize - e.FreeSize;
+            var total = used + e.AvailableSize;
+            return total > 0 ? (double)used / total * 100.0 : 0;
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -338,20 +406,17 @@ internal sealed class MacInstrumentation
         var metricTime = manager.CreateCounter("system_disk_time_total");
         var metricErrors = manager.CreateCounter("system_disk_errors_total");
 
-        updateEntries.Add(() =>
+        foreach (var device in disk.Devices)
         {
-            foreach (var device in disk.Devices)
-            {
-                metricBytesRead.Create(MakeTags(new("name", device.BsdName), new("type", "read"))).Value = device.BytesRead;
-                metricBytesRead.Create(MakeTags(new("name", device.BsdName), new("type", "write"))).Value = device.BytesWrite;
-                metricCompleted.Create(MakeTags(new("name", device.BsdName), new("type", "read"))).Value = device.ReadsCompleted;
-                metricCompleted.Create(MakeTags(new("name", device.BsdName), new("type", "write"))).Value = device.WritesCompleted;
-                metricTime.Create(MakeTags(new("name", device.BsdName), new("type", "read"))).Value = device.TotalTimeRead;
-                metricTime.Create(MakeTags(new("name", device.BsdName), new("type", "write"))).Value = device.TotalTimeWrite;
-                metricErrors.Create(MakeTags(new("name", device.BsdName), new("type", "read"))).Value = device.ErrorsRead;
-                metricErrors.Create(MakeTags(new("name", device.BsdName), new("type", "write"))).Value = device.ErrorsWrite;
-            }
-        });
+            updateEntries.Add(MakeEntry(() => device.BytesRead, metricBytesRead.Create(MakeTags(new("name", device.BsdName), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.BytesWrite, metricBytesRead.Create(MakeTags(new("name", device.BsdName), new("type", "write")))));
+            updateEntries.Add(MakeEntry(() => device.ReadsCompleted, metricCompleted.Create(MakeTags(new("name", device.BsdName), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.WritesCompleted, metricCompleted.Create(MakeTags(new("name", device.BsdName), new("type", "write")))));
+            updateEntries.Add(MakeEntry(() => device.TotalTimeRead, metricTime.Create(MakeTags(new("name", device.BsdName), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.TotalTimeWrite, metricTime.Create(MakeTags(new("name", device.BsdName), new("type", "write")))));
+            updateEntries.Add(MakeEntry(() => device.ErrorsRead, metricErrors.Create(MakeTags(new("name", device.BsdName), new("type", "read")))));
+            updateEntries.Add(MakeEntry(() => device.ErrorsWrite, metricErrors.Create(MakeTags(new("name", device.BsdName), new("type", "write")))));
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -388,22 +453,19 @@ internal sealed class MacInstrumentation
         var metricMulticast = manager.CreateCounter("system_network_multicast_total");
         var metricCollisions = manager.CreateCounter("system_network_collisions_total");
 
-        updateEntries.Add(() =>
+        foreach (var nif in network.Interfaces)
         {
-            foreach (var nif in network.Interfaces)
-            {
-                metricBytes.Create(MakeTags(new("name", nif.Name), new("type", "rx"))).Value = nif.RxBytes;
-                metricBytes.Create(MakeTags(new("name", nif.Name), new("type", "tx"))).Value = nif.TxBytes;
-                metricPackets.Create(MakeTags(new("name", nif.Name), new("type", "rx"))).Value = nif.RxPackets;
-                metricPackets.Create(MakeTags(new("name", nif.Name), new("type", "tx"))).Value = nif.TxPackets;
-                metricErrors.Create(MakeTags(new("name", nif.Name), new("type", "rx"))).Value = nif.RxErrors;
-                metricErrors.Create(MakeTags(new("name", nif.Name), new("type", "tx"))).Value = nif.TxErrors;
-                metricDropped.Create(MakeTags(new("name", nif.Name), new("type", "rx"))).Value = nif.RxDrops;
-                metricMulticast.Create(MakeTags(new("name", nif.Name), new("type", "rx"))).Value = nif.RxMulticast;
-                metricMulticast.Create(MakeTags(new("name", nif.Name), new("type", "tx"))).Value = nif.TxMulticast;
-                metricCollisions.Create(MakeTags(new("name", nif.Name), new("type", "tx"))).Value = nif.Collisions;
-            }
-        });
+            updateEntries.Add(MakeEntry(() => nif.RxBytes, metricBytes.Create(MakeTags(new("name", nif.Name), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxBytes, metricBytes.Create(MakeTags(new("name", nif.Name), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxPackets, metricPackets.Create(MakeTags(new("name", nif.Name), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxPackets, metricPackets.Create(MakeTags(new("name", nif.Name), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxErrors, metricErrors.Create(MakeTags(new("name", nif.Name), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxErrors, metricErrors.Create(MakeTags(new("name", nif.Name), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxDrops, metricDropped.Create(MakeTags(new("name", nif.Name), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.RxMulticast, metricMulticast.Create(MakeTags(new("name", nif.Name), new("type", "rx")))));
+            updateEntries.Add(MakeEntry(() => nif.TxMulticast, metricMulticast.Create(MakeTags(new("name", nif.Name), new("type", "tx")))));
+            updateEntries.Add(MakeEntry(() => nif.Collisions, metricCollisions.Create(MakeTags(new("name", nif.Name), new("type", "tx")))));
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -435,14 +497,37 @@ internal sealed class MacInstrumentation
 
         var metric = manager.CreateGauge("hardware_cpu_frequency");
 
-        updateEntries.Add(() =>
+        // Per core
+        foreach (var core in cpuFreq.Cores)
         {
-            foreach (var core in cpuFreq.Cores)
+            var coreType = core.CoreType == CpuCoreType.Efficiency ? "efficiency" : "performance";
+            updateEntries.Add(MakeEntry(() => core.Frequency, metric.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", coreType)))));
+        }
+
+        // Group
+        updateEntries.Add(MakeEntry(() => CalcAvgFrequency(cpuFreq.Cores), metric.Create(MakeTags(new("name", "cpu"), new("type", "all")))));
+        if (cpuFreq.EfficiencyCores.Count > 0)
+        {
+            updateEntries.Add(MakeEntry(() => CalcAvgFrequency(cpuFreq.EfficiencyCores), metric.Create(MakeTags(new("name", "cpu"), new("type", "efficiency")))));
+        }
+        if (cpuFreq.PerformanceCores.Count > 0)
+        {
+            updateEntries.Add(MakeEntry(() => CalcAvgFrequency(cpuFreq.PerformanceCores), metric.Create(MakeTags(new("name", "cpu"), new("type", "performance")))));
+        }
+
+        return;
+
+        static double CalcAvgFrequency(IReadOnlyList<CpuCoreFrequency> cores)
+        {
+            var sum = 0.0;
+            // ReSharper disable once LoopCanBeConvertedToQuery
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < cores.Count; i++)
             {
-                var coreType = core.CoreType == CpuCoreType.Efficiency ? "efficiency" : "performance";
-                metric.Create(MakeTags(new("name", $"cpu{core.Number}"), new("type", coreType))).Value = core.Frequency;
+                sum += cores[i].Frequency;
             }
-        });
+            return sum / cores.Count;
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -501,54 +586,36 @@ internal sealed class MacInstrumentation
     // HardwareMonitor
     //--------------------------------------------------------------------------------
 
-    private void SetupHardwareMonitorMetric(IMetricManager manager)
+    private void SetupHardwareMonitorMetric(IMetricManager manager, string[] targets, bool fan)
     {
         var smc = PlatformProvider.GetSmcMonitor();
 
         prepareEntries.Add(() => smc.Update());
 
-        if (smc.Temperatures.Count > 0)
+        var metric = manager.CreateGauge("hardware_monitor");
+        foreach (var sensor in smc.Temperatures.Where(s => IsTarget(targets, s.Key)))
         {
-            var metric = manager.CreateGauge("hardware_monitor_temperature");
-            foreach (var sensor in smc.Temperatures)
-            {
-                updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("key", sensor.Key), new("description", sensor.Description)))));
-            }
+            updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("type", "temperature"), new("key", sensor.Key), new("description", sensor.Description)))));
+        }
+        foreach (var sensor in smc.Voltages.Where(s => IsTarget(targets, s.Key)))
+        {
+            updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("type", "voltage"), new("key", sensor.Key), new("description", sensor.Description)))));
+        }
+        foreach (var sensor in smc.Currents.Where(s => IsTarget(targets, s.Key)))
+        {
+            updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("type", "current"), new("key", sensor.Key), new("description", sensor.Description)))));
+        }
+        foreach (var sensor in smc.Powers.Where(s => IsTarget(targets, s.Key)))
+        {
+            updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("type", "power"), new("key", sensor.Key), new("description", sensor.Description)))));
         }
 
-        if (smc.Voltages.Count > 0)
+        if (fan && smc.Fans.Count > 0)
         {
-            var metric = manager.CreateGauge("hardware_monitor_voltage");
-            foreach (var sensor in smc.Voltages)
+            var metricFan = manager.CreateGauge("hardware_monitor_fan_rpm");
+            foreach (var f in smc.Fans)
             {
-                updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("key", sensor.Key), new("description", sensor.Description)))));
-            }
-        }
-
-        if (smc.Currents.Count > 0)
-        {
-            var metric = manager.CreateGauge("hardware_monitor_current");
-            foreach (var sensor in smc.Currents)
-            {
-                updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("key", sensor.Key), new("description", sensor.Description)))));
-            }
-        }
-
-        if (smc.Powers.Count > 0)
-        {
-            var metric = manager.CreateGauge("hardware_monitor_power");
-            foreach (var sensor in smc.Powers)
-            {
-                updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("key", sensor.Key), new("description", sensor.Description)))));
-            }
-        }
-
-        if (smc.Fans.Count > 0)
-        {
-            var metricActual = manager.CreateGauge("hardware_monitor_fan_rpm");
-            foreach (var fan in smc.Fans)
-            {
-                updateEntries.Add(MakeEntry(() => fan.ActualRpm, metricActual.Create(MakeTags([new("index", fan.Index)]))));
+                updateEntries.Add(MakeEntry(() => f.ActualRpm, metricFan.Create(MakeTags([new("index", f.Index)]))));
             }
         }
     }

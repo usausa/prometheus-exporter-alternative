@@ -10,6 +10,8 @@ internal sealed class SensorOmronInstrumentation : IDisposable
 
     private readonly Timer timer;
 
+    private volatile int isRunning;
+
     public SensorOmronInstrumentation(
         SensorOmronOptions options,
         IMetricManager manager)
@@ -63,7 +65,19 @@ internal sealed class SensorOmronInstrumentation : IDisposable
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
-        await Task.WhenAll(sensors.Select(static x => x.UpdateAsync())).ConfigureAwait(false);
+        if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.WhenAll(sensors.Select(static x => x.UpdateAsync())).ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref isRunning, 0);
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -150,7 +164,14 @@ internal sealed class SensorOmronInstrumentation : IDisposable
             {
                 ClearValues();
 
-                sensor.Close();
+                try
+                {
+                    sensor.Close();
+                }
+                catch
+                {
+                    // Ignore
+                }
             }
         }
 #pragma warning restore CA1031

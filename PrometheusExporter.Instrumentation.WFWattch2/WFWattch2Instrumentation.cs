@@ -13,6 +13,8 @@ internal sealed class WFWattch2Instrumentation : IDisposable
 
     private readonly Timer timer;
 
+    private volatile int isRunning;
+
     public WFWattch2Instrumentation(
         WFWattch2Options options,
         IMetricManager manager)
@@ -52,7 +54,19 @@ internal sealed class WFWattch2Instrumentation : IDisposable
     // ReSharper disable once AsyncVoidMethod
     private async void Update(object? state)
     {
-        await Task.WhenAll(devices.Select(static x => x.UpdateAsync())).ConfigureAwait(false);
+        if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.WhenAll(devices.Select(static x => x.UpdateAsync())).ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref isRunning, 0);
+        }
     }
 
     //--------------------------------------------------------------------------------
@@ -113,7 +127,14 @@ internal sealed class WFWattch2Instrumentation : IDisposable
             {
                 ClearValues();
 
-                client.Close();
+                try
+                {
+                    client.Close();
+                }
+                catch
+                {
+                    // Ignore
+                }
             }
         }
 #pragma warning restore CA1031

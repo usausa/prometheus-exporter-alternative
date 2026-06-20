@@ -17,8 +17,11 @@ internal sealed class Metric : IMetric
 
     private readonly List<MetricSeries> entries = [];
 
+    public string Type { get; }
+
     public Metric(string type, string name, string? sort)
     {
+        Type = type;
         this.type = Encoding.UTF8.GetBytes(type);
         this.name = Encoding.UTF8.GetBytes(name);
         this.sort = sort;

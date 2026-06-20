@@ -8,6 +8,8 @@ internal sealed class MetricManager : IMetricManager, IDisposable
 {
     private readonly List<IMetric> gauges = [];
 
+    private readonly Dictionary<string, Metric> metricByName = [];
+
     private readonly SemaphoreSlim semaphore = new(1);
 
     private readonly List<Action> beforeCollectCallbacks = [];
@@ -24,19 +26,28 @@ internal sealed class MetricManager : IMetricManager, IDisposable
 
     private Metric CreateMetric(string type, string name, string? sort)
     {
-        var gauge = new Metric(type, name, sort);
-
         semaphore.Wait();
         try
         {
-            gauges.Add(gauge);
+            if (metricByName.TryGetValue(name, out var metric))
+            {
+                if (metric.Type != type)
+                {
+                    throw new InvalidOperationException($"Metric is already registered with a different type. name=[{name}], registered=[{metric.Type}], requested=[{type}]");
+                }
+
+                return metric;
+            }
+
+            metric = new Metric(type, name, sort);
+            metricByName.Add(name, metric);
+            gauges.Add(metric);
+            return metric;
         }
         finally
         {
             semaphore.Release();
         }
-
-        return gauge;
     }
 
     public void AddBeforeCollectCallback(Action callback)

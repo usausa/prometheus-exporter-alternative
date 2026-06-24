@@ -12,6 +12,6 @@ internal sealed class SensorOmronOptions
 {
     public int Interval { get; set; } = 5000;
 
-    public SensorEntry[] Sensor { get; set; } = default!;
+    public SensorEntry[] Sensor { get; set; } = [];
 }
 #pragma warning restore CA1819

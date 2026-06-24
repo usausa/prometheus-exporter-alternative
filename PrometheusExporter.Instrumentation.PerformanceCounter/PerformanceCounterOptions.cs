@@ -28,6 +28,6 @@ internal sealed class PerformanceCounterOptions
 {
     public int UpdateDuration { get; set; } = 1000;
 
-    public CounterEntry[] Counter { get; set; } = default!;
+    public CounterEntry[] Counter { get; set; } = [];
 }
 #pragma warning restore CA1819

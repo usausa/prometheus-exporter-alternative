@@ -10,6 +10,6 @@ internal sealed class DeviceEntry
 #pragma warning disable CA1819
 internal sealed class BTWattch2Options
 {
-    public DeviceEntry[] Device { get; set; } = default!;
+    public DeviceEntry[] Device { get; set; } = [];
 }
 #pragma warning restore CA1819

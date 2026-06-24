@@ -14,6 +14,6 @@ internal sealed class PingOptions
 
     public int Timeout { get; set; } = 5000;
 
-    public TargetEntry[] Target { get; set; } = default!;
+    public TargetEntry[] Target { get; set; } = [];
 }
 #pragma warning restore CA1819

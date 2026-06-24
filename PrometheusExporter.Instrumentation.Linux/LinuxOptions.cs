@@ -26,7 +26,7 @@ internal sealed class LinuxOptions
 
     public bool Tcp6 { get; set; } = true;
 
-    public bool Wireless { get; set; } = true;
+    public bool Wireless { get; set; }
 
     public bool ProcessSummary { get; set; } = true;
 

@@ -12,6 +12,6 @@ internal sealed class WFWattch2Options
 {
     public int Interval { get; set; } = 5000;
 
-    public DeviceEntry[] Device { get; set; } = default!;
+    public DeviceEntry[] Device { get; set; } = [];
 }
 #pragma warning restore CA1819

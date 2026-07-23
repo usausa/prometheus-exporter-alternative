@@ -10,17 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.9" />
-    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-    <PackageReference Include="Serilog.Sinks.SyslogMessages" Version="4.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\PrometheusExporter.Abstractions\PrometheusExporter.Abstractions.csproj" />
   </ItemGroup>
 
@@ -61,13 +50,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="appsettings.Platform.*.json">
-      <DependentUpon>appsettings.json</DependentUpon>
-    </None>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.10" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.SyslogMessages" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.6.0" />
+    <None Include="appsettings.Platform.*.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -11,12 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MacDotNet.Disk" Version="1.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.6.0" />
+    <PackageReference Include="MacDotNet.Disk" Version="1.8.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
   </ItemGroup>
 
 </Project>

@@ -31,7 +31,7 @@ internal sealed class DiskInfoInstrumentation : IDisposable
 
         foreach (var disk in disks)
         {
-            var device = Path.GetFileName(disk.DeviceName ?? string.Empty);
+            var device = Path.GetFileName(disk.DeviceName);
             var sector = sectorMetric.Create(MakeTags(environment.Host, disk.Index, disk.Model, device));
             sector.Value = disk.LogicalBlockSize;
 

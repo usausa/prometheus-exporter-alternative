@@ -50,16 +50,16 @@ internal static class Helper
             switch (ordinal)
             {
                 case Quote:
-                    sb.Append(BackSlash);
-                    sb.Append(Quote);
+                    sb.Append('\\');
+                    sb.Append('"');
                     break;
                 case BackSlash:
-                    sb.Append(BackSlash);
-                    sb.Append(BackSlash);
+                    sb.Append('\\');
+                    sb.Append('\\');
                     break;
                 case LineFeed:
-                    sb.Append(BackSlash);
-                    sb.Append((byte)'n');
+                    sb.Append('\\');
+                    sb.Append('n');
                     break;
                 default:
                     sb.Append(c);
@@ -112,7 +112,7 @@ internal static class Helper
         }
         else
         {
-            WriteBytes(writer, "Nan"u8);
+            WriteBytes(writer, "NaN"u8);
         }
     }
 

@@ -186,7 +186,7 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
     private void SetupCpuMetric(IMetricManager manager)
     {
         var loadSensors = EnumerateSensors(HardwareType.Cpu, SensorType.Load)
-            .Where(static x => x.Name.StartsWith("CPU Core #", StringComparison.Ordinal) || x.Name == "CPU Total")
+            .Where(static x => x.Name.StartsWith("CPU Core #", StringComparison.Ordinal) || (x.Name == "CPU Total"))
             .ToArray();
         var clockSensors = EnumerateSensors(HardwareType.Cpu, SensorType.Clock)
             .Where(static x => !x.Name.Contains("Effective", StringComparison.Ordinal))
@@ -334,9 +334,9 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         if (dataSensors.Count > 0)
         {
             var metric = manager.CreateGauge("hardware_memory_used");
-            var physical = dataSensors.First(static x => x.Name == "Memory Used" && x.Hardware.Name == "Total Memory");
+            var physical = dataSensors.First(static x => (x.Name == "Memory Used") && (x.Hardware.Name == "Total Memory"));
             entries.Add(new Entry(physical, ToValue, metric.Create(MakeTags(physical, "physical"))));
-            var @virtual = dataSensors.First(static x => x.Name == "Memory Used" && x.Hardware.Name == "Virtual Memory");
+            var @virtual = dataSensors.First(static x => (x.Name == "Memory Used") && (x.Hardware.Name == "Virtual Memory"));
             entries.Add(new Entry(@virtual, ToValue, metric.Create(MakeTags(@virtual, "virtual"))));
         }
 
@@ -344,9 +344,9 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         if (dataSensors.Count > 0)
         {
             var metric = manager.CreateGauge("hardware_memory_available");
-            var physical = dataSensors.First(static x => x.Name == "Memory Available" && x.Hardware.Name == "Total Memory");
+            var physical = dataSensors.First(static x => (x.Name == "Memory Available") && (x.Hardware.Name == "Total Memory"));
             entries.Add(new Entry(physical, ToValue, metric.Create(MakeTags(physical, "physical"))));
-            var @virtual = dataSensors.First(static x => x.Name == "Memory Available" && x.Hardware.Name == "Virtual Memory");
+            var @virtual = dataSensors.First(static x => (x.Name == "Memory Available") && (x.Hardware.Name == "Virtual Memory"));
             entries.Add(new Entry(@virtual, ToValue, metric.Create(MakeTags(@virtual, "virtual"))));
         }
 
@@ -354,9 +354,9 @@ internal sealed class HardwareMonitorInstrumentation : IDisposable
         if (loadSensors.Count > 0)
         {
             var metric = manager.CreateGauge("hardware_memory_load");
-            var physical = loadSensors.First(static x => x.Name == "Memory" && x.Hardware.Name == "Total Memory");
+            var physical = loadSensors.First(static x => (x.Name == "Memory") && (x.Hardware.Name == "Total Memory"));
             entries.Add(new Entry(physical, ToValue, metric.Create(MakeTags(physical, "physical"))));
-            var @virtual = loadSensors.First(static x => x.Name == "Memory" && x.Hardware.Name == "Virtual Memory");
+            var @virtual = loadSensors.First(static x => (x.Name == "Memory") && (x.Hardware.Name == "Virtual Memory"));
             entries.Add(new Entry(@virtual, ToValue, metric.Create(MakeTags(@virtual, "virtual"))));
         }
     }

@@ -43,7 +43,7 @@ internal static class ServiceExtensions
             {
                 var assembly = LoadAssembly(assemblyName);
                 foreach (var loaderType in assembly.GetTypes()
-                             .Where(static x => typeof(IInstrumentationLoader).IsAssignableFrom(x) && x is { IsInterface: false, IsAbstract: false }))
+                             .Where(static x => typeof(IInstrumentationLoader).IsAssignableFrom(x) && (x is { IsInterface: false, IsAbstract: false })))
                 {
                     var loader = (IInstrumentationLoader)Activator.CreateInstance(loaderType)!;
                     loader.Load(registry);

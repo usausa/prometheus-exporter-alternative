@@ -24,7 +24,7 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
         {
             var metric = entry.Type == CounterType.Counter
                 ? manager.CreateCounter(entry.Name)
-                :  manager.CreateGauge(entry.Name);
+                : manager.CreateGauge(entry.Name);
 
             foreach (var counter in CreateCounters(entry.Category, entry.Counter, entry.Instance))
             {

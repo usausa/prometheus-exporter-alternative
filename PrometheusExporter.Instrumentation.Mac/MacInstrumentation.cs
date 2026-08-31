@@ -610,7 +610,7 @@ internal sealed class MacInstrumentation
             updateEntries.Add(MakeEntry(() => sensor.Value, metric.Create(MakeTags(new("type", "power"), new("key", sensor.Key), new("description", sensor.Description)))));
         }
 
-        if (fan && smc.Fans.Count > 0)
+        if (fan && (smc.Fans.Count > 0))
         {
             var metricFan = manager.CreateGauge("hardware_monitor_fan_rpm");
             foreach (var f in smc.Fans)

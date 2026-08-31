@@ -238,7 +238,7 @@ public sealed class BleScanSession : IAsyncDisposable
     private static string? TryGetString(IDictionary<string, object>? props, string key)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (props == null || !props.TryGetValue(key, out var value) || (value is null))
+        if ((props == null) || !props.TryGetValue(key, out var value) || (value is null))
         {
             return null;
         }
@@ -249,7 +249,7 @@ public sealed class BleScanSession : IAsyncDisposable
     private static short? TryGetInt16(IDictionary<string, object>? props, string key)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (props == null || !props.TryGetValue(key, out var value) || (value is null))
+        if ((props == null) || !props.TryGetValue(key, out var value) || (value is null))
         {
             return null;
         }

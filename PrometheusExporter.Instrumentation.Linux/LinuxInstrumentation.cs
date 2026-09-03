@@ -251,15 +251,9 @@ internal sealed class LinuxInstrumentation
             }, metricCpuLoad.Create(MakeTags([new("name", cpu.Name)]))));
         }
 
-        static ulong CalcCpuIdle(CpuStat cpu)
-        {
-            return cpu.Idle + cpu.IoWait;
-        }
+        static ulong CalcCpuIdle(CpuStat cpu) => cpu.Idle + cpu.IoWait;
 
-        static ulong CalcCpuNonIdle(CpuStat cpu)
-        {
-            return cpu.User + cpu.Nice + cpu.System + cpu.Irq + cpu.SoftIrq + cpu.Steal;
-        }
+        static ulong CalcCpuNonIdle(CpuStat cpu) => cpu.User + cpu.Nice + cpu.System + cpu.Irq + cpu.SoftIrq + cpu.Steal;
     }
 
     private sealed class PreviousCpuTotal

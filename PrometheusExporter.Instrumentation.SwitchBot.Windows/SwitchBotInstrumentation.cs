@@ -51,7 +51,9 @@ internal sealed class SwitchBotInstrumentation : IDisposable
                     powerMetric.Create(tags)));
             }
         }
+#pragma warning disable IDE0028
         devices = list.ToArray();
+#pragma warning restore IDE0028
 
         manager.AddBeforeCollectCallback(Update);
 

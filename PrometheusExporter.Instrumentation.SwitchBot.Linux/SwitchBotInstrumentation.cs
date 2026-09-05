@@ -43,7 +43,9 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
                     powerMetric.Create(tags)));
             }
         }
+#pragma warning disable IDE0028
         devices = list.ToArray();
+#pragma warning restore IDE0028
 
 #pragma warning disable CA2012
         session = BleScanSession.CreateAsync().GetAwaiter().GetResult();

@@ -27,6 +27,7 @@ internal sealed class SensorOmronInstrumentation : IDisposable
         var eco2Metric = manager.CreateGauge("sensor_co2");
         var seismicMetric = manager.CreateGauge("sensor_seismic");
 
+#pragma warning disable IDE0028
         sensors = options.Sensor
             .Select(x =>
             {
@@ -45,6 +46,7 @@ internal sealed class SensorOmronInstrumentation : IDisposable
                     x.Port);
             })
             .ToArray();
+#pragma warning restore IDE0028
 
         timer = new Timer(Update, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(options.Interval));
     }

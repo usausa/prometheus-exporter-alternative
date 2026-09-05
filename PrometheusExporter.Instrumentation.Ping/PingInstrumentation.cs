@@ -20,12 +20,14 @@ internal sealed class PingInstrumentation : IDisposable
     {
         var timeMetric = manager.CreateGauge("ping_result_time");
 
+#pragma warning disable IDE0028
         targets = options.Target
             .Select(x => new Target(
                 timeMetric.Create(MakeTags(environment.Host, x)),
                 options.Timeout,
                 Dns.GetHostAddresses(x.Address)[0]))
             .ToArray();
+#pragma warning restore IDE0028
 
         timer = new Timer(Update, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(options.Interval));
     }

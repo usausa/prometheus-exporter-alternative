@@ -289,7 +289,7 @@ public sealed class BleScanSession : IAsyncDisposable
                 }
                 else if (obj is IEnumerable<byte> eb)
                 {
-                    res[key] = eb.ToArray();
+                    res[key] = [.. eb];
                 }
             }
             return res;

@@ -23,6 +23,7 @@ internal sealed class WFWattch2Instrumentation : IDisposable
         var currentMetric = manager.CreateGauge("sensor_current");
         var voltageMetric = manager.CreateGauge("sensor_voltage");
 
+#pragma warning disable IDE0028
         devices = options.Device
             .Select(x =>
             {
@@ -34,6 +35,7 @@ internal sealed class WFWattch2Instrumentation : IDisposable
                     IPAddress.Parse(x.Address));
             })
             .ToArray();
+#pragma warning restore IDE0028
 
         timer = new Timer(Update, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(options.Interval));
     }

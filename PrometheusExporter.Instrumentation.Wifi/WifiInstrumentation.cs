@@ -33,7 +33,9 @@ internal sealed class WifiInstrumentation
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
         signalThreshold = options.SignalThreshold;
         knownOnly = options.KnownOnly;
+#pragma warning disable IDE0028
         knownAccessPoints = options.KnownAccessPoint.Select(NormalizeAddress).ToHashSet();
+#pragma warning restore IDE0028
 
         metric = manager.CreateGauge("wifi_rssi", "ssid");
 

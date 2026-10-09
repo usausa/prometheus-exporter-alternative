@@ -4,7 +4,7 @@ using MacDotNet.SystemInfo;
 
 using PrometheusExporter.Abstractions;
 
-internal sealed class MacInstrumentation
+internal sealed class MacInstrumentation : IDisposable
 {
     private readonly string host;
 
@@ -13,6 +13,8 @@ internal sealed class MacInstrumentation
     private readonly List<Action> prepareEntries = [];
 
     private readonly List<Action> updateEntries = [];
+
+    private readonly List<IDisposable> disposables = [];
 
     private DateTime lastUpdate;
 
@@ -76,12 +78,23 @@ internal sealed class MacInstrumentation
         {
             SetupPowerMetric(manager);
         }
-        if (options.HardwareMonitor.Length > 0)
+        var hardwareMonitorTargets = options.HardwareMonitor ?? ["*"];
+        if (hardwareMonitorTargets.Length > 0)
         {
-            SetupHardwareMonitorMetric(manager, options.HardwareMonitor, options.Fan);
+            SetupHardwareMonitorMetric(manager, hardwareMonitorTargets, options.Fan);
         }
 
         manager.AddBeforeCollectCallback(Update);
+    }
+
+    public void Dispose()
+    {
+        foreach (var resource in disposables)
+        {
+            resource.Dispose();
+        }
+
+        disposables.Clear();
     }
 
     //--------------------------------------------------------------------------------
@@ -113,6 +126,13 @@ internal sealed class MacInstrumentation
     // Helper
     //--------------------------------------------------------------------------------
 
+    private T Own<T>(T resource)
+        where T : IDisposable
+    {
+        disposables.Add(resource);
+        return resource;
+    }
+
     private KeyValuePair<string, object?>[] MakeTags(params KeyValuePair<string, object?>[] options)
     {
         if (options.Length == 0)
@@ -126,7 +146,7 @@ internal sealed class MacInstrumentation
     }
 
     private static bool IsTarget(IEnumerable<string> targets, string name) =>
-        targets.Any(x => (x == "*") || (x == name));
+        targets.Any(x => (x == "*") || (x == name) || (x.EndsWith('*') && name.StartsWith(x[..^1], StringComparison.Ordinal)));
 
     private static Action MakeEntry(Func<double> measurement, IMetricSeries series)
     {
@@ -140,7 +160,7 @@ internal sealed class MacInstrumentation
     private void SetupUptimeMetric(IMetricManager manager)
     {
         // Uptime
-        var uptimeInfo = PlatformProvider.GetUptime();
+        var uptimeInfo = Own(PlatformProvider.GetUptime());
 
         prepareEntries.Add(() => uptimeInfo.Update());
 
@@ -154,7 +174,7 @@ internal sealed class MacInstrumentation
 
     private void SetupCpuMetric(IMetricManager manager)
     {
-        var cpu = PlatformProvider.GetCpuStat();
+        var cpu = Own(PlatformProvider.GetCpuStat());
 
         var efficiencyCorePrevious = InitPrevious(cpu.EfficiencyCores.Count);
         var performanceCorePrevious = InitPrevious(cpu.PerformanceCores.Count);
@@ -291,7 +311,7 @@ internal sealed class MacInstrumentation
 
     private void SetupLoadAverageMetric(IMetricManager manager)
     {
-        var load = PlatformProvider.GetLoadAverage();
+        var load = Own(PlatformProvider.GetLoadAverage());
 
         prepareEntries.Add(() => load.Update());
 
@@ -307,7 +327,7 @@ internal sealed class MacInstrumentation
 
     private void SetupMemoryMetric(IMetricManager manager)
     {
-        var memory = PlatformProvider.GetMemoryStat();
+        var memory = Own(PlatformProvider.GetMemoryStat());
 
         prepareEntries.Add(() => memory.Update());
 
@@ -343,7 +363,7 @@ internal sealed class MacInstrumentation
 
     private void SetupSwapUsageMetric(IMetricManager manager)
     {
-        var swap = PlatformProvider.GetSwapUsage();
+        var swap = Own(PlatformProvider.GetSwapUsage());
 
         prepareEntries.Add(() => swap.Update());
 
@@ -359,7 +379,7 @@ internal sealed class MacInstrumentation
 
     private void SetupFileSystemMetric(IMetricManager manager)
     {
-        var fs = PlatformProvider.GetFileSystemStat();
+        var fs = Own(PlatformProvider.GetFileSystemStat());
 
         prepareEntries.Add(() => fs.Update());
 
@@ -397,7 +417,7 @@ internal sealed class MacInstrumentation
 
     private void SetupDiskMetric(IMetricManager manager)
     {
-        var disk = PlatformProvider.GetDiskStat();
+        var disk = Own(PlatformProvider.GetDiskStat());
 
         prepareEntries.Add(() => disk.Update());
 
@@ -425,7 +445,7 @@ internal sealed class MacInstrumentation
 
     private void SetupFileDescriptorMetric(IMetricManager manager)
     {
-        var fd = PlatformProvider.GetFileHandleStat();
+        var fd = Own(PlatformProvider.GetFileHandleStat());
 
         prepareEntries.Add(() => fd.Update());
 
@@ -442,7 +462,7 @@ internal sealed class MacInstrumentation
 
     private void SetupNetworkMetric(IMetricManager manager)
     {
-        var network = PlatformProvider.GetNetworkStat();
+        var network = Own(PlatformProvider.GetNetworkStat());
 
         prepareEntries.Add(() => network.Update());
 
@@ -474,7 +494,7 @@ internal sealed class MacInstrumentation
 
     private void SetupProcessSummaryMetric(IMetricManager manager)
     {
-        var process = PlatformProvider.GetProcessSummary();
+        var process = Own(PlatformProvider.GetProcessSummary());
 
         prepareEntries.Add(() => process.Update());
 
@@ -491,7 +511,7 @@ internal sealed class MacInstrumentation
 
     private void SetupCpuFrequencyMetric(IMetricManager manager)
     {
-        var cpuFreq = PlatformProvider.GetCpuFrequency();
+        var cpuFreq = Own(PlatformProvider.GetCpuFrequency());
 
         prepareEntries.Add(() => cpuFreq.Update());
 
@@ -537,6 +557,7 @@ internal sealed class MacInstrumentation
     private void SetupGpuMetric(IMetricManager manager)
     {
         var gpus = PlatformProvider.GetGpuDevices();
+        disposables.AddRange(gpus);
 
         prepareEntries.Add(() =>
         {
@@ -565,7 +586,7 @@ internal sealed class MacInstrumentation
 
     private void SetupPowerMetric(IMetricManager manager)
     {
-        var power = PlatformProvider.GetPowerStat();
+        var power = Own(PlatformProvider.GetPowerStat());
         if (!power.Supported)
         {
             return;
@@ -588,7 +609,7 @@ internal sealed class MacInstrumentation
 
     private void SetupHardwareMonitorMetric(IMetricManager manager, string[] targets, bool fan)
     {
-        var smc = PlatformProvider.GetSmcMonitor();
+        var smc = Own(PlatformProvider.GetSmcMonitor(targets.Contains("*") ? null : key => IsTarget(targets, key)));
 
         prepareEntries.Add(() => smc.Update());
 

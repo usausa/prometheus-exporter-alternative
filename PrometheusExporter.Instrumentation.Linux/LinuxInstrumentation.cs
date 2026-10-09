@@ -4,7 +4,7 @@ using LinuxDotNet.SystemInfo;
 
 using PrometheusExporter.Abstractions;
 
-internal sealed class LinuxInstrumentation
+internal sealed class LinuxInstrumentation : IDisposable
 {
     private readonly string host;
 
@@ -13,6 +13,8 @@ internal sealed class LinuxInstrumentation
     private readonly List<Action> prepareEntries = [];
 
     private readonly List<Action> updateEntries = [];
+
+    private readonly List<IDisposable> disposables = [];
 
     private DateTime lastUpdate;
 
@@ -36,13 +38,15 @@ internal sealed class LinuxInstrumentation
         {
             SetupLoadAverageMetric(manager);
         }
-        if (options.Memory.Length > 0)
+        var memoryTargets = options.Memory ?? ["*"];
+        if (memoryTargets.Length > 0)
         {
-            SetupMemoryMetric(manager, options.Memory);
+            SetupMemoryMetric(manager, memoryTargets);
         }
-        if (options.VirtualMemory.Length > 0)
+        var virtualMemoryTargets = options.VirtualMemory ?? ["*"];
+        if (virtualMemoryTargets.Length > 0)
         {
-            SetupVirtualMemoryMetric(manager, options.VirtualMemory);
+            SetupVirtualMemoryMetric(manager, virtualMemoryTargets);
         }
         if (options.Mount)
         {
@@ -92,6 +96,16 @@ internal sealed class LinuxInstrumentation
         manager.AddBeforeCollectCallback(Update);
     }
 
+    public void Dispose()
+    {
+        foreach (var resource in disposables)
+        {
+            resource.Dispose();
+        }
+
+        disposables.Clear();
+    }
+
     //--------------------------------------------------------------------------------
     // Event
     //--------------------------------------------------------------------------------
@@ -121,6 +135,13 @@ internal sealed class LinuxInstrumentation
     // Helper
     //--------------------------------------------------------------------------------
 
+    private T Own<T>(T resource)
+        where T : IDisposable
+    {
+        disposables.Add(resource);
+        return resource;
+    }
+
     private KeyValuePair<string, object?>[] MakeTags(params KeyValuePair<string, object?>[] options)
     {
         if (options.Length == 0)
@@ -148,7 +169,7 @@ internal sealed class LinuxInstrumentation
     private void SetupUptimeMetric(IMetricManager manager)
     {
         // Uptime
-        var uptimeInfo = PlatformProvider.GetUptime();
+        var uptimeInfo = Own(PlatformProvider.GetUptime());
 
         prepareEntries.Add(() => uptimeInfo.Update());
 
@@ -162,7 +183,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupSystemMetric(IMetricManager manager)
     {
-        var stat = PlatformProvider.GetSystemStat();
+        var stat = Own(PlatformProvider.GetSystemStat());
 
         var totalPrevious = new PreviousCpuTotal();
         var corePrevious = new PreviousCpuTotal[stat.CpuCores.Count];
@@ -269,7 +290,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupLoadAverageMetric(IMetricManager manager)
     {
-        var load = PlatformProvider.GetLoadAverage();
+        var load = Own(PlatformProvider.GetLoadAverage());
 
         prepareEntries.Add(() => load.Update());
 
@@ -285,7 +306,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupMemoryMetric(IMetricManager manager, string[] targets)
     {
-        var memory = PlatformProvider.GetMemoryStat();
+        var memory = Own(PlatformProvider.GetMemoryStat());
 
         prepareEntries.Add(() => memory.Update());
 
@@ -361,7 +382,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupVirtualMemoryMetric(IMetricManager manager, string[] targets)
     {
-        var vm = PlatformProvider.GetVirtualMemoryStat();
+        var vm = Own(PlatformProvider.GetVirtualMemoryStat());
 
         prepareEntries.Add(() => vm.Update());
 
@@ -423,7 +444,7 @@ internal sealed class LinuxInstrumentation
             .Select(x => new
             {
                 Mount = x,
-                Usage = PlatformProvider.GetFileSystemUsage(x.MountPoint),
+                Usage = Own(PlatformProvider.GetFileSystemUsage(x.MountPoint)),
                 Tags = MakeTags(new("name", x.DeviceName), new("mount", x.MountPoint), new("fs", x.FileSystem))
             })
             .ToArray();
@@ -490,7 +511,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupDiskMetric(IMetricManager manager)
     {
-        var disk = PlatformProvider.GetDiskStat();
+        var disk = Own(PlatformProvider.GetDiskStat());
 
         prepareEntries.Add(() => disk.Update());
 
@@ -526,7 +547,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupFileDescriptorMetric(IMetricManager manager)
     {
-        var fd = PlatformProvider.GetFileHandleStat();
+        var fd = Own(PlatformProvider.GetFileHandleStat());
 
         prepareEntries.Add(() => fd.Update());
 
@@ -543,7 +564,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupNetworkMetric(IMetricManager manager)
     {
-        var network = PlatformProvider.GetNetworkStat();
+        var network = Own(PlatformProvider.GetNetworkStat());
 
         prepareEntries.Add(() => network.Update());
 
@@ -590,7 +611,7 @@ internal sealed class LinuxInstrumentation
 
         if (useTcp4)
         {
-            var tcp = PlatformProvider.GetTcpStat();
+            var tcp = Own(PlatformProvider.GetTcpStat());
 
             prepareEntries.Add(() => tcp.Update());
 
@@ -599,7 +620,7 @@ internal sealed class LinuxInstrumentation
 
         if (useTcp6)
         {
-            var tcp6 = PlatformProvider.GetTcp6Stat();
+            var tcp6 = Own(PlatformProvider.GetTcp6Stat());
 
             prepareEntries.Add(() => tcp6.Update());
 
@@ -628,7 +649,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupWirelessMetric(IMetricManager manager)
     {
-        var wireless = PlatformProvider.GetWirelessStat();
+        var wireless = Own(PlatformProvider.GetWirelessStat());
 
         prepareEntries.Add(() => wireless.Update());
 
@@ -660,7 +681,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupProcessSummaryMetric(IMetricManager manager)
     {
-        var process = PlatformProvider.GetProcessSummary();
+        var process = Own(PlatformProvider.GetProcessSummary());
 
         prepareEntries.Add(() => process.Update());
 
@@ -677,7 +698,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupCpuMetric(IMetricManager manager)
     {
-        var cpu = PlatformProvider.GetCpuDevice();
+        var cpu = Own(PlatformProvider.GetCpuDevice());
 
         prepareEntries.Add(cpu.Update);
 
@@ -703,7 +724,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupBatteryMetric(IMetricManager manager)
     {
-        var battery = PlatformProvider.GetBatteryDevice();
+        var battery = Own(PlatformProvider.GetBatteryDevice());
         if (!battery.Supported)
         {
             return;
@@ -733,7 +754,7 @@ internal sealed class LinuxInstrumentation
 
     private void SetupMainsMetric(IMetricManager manager)
     {
-        var adapter = PlatformProvider.GetMainsDevice();
+        var adapter = Own(PlatformProvider.GetMainsDevice());
         if (!adapter.Supported)
         {
             return;
@@ -752,6 +773,7 @@ internal sealed class LinuxInstrumentation
     private void SetupHardwareMonitorMetric(IMetricManager manager)
     {
         var monitors = PlatformProvider.GetHardwareMonitors();
+        disposables.AddRange(monitors);
 
         prepareEntries.Add(() =>
         {

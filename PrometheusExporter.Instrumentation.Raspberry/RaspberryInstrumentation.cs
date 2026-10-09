@@ -10,11 +10,9 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
     private readonly TimeSpan updateDuration;
 
-    private readonly Vcio vcio;
-
-    private readonly GpioMap gpio;
-
     private readonly List<Action> updateEntries = [];
+
+    private readonly List<IDisposable> disposables = [];
 
     private DateTime lastUpdate;
 
@@ -26,22 +24,27 @@ internal sealed class RaspberryInstrumentation : IDisposable
         host = environment.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
-        vcio = new Vcio();
-        gpio = new GpioMap();
-
         if (options.Vcio)
         {
-            vcio.Open();
-            SetupVcioTemperatureMetric(manager);
-            SetupVcioFrequencyMetric(manager);
-            SetupVcioVoltageMetric(manager);
-            SetupVcioThrottledMetric(manager);
+            var vcio = Own(PlatformProvider.GetVcioMonitor());
+            if (vcio.Supported)
+            {
+                updateEntries.Add(() => vcio.Update());
+                SetupVcioTemperatureMetric(manager, vcio);
+                SetupVcioFrequencyMetric(manager, vcio);
+                SetupVcioVoltageMetric(manager, vcio);
+                SetupVcioThrottledMetric(manager, vcio);
+            }
         }
 
         if (options.Gpio)
         {
-            gpio.Open();
-            SetupGpioLevelMetric(manager);
+            var gpio = Own(PlatformProvider.GetGpioMonitor());
+            if (gpio.Supported)
+            {
+                updateEntries.Add(() => gpio.Update());
+                SetupGpioLevelMetric(manager, gpio);
+            }
         }
 
         manager.AddBeforeCollectCallback(Update);
@@ -49,8 +52,12 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
     public void Dispose()
     {
-        vcio.Dispose();
-        gpio.Dispose();
+        foreach (var resource in disposables)
+        {
+            resource.Dispose();
+        }
+
+        disposables.Clear();
     }
 
     //--------------------------------------------------------------------------------
@@ -77,6 +84,13 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Helper
     //--------------------------------------------------------------------------------
 
+    private T Own<T>(T resource)
+        where T : IDisposable
+    {
+        disposables.Add(resource);
+        return resource;
+    }
+
     private KeyValuePair<string, object?>[] MakeTags(params KeyValuePair<string, object?>[] options)
     {
         if (options.Length == 0)
@@ -98,34 +112,26 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Temperature
     //--------------------------------------------------------------------------------
 
-    private void SetupVcioTemperatureMetric(IMetricManager manager)
+    private void SetupVcioTemperatureMetric(IMetricManager manager, VcioMonitor vcio)
     {
         var metric = manager.CreateGauge("hardware_vcio_temperature");
-        updateEntries.Add(MakeEntry(vcio.ReadTemperature, metric.Create(MakeTags())));
+        updateEntries.Add(MakeEntry(() => vcio.Temperature, metric.Create(MakeTags())));
     }
 
     //--------------------------------------------------------------------------------
     // Frequency
     //--------------------------------------------------------------------------------
 
-    private void SetupVcioFrequencyMetric(IMetricManager manager)
+    private void SetupVcioFrequencyMetric(IMetricManager manager, VcioMonitor vcio)
     {
         var metric = manager.CreateGauge("hardware_vcio_frequency");
 
-        foreach (var clock in Enum.GetValues<ClockType>())
+        foreach (var clock in vcio.Clocks)
         {
 #pragma warning disable CA1308
-            var name = clock.ToString().ToLowerInvariant();
+            var name = clock.Type.ToString().ToLowerInvariant();
 #pragma warning restore CA1308
-            updateEntries.Add(MakeEntry(() =>
-            {
-                var frequency = vcio.ReadFrequency(clock, measured: true);
-                if (Double.IsNaN(frequency))
-                {
-                    frequency = vcio.ReadFrequency(clock, measured: false);
-                }
-                return frequency;
-            }, metric.Create(MakeTags([new("name", name)]))));
+            updateEntries.Add(MakeEntry(() => clock.Frequency, metric.Create(MakeTags([new("name", name)]))));
         }
     }
 
@@ -133,16 +139,16 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Voltage
     //--------------------------------------------------------------------------------
 
-    private void SetupVcioVoltageMetric(IMetricManager manager)
+    private void SetupVcioVoltageMetric(IMetricManager manager, VcioMonitor vcio)
     {
         var metric = manager.CreateGauge("hardware_vcio_voltage");
 
-        foreach (var voltage in Enum.GetValues<VoltageType>())
+        foreach (var voltage in vcio.Voltages)
         {
 #pragma warning disable CA1308
-            var name = voltage.ToString().ToLowerInvariant();
+            var name = voltage.Type.ToString().ToLowerInvariant();
 #pragma warning restore CA1308
-            updateEntries.Add(MakeEntry(() => vcio.ReadVoltage(voltage), metric.Create(MakeTags([new("name", name)]))));
+            updateEntries.Add(MakeEntry(() => voltage.Voltage, metric.Create(MakeTags([new("name", name)]))));
         }
     }
 
@@ -150,7 +156,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
     // Throttled
     //--------------------------------------------------------------------------------
 
-    private void SetupVcioThrottledMetric(IMetricManager manager)
+    private void SetupVcioThrottledMetric(IMetricManager manager, VcioMonitor vcio)
     {
         var metric = manager.CreateGauge("hardware_vcio_throttled");
 
@@ -161,7 +167,7 @@ internal sealed class RaspberryInstrumentation : IDisposable
 
         updateEntries.Add(() =>
         {
-            var throttled = vcio.ReadThrottled();
+            var throttled = vcio.Throttled;
             gaugeUnderVoltage.Value = (throttled & ThrottledFlags.UnderVoltageDetected) != 0 ? 1 : 0;
             gaugeFrequencyCapped.Value = (throttled & ThrottledFlags.ArmFrequencyCapped) != 0 ? 1 : 0;
             gaugeCurrentlyThrottled.Value = (throttled & ThrottledFlags.CurrentlyThrottled) != 0 ? 1 : 0;
@@ -170,27 +176,16 @@ internal sealed class RaspberryInstrumentation : IDisposable
     }
 
     //--------------------------------------------------------------------------------
-    // Throttled
+    // GPIO
     //--------------------------------------------------------------------------------
 
-    private void SetupGpioLevelMetric(IMetricManager manager)
+    private void SetupGpioLevelMetric(IMetricManager manager, GpioMonitor gpio)
     {
         var metric = manager.CreateGauge("hardware_gpio_level");
 
-        var gauges = new Dictionary<int, IMetricSeries>();
-
-        updateEntries.Add(() =>
+        foreach (var pin in gpio.Pins)
         {
-            foreach (var pin in gpio.ReadHeaderGpioPins())
-            {
-                if (!gauges.TryGetValue(pin.PhysicalPin, out var gauge))
-                {
-                    gauge = metric.Create(MakeTags([new("name", pin.PhysicalPin)]));
-                    gauges[pin.PhysicalPin] = gauge;
-                }
-
-                gauge.Value = pin.Level;
-            }
-        });
+            updateEntries.Add(MakeEntry(() => pin.Level, metric.Create(MakeTags([new("name", pin.PhysicalPin)]))));
+        }
     }
 }

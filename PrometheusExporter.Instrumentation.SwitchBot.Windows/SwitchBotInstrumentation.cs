@@ -80,7 +80,7 @@ internal sealed class SwitchBotInstrumentation : IDisposable
         {
             lock (sync)
             {
-                var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
+                var device = FindDevice(args.BluetoothAddress);
                 if (device is null)
                 {
                     return;
@@ -129,6 +129,19 @@ internal sealed class SwitchBotInstrumentation : IDisposable
     //--------------------------------------------------------------------------------
     // Helper
     //--------------------------------------------------------------------------------
+
+    private Device? FindDevice(ulong address)
+    {
+        foreach (var device in devices)
+        {
+            if (device.Address == address)
+            {
+                return device;
+            }
+        }
+
+        return null;
+    }
 
     private static KeyValuePair<string, object?>[] MakeTags(string address, string name) =>
         [new("model", "switchbot"), new("address", address), new("name", name)];

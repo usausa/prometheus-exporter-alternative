@@ -24,7 +24,6 @@ internal sealed class ResponseBuffer<T> : IBufferWriter<T>, IDisposable
     public ResponseBuffer(int initialCapacity)
     {
         buffer = ArrayPool<T>.Shared.Rent(initialCapacity);
-        buffer.AsSpan().Clear();
     }
 
     public void Dispose()

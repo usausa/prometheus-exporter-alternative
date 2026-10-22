@@ -5,8 +5,12 @@ using System.Text.RegularExpressions;
 
 using PrometheusExporter.Abstractions;
 
-internal sealed class HyperVInstrumentation
+internal sealed class HyperVInstrumentation : IDisposable
 {
+    private const string Namespace = @"root\virtualization\v2";
+
+    private const string Query = "SELECT * FROM Msvm_SummaryInformation";
+
     private readonly string host;
 
     private readonly TimeSpan updateDuration;
@@ -26,6 +30,8 @@ internal sealed class HyperVInstrumentation
     private readonly IMetric uptimeMetric;
 
     private readonly List<VirtualMachine> virtualMachines = [];
+
+    private ManagementObjectSearcher? searcher;
 
     private DateTime lastUpdate;
 
@@ -50,6 +56,12 @@ internal sealed class HyperVInstrumentation
         manager.AddBeforeCollectCallback(Update);
     }
 
+    public void Dispose()
+    {
+        searcher?.Dispose();
+        searcher = null;
+    }
+
     //--------------------------------------------------------------------------------
     // Event
     //--------------------------------------------------------------------------------
@@ -69,8 +81,36 @@ internal sealed class HyperVInstrumentation
         }
 
         // Update
-        using var searcher = new ManagementObjectSearcher(@"root\virtualization\v2", "SELECT * FROM Msvm_SummaryInformation");
-        foreach (var mo in searcher.Get())
+        searcher ??= new ManagementObjectSearcher(Namespace, Query);
+        try
+        {
+            UpdateCore();
+        }
+        catch
+        {
+            searcher.Dispose();
+            searcher = null;
+            throw;
+        }
+
+        countSeries.Value = virtualMachines.Count;
+
+        for (var i = virtualMachines.Count - 1; i >= 0; i--)
+        {
+            var vm = virtualMachines[i];
+            if (!vm.Detected)
+            {
+                virtualMachines.RemoveAt(i);
+                vm.Unregister();
+            }
+        }
+
+        lastUpdate = now;
+    }
+
+    private void UpdateCore()
+    {
+        foreach (var mo in searcher!.Get())
         {
             var guid = (string)mo["Name"];
             var name = (string)mo["ElementName"];
@@ -130,21 +170,6 @@ internal sealed class HyperVInstrumentation
                 vm.Uptime.Value = double.NaN;
             }
         }
-
-        countSeries.Value = virtualMachines.Count;
-
-        // Post update
-        for (var i = virtualMachines.Count - 1; i >= 0; i--)
-        {
-            var vm = virtualMachines[i];
-            if (!vm.Detected)
-            {
-                virtualMachines.RemoveAt(i);
-                vm.Unregister();
-            }
-        }
-
-        lastUpdate = now;
     }
 
     //--------------------------------------------------------------------------------

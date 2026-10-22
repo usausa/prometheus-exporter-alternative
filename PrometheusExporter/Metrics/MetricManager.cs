@@ -70,7 +70,10 @@ internal sealed class MetricManager : IMetricManager, IDisposable
                 callback();
             }
 
-            await Task.WhenAll(beforeCollectAsyncCallbacks.Select(callback => callback(cancel))).ConfigureAwait(false);
+            if (beforeCollectAsyncCallbacks.Count > 0)
+            {
+                await Task.WhenAll(beforeCollectAsyncCallbacks.Select(callback => callback(cancel))).ConfigureAwait(false);
+            }
 
             foreach (var gauge in gauges)
             {

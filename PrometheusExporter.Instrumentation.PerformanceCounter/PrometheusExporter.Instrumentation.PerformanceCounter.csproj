@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0-windows</TargetFrameworks>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

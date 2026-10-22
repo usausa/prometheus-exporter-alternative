@@ -84,10 +84,10 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
         {
             lock (sync)
             {
-                var device = devices.FirstOrDefault(x => x.Path == args.DevicePath);
+                var device = FindByPath(args.DevicePath);
                 if ((device is null) && (args.Address is not null))
                 {
-                    device = devices.FirstOrDefault(x => x.Address == args.Address);
+                    device = FindByAddress(args.Address);
                     device?.Path = args.DevicePath;
                 }
 
@@ -129,6 +129,32 @@ internal sealed class SwitchBotInstrumentation : IAsyncDisposable
     //--------------------------------------------------------------------------------
     // Helper
     //--------------------------------------------------------------------------------
+
+    private Device? FindByPath(string path)
+    {
+        foreach (var device in devices)
+        {
+            if (device.Path == path)
+            {
+                return device;
+            }
+        }
+
+        return null;
+    }
+
+    private Device? FindByAddress(string address)
+    {
+        foreach (var device in devices)
+        {
+            if (device.Address == address)
+            {
+                return device;
+            }
+        }
+
+        return null;
+    }
 
     private static KeyValuePair<string, object?>[] MakeTags(string address, string name) =>
         [new("model", "switchbot"), new("address", address), new("name", name)];

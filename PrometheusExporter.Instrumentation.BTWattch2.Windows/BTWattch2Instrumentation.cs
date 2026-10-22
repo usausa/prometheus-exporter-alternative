@@ -67,7 +67,7 @@ internal sealed class BTWattch2Instrumentation : IDisposable
         {
             lock (sync)
             {
-                var device = devices.FirstOrDefault(x => x.Address == args.BluetoothAddress);
+                var device = FindDevice(args.BluetoothAddress);
                 if (device is null)
                 {
                     return;
@@ -105,6 +105,19 @@ internal sealed class BTWattch2Instrumentation : IDisposable
     //--------------------------------------------------------------------------------
     // Helper
     //--------------------------------------------------------------------------------
+
+    private Device? FindDevice(ulong address)
+    {
+        foreach (var device in devices)
+        {
+            if (device.Address == address)
+            {
+                return device;
+            }
+        }
+
+        return null;
+    }
 
     private static ulong NormalizeAddress(string address) =>
         Convert.ToUInt64(

@@ -29,6 +29,12 @@
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <Build Solution="DebugMac|*" Project="false" />
     </Project>
+    <Project Path="PrometheusExporter.Infrastructure.Windows.Pdh/PrometheusExporter.Infrastructure.Windows.Pdh.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugLinux|*" Project="false" />
+      <Build Solution="DebugMac|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/Instrumentation/" />
   <Folder Name="/Instrumentation/Environment/">
@@ -139,6 +145,12 @@
       <Build Solution="DebugMac|*" Project="false" />
     </Project>
     <Project Path="PrometheusExporter.Instrumentation.HyperV/PrometheusExporter.Instrumentation.HyperV.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugLinux|*" Project="false" />
+      <Build Solution="DebugMac|*" Project="false" />
+    </Project>
+    <Project Path="PrometheusExporter.Instrumentation.Npu.Windows/PrometheusExporter.Instrumentation.Npu.Windows.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
       <Build Solution="DebugLinux|*" Project="false" />

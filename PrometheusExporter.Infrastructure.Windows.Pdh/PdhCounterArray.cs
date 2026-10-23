@@ -1,4 +1,4 @@
-namespace PrometheusExporter.Instrumentation.PerformanceCounter;
+namespace PrometheusExporter.Infrastructure.Windows.Pdh;
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -13,7 +13,7 @@ internal readonly struct PdhCounterItem
     public readonly double Value;
 }
 
-internal sealed class PdhCounterArray
+public sealed class PdhCounterArray
 {
     private const uint Format = NativeMethods.PdhFmtDouble | NativeMethods.PdhFmtNoCap100;
 
@@ -23,7 +23,7 @@ internal sealed class PdhCounterArray
 
     private uint bufferSize;
 
-    public PdhCounterArray(string path, nint counter)
+    internal PdhCounterArray(string path, nint counter)
     {
         Path = path;
         this.counter = counter;
@@ -53,7 +53,7 @@ internal sealed class PdhCounterArray
         return (status == NativeMethods.PdhCStatusValidData) || (status == NativeMethods.PdhCStatusNewData);
     }
 
-    public bool Read()
+    internal bool Read()
     {
         Count = 0;
 
@@ -77,12 +77,9 @@ internal sealed class PdhCounterArray
 
     private uint ReadCore(ref uint size, out uint count)
     {
-        unsafe
+        fixed (byte* pointer = buffer)
         {
-            fixed (byte* pointer = buffer)
-            {
-                return NativeMethods.PdhGetFormattedCounterArrayW(counter, Format, ref size, out count, (nint)pointer);
-            }
+            return NativeMethods.PdhGetFormattedCounterArrayW(counter, Format, ref size, out count, (nint)pointer);
         }
     }
 }

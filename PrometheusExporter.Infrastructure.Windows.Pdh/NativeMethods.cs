@@ -1,4 +1,4 @@
-namespace PrometheusExporter.Instrumentation.PerformanceCounter;
+namespace PrometheusExporter.Infrastructure.Windows.Pdh;
 
 using System.Runtime.InteropServices;
 
@@ -6,7 +6,6 @@ internal static partial class NativeMethods
 {
     public const uint PdhFmtDouble = 0x00000200;
 
-    // Without this flag PDH clamps the formatted value at 100, which breaks a sum of several instances
     public const uint PdhFmtNoCap100 = 0x00008000;
 
     public const uint PdhCStatusValidData = 0x00000000;

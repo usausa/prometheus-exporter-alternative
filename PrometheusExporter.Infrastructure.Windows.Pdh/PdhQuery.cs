@@ -1,6 +1,6 @@
-namespace PrometheusExporter.Instrumentation.PerformanceCounter;
+namespace PrometheusExporter.Infrastructure.Windows.Pdh;
 
-internal sealed class PdhQuery : IDisposable
+public sealed class PdhQuery : IDisposable
 {
     private readonly List<PdhCounterArray> counters = [];
 

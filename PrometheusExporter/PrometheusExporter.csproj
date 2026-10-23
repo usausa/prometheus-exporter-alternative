@@ -30,6 +30,7 @@
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.DiskInfo.Windows\PrometheusExporter.Instrumentation.DiskInfo.Windows.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HardwareMonitor\PrometheusExporter.Instrumentation.HardwareMonitor.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.HyperV\PrometheusExporter.Instrumentation.HyperV.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.Npu.Windows\PrometheusExporter.Instrumentation.Npu.Windows.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.PerformanceCounter\PrometheusExporter.Instrumentation.PerformanceCounter.csproj" />
   </ItemGroup>
 

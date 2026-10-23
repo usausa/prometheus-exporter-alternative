@@ -134,6 +134,16 @@ hyperv_vm_memory_usage
 hyperv_vm_uptime
 ```
 
+## NPU
+
+```
+hardware_npu_information
+hardware_npu_load
+hardware_npu_load_average
+hardware_npu_context_count
+hardware_npu_context_time
+```
+
 ## Linux
 
 ```

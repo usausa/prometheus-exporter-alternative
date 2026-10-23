@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 
 using PrometheusExporter.Abstractions;
+using PrometheusExporter.Infrastructure.Windows.Pdh;
 
 internal sealed class PerformanceCounterInstrumentation : IDisposable
 {

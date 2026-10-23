@@ -9,8 +9,6 @@ using PrometheusExporter.Infrastructure.Windows.Pdh;
 
 internal sealed class PerformanceCounterInstrumentation : IDisposable
 {
-    private readonly string host;
-
     private readonly TimeSpan updateDuration;
 
     private readonly PdhQuery query;
@@ -24,7 +22,7 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
         IInstrumentationEnvironment environment,
         IMetricManager manager)
     {
-        host = environment.Host;
+        var host = environment.Host;
         updateDuration = TimeSpan.FromMilliseconds(options.UpdateDuration);
 
         query = PdhQuery.Create() ?? throw new InvalidOperationException("Counter query could not be opened.");

@@ -27,7 +27,6 @@ internal sealed class BTWattch2Instrumentation : IDisposable
         var currentMetric = manager.CreateGauge("sensor_current");
         var voltageMetric = manager.CreateGauge("sensor_voltage");
 
-#pragma warning disable IDE0028
         devices = options.Device
             .Select(x =>
             {
@@ -40,7 +39,6 @@ internal sealed class BTWattch2Instrumentation : IDisposable
                     voltageMetric.Create(tags));
             })
             .ToArray();
-#pragma warning restore IDE0028
 
         manager.AddBeforeCollectCallback(Update);
 

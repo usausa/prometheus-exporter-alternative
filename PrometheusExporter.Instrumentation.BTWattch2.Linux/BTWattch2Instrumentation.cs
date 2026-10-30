@@ -20,7 +20,6 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
         var currentMetric = manager.CreateGauge("sensor_current");
         var voltageMetric = manager.CreateGauge("sensor_voltage");
 
-#pragma warning disable IDE0028
         devices = options.Device
             .Select(x =>
             {
@@ -33,7 +32,6 @@ internal sealed class BTWattch2Instrumentation : IAsyncDisposable
                     voltageMetric.Create(tags));
             })
             .ToArray();
-#pragma warning restore IDE0028
 
 #pragma warning disable CA2012
         session = BleScanSession.CreateAsync().GetAwaiter().GetResult();

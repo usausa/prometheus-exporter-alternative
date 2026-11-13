@@ -108,7 +108,7 @@ internal sealed class PerformanceCounterInstrumentation : IDisposable
             yield break;
         }
 
-        Array.Sort(names);
+        Array.Sort(names, StringComparer.Ordinal);
         foreach (var name in names)
         {
             yield return MakePath(entry.Category, entry.Counter, name);

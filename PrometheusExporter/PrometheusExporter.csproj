@@ -68,4 +68,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.13.0" />
+  </ItemGroup>
+
 </Project>

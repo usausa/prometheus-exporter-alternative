@@ -14,4 +14,8 @@
     <PackageReference Include="RaspberryDotNet.SystemInfo" Version="2.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.13.0" />
+  </ItemGroup>
+
 </Project>

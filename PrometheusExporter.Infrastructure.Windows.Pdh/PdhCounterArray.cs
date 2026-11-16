@@ -37,13 +37,8 @@ public sealed class PdhCounterArray
     private ReadOnlySpan<PdhCounterItem> Items =>
         MemoryMarshal.Cast<byte, PdhCounterItem>(buffer.AsSpan(0, Count * Unsafe.SizeOf<PdhCounterItem>()));
 
-    public ReadOnlySpan<char> GetName(int index)
-    {
-        unsafe
-        {
-            return MemoryMarshal.CreateReadOnlySpanFromNullTerminated((char*)Items[index].NamePointer);
-        }
-    }
+    public ReadOnlySpan<char> GetName(int index) =>
+        MemoryMarshal.CreateReadOnlySpanFromNullTerminated((char*)Items[index].NamePointer);
 
     public double GetValue(int index) => Items[index].Value;
 

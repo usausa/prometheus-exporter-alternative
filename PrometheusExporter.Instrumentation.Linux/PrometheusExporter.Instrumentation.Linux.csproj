@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
@@ -10,12 +10,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LinuxDotNet.SystemInfo" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageReference Include="LinuxDotNet.SystemInfo" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.13.0" />
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

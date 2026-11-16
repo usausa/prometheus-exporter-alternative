@@ -30,11 +30,11 @@ internal sealed class ExporterWorker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var path = options.ScrapePath;
-        if (!path.StartsWith('/'))
+        if (!path.StartsWith('/', StringComparison.Ordinal))
         {
             path = $"/{path}";
         }
-        if (!path.EndsWith('/'))
+        if (!path.EndsWith('/', StringComparison.Ordinal))
         {
             path = $"{path}/";
         }

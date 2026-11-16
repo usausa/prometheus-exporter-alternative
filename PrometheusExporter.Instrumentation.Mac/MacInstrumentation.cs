@@ -146,7 +146,7 @@ internal sealed class MacInstrumentation : IDisposable
     }
 
     private static bool IsTarget(IEnumerable<string> targets, string name) =>
-        targets.Any(x => (x == "*") || (x == name) || (x.EndsWith('*') && name.StartsWith(x[..^1], StringComparison.Ordinal)));
+        targets.Any(x => (x == "*") || (x == name) || (x.EndsWith('*', StringComparison.Ordinal) && name.StartsWith(x[..^1], StringComparison.Ordinal)));
 
     private static Action MakeEntry(Func<double> measurement, IMetricSeries series)
     {

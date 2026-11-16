@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0</TargetFrameworks>
+    <TargetFrameworks>net11.0</TargetFrameworks>
     <RootNamespace>PrometheusExporter.Instrumentation.DiskInfo</RootNamespace>
     <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -11,12 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MacDotNet.Disk" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageReference Include="MacDotNet.Disk" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="1.13.0" />
+    <PackageReference Update="Usa.Smart.Analyzers.JapaneseComment" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

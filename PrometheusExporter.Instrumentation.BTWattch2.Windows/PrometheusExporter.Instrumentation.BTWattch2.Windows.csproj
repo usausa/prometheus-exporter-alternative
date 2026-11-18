@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>net11.0-windows10.0.26100.0</TargetFrameworks>
     <RootNamespace>PrometheusExporter.Instrumentation.BTWattch2</RootNamespace>
-    <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>

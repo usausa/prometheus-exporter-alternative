@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>net11.0</TargetFrameworks>
     <RootNamespace>PrometheusExporter.Instrumentation.Ble</RootNamespace>
-    <CodeAnalysisRuleSet>..\Analyzers.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>

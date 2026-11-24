@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net11.0</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net11.0-windows10.0.26100.0</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net11.0-windows10.0.26100.0;$(TargetFrameworks)</TargetFrameworks>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <UserSecretsId>a43540ca-94ec-411c-8add-55fa9b5eb5b4</UserSecretsId>

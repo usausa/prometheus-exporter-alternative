@@ -254,6 +254,17 @@ ble_rssi
 wifi_rssi
 ```
 
+## Device battery
+
+for Logitech HID++ and Bluetooth devices ([DeviceLib.Battery](https://github.com/usausa/devicelib-battery))
+
+```
+device_battery_level
+device_battery_charging
+device_battery_voltage
+device_battery_connected
+```
+
 # Gallery
 
 ![Power](https://github.com/usausa/prometheus-exporter-alternative/blob/main/Document/power.png)

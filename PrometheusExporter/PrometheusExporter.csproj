@@ -21,6 +21,7 @@
   <ItemGroup Condition="'$(BuildPlatform)' == 'windows'">
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Ble.Windows\PrometheusExporter.Instrumentation.Ble.Windows.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.BTWattch2.Windows\PrometheusExporter.Instrumentation.BTWattch2.Windows.csproj" />
+    <ProjectReference Include="..\PrometheusExporter.Instrumentation.DeviceBattery.Windows\PrometheusExporter.Instrumentation.DeviceBattery.Windows.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.SwitchBot.Windows\PrometheusExporter.Instrumentation.SwitchBot.Windows.csproj" />
     <ProjectReference Include="..\PrometheusExporter.Instrumentation.Wifi\PrometheusExporter.Instrumentation.Wifi.csproj" />
   </ItemGroup>

@@ -84,6 +84,12 @@
       <Build Solution="DebugLinux|*" Project="false" />
       <Build Solution="DebugMac|*" Project="false" />
     </Project>
+    <Project Path="PrometheusExporter.Instrumentation.DeviceBattery.Windows/PrometheusExporter.Instrumentation.DeviceBattery.Windows.csproj">
+      <BuildType Solution="DebugLinux|*" Project="Debug" />
+      <BuildType Solution="DebugMac|*" Project="Debug" />
+      <Build Solution="DebugLinux|*" Project="false" />
+      <Build Solution="DebugMac|*" Project="false" />
+    </Project>
     <Project Path="PrometheusExporter.Instrumentation.SwitchBot.Windows/PrometheusExporter.Instrumentation.SwitchBot.Windows.csproj">
       <BuildType Solution="DebugLinux|*" Project="Debug" />
       <BuildType Solution="DebugMac|*" Project="Debug" />
